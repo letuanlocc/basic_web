@@ -3,15 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Basic Web</title>
+  <title>CaRảnh · Việc làm part-time</title>
   <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body>
-  <header><h1>Basic Web</h1></header>
-  <main>
-    <h2>Việc đang tuyển</h2>
-    <ul id="products"></ul>
-  </main>
-  <script src="/js/main.js"></script>
+<div class="page">
+
+<div data-layout="guest"></div>
+<main class="stack">
+  <section class="panel" aria-labelledby="flt" style="flex-direction:row;flex-wrap:wrap;align-items:center;padding:14px 16px;gap:10px 16px">
+    <h2 id="flt" style="font-size:14px;font-weight:600;color:var(--text-2)">Lọc và sắp xếp</h2>
+    <div class="chips scroll-x" role="group" aria-label="Lọc việc"><button type="button" class="chip " aria-pressed="true" data-todo="Bộ lọc: Tất cả">Tất cả</button>
+<button type="button" class="chip " aria-pressed="false" data-todo="Bộ lọc: Online">Online</button>
+<button type="button" class="chip " aria-pressed="false" data-todo="Bộ lọc: Offline">Offline</button>
+<button type="button" class="chip " aria-pressed="false" data-todo="Bộ lọc: Lương cao nhất">Lương cao nhất</button></div>
+  </section>
+  <section aria-labelledby="jobs-h" style="display:flex;flex-direction:column;gap:16px">
+    <div class="title-row"><h1 id="jobs-h">Việc làm mới nhất</h1><span class="muted small">0 việc</span></div>
+    <div class="empty" role="status"><strong style="font-size:16px">Chưa có dữ liệu</strong></div>
+  </section>
+</main>
+<footer class="foot"><div class="wrap"><span>© CaRảnh · Bản quyền thuộc nhóm phát triển</span><a href="overview.html">Tìm hiểu các chức năng</a></div></footer>
+</div>
+<script src="/js/main.js"></script>
 </body>
 </html>

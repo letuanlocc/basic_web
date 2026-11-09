@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cập nhật hồ sơ nhà tuyển dụng · CaRảnh</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+<div class="page">
+
+<div data-layout="plain"></div>
+<main class="stack-lg">
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Trang chủ</a> → <a href="register.html">Đăng ký</a> → <span>Cập nhật hồ sơ nhà tuyển dụng</span></nav>
+  <form class="form-card" style="align-self:center;max-width:720px;gap:20px">
+    <div><p class="eyebrow">Bước 2/2 · Nhà tuyển dụng</p><h1>Thông tin công ty / cửa hàng</h1><p class="lead">Ứng viên sẽ thấy thông tin này trên mọi tin tuyển dụng của bạn.</p></div>
+    <div class="field"><label for="shop">Tên công ty / cửa hàng</label><input id="shop" type="text" placeholder="Ví dụ: Quán cà phê Mộc" ></div>
+    <fieldset><legend>Hình thức làm việc</legend><div class="chips"><button type="button" class="chip lg solid" aria-pressed="true" data-todo="Hình thức">Offline</button><button type="button" class="chip lg solid" aria-pressed="false" data-todo="Hình thức">Online</button><button type="button" class="chip lg solid" aria-pressed="false" data-todo="Hình thức">Cả hai</button></div></fieldset>
+    <div class="field"><label for="field">Lĩnh vực làm việc</label><select id="field"><option>Chọn lĩnh vực</option><option>Ăn uống – F&amp;B</option><option>Bán lẻ</option><option>Giáo dục – gia sư</option><option>Văn phòng – nhập liệu</option><option>Sáng tạo nội dung</option></select></div>
+    <div class="cols" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr))">
+      <div class="field"><label for="city">Tỉnh / thành phố</label><select id="city"><option>Đà Nẵng</option><option>Hà Nội</option><option>TP. Hồ Chí Minh</option></select></div>
+      <div class="field"><label for="ward">Phường / xã</label><input id="ward" type="text" placeholder="Ví dụ: Phường Hải Châu" ></div>
+      <div class="field"><label for="addr">Địa chỉ cụ thể</label><input id="addr" type="text" placeholder="Số nhà, đường" ></div>
+      <div class="field"><label for="sp">SĐT cửa hàng</label><input id="sp" type="tel" placeholder="10 số" ></div>
+      <div class="field full"><label for="web">Website / fanpage</label><input id="web" type="url" placeholder="https://" ></div>
+    </div>
+    <div class="field"><span class="lab">Ảnh nơi làm việc (mặt tiền, khu vực làm việc, quầy)</span>
+      <div class="cols" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:12px">
+        <button type="button" class="drop" data-todo="Tải ảnh">+ Mặt tiền cửa hàng</button><button type="button" class="drop" data-todo="Tải ảnh">+ Khu vực làm việc</button><button type="button" class="drop" data-todo="Tải ảnh">+ Quầy / bên trong</button></div></div>
+    <p class="msg info">Bạn có thể bỏ qua và điền sau ở <strong>Hồ sơ cửa hàng</strong> (bấm vào tên quán trên thanh đầu trang). Cần đủ tên, hình thức, lĩnh vực, địa chỉ, SĐT và ít nhất 1 ảnh nơi làm việc thì mới đăng được tin tuyển. Các thông tin này hiện ở mục "4. Thông tin nhà tuyển dụng" trên mọi tin bạn đăng.</p>
+    <div class="form-actions"><a class="btn btn-lg" href="candidates.html" style="font-weight:700">Bỏ qua</a><button type="submit" class="btn btn-primary btn-lg" data-todo="Lưu hồ sơ">Tiếp tục</button></div>
+  </form>
+</main>
+</div>
+<script src="/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Đăng nhập · CaRảnh</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+<div class="page">
+
+<div data-layout="plain" data-cta="register"></div>
+<main class="stack-lg">
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Trang chủ</a> → <span>Đăng nhập</span></nav>
+  <div class="row" style="justify-content:center;align-items:flex-start;gap:24px">
+    <form class="form-card" style="flex:1 1 360px;max-width:440px">
+      <div><h1>Chào mừng quay lại</h1><p class="lead">Đăng nhập để xem chi tiết công việc, ứng tuyển và đăng ký lịch làm.</p></div>
+      <div class="field"><label for="acc">Email hoặc số điện thoại</label><input id="acc" type="text" placeholder="ví dụ: ban@email.com" autocomplete="username"></div>
+      <div class="field"><div class="row between" style="align-items:baseline"><label for="pw">Mật khẩu</label><button type="button" class="link-btn" data-todo="Quên mật khẩu">Quên mật khẩu?</button></div><input id="pw" type="password" placeholder="••••••" autocomplete="current-password"></div>
+      <button type="submit" class="btn btn-primary btn-lg" data-todo="Đăng nhập">Đăng nhập</button>
+      <p class="muted small" style="margin:0;text-align:center">Bạn chưa có tài khoản? <a href="register.html" style="font-weight:700">Đăng ký ngay</a></p>
+    </form>
+    <aside class="demo" aria-labelledby="demo">
+      <h2 id="demo" style="margin:0;font-size:18px">Xem trước giao diện</h2>
+      <p class="small muted" style="margin:0">Chưa có xử lý đăng nhập. Dùng các nút dưới để xem giao diện từng vai trò.</p>
+      <a class="btn btn-soft" href="jobs.html">Giao diện người tìm việc</a>
+      <a class="btn btn-soft" href="candidates.html">Giao diện nhà tuyển dụng</a>
+    </aside>
+  </div>
+</main>
+</div>
+<script src="/js/main.js"></script>
+</body>
+</html>

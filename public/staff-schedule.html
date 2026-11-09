@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lịch làm của nhân viên · CaRảnh</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+<div class="page">
+
+<div data-layout="employer" data-active="staff"></div>
+<main class="stack">
+  <h1 style="margin:0;font-size:26px">Lịch làm của nhân viên</h1>
+  <div class="tabs pill" role="tablist"><button type="button" role="tab" aria-selected="true" data-todo="Đổi tuần">Tuần này</button><button type="button" role="tab" aria-selected="false" data-todo="Đổi tuần">Tuần sau</button></div>
+  <div class="empty" role="status"><strong style="font-size:16px">Chưa có dữ liệu</strong><span class="muted small">Chưa có vị trí hoặc nhân viên nào.</span></div>
+  <section class="panel"><div class="field"><label for="rule">Ghi chú quy định cho nhân viên</label><textarea id="rule" rows="3" placeholder="Ví dụ: Đăng ký ca cho tuần sau trước tối Chủ nhật."></textarea></div>
+    <div class="row" style="justify-content:flex-end"><button type="button" class="btn btn-primary" data-todo="Lưu ghi chú">Lưu ghi chú</button></div></section>
+</main>
+<footer class="foot"><div class="wrap"><span>© CaRảnh · Bản quyền thuộc nhóm phát triển</span><a href="overview.html">Tìm hiểu các chức năng</a></div></footer>
+</div>
+<script src="/js/main.js"></script>
+</body>
+</html>
