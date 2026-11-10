@@ -133,8 +133,10 @@
   });
   // form không gửi đi đâu cả
   document.addEventListener('submit', function (e) {
+    var f = e.target;
+    if (f.hasAttribute('data-auth')) return;
     e.preventDefault();
-    var f = e.target, t = f.querySelector('[data-todo]');
+    var t = f.querySelector('[data-todo]');
     if (t) t.click(); else window.crDialog('Tính năng chưa có sẵn', 'Biểu mẫu này chưa xử lý dữ liệu.');
   });
 
