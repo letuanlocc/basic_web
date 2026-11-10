@@ -6,28 +6,29 @@
   <title>Ứng viên tiềm năng · CaRảnh</title>
   <link rel="stylesheet" href="/css/style.css" />
 </head>
-<body>
+<body data-page="candidates">
 <div class="page">
 
 <div data-layout="employer" data-active="candidates"></div>
 <main class="stack">
   <section class="panel" aria-labelledby="flt">
-    <div class="row between"><h2 id="flt">Lọc và sắp xếp ứng viên</h2><button type="button" class="btn btn-sm" data-todo="Xóa bộ lọc">Xóa bộ lọc</button></div>
+    <div class="row between"><h2 id="flt">Lọc và sắp xếp ứng viên</h2><button type="button" class="btn btn-sm" id="freset">Xóa bộ lọc</button></div>
     <div class="cols" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));align-items:end">
-      <fieldset><legend>Hình thức muốn làm</legend><div class="chips"><button type="button" class="chip" aria-pressed="false" data-todo="Lọc Online">Online</button><button type="button" class="chip" aria-pressed="false" data-todo="Lọc Offline">Offline</button><button type="button" class="chip" aria-pressed="false" data-todo="Lọc Cả hai">Cả hai</button></div></fieldset>
-      <fieldset><legend>Thời gian rảnh (chọn nhiều)</legend><div class="chips"><button type="button" class="chip" aria-pressed="false" data-todo="Lọc Sáng">Sáng</button><button type="button" class="chip" aria-pressed="false" data-todo="Lọc Chiều">Chiều</button><button type="button" class="chip" aria-pressed="false" data-todo="Lọc Tối">Tối</button><button type="button" class="chip" aria-pressed="false" data-todo="Lọc Cuối tuần">Cuối tuần</button></div></fieldset>
-      <div class="field"><label for="fexp">Kinh nghiệm</label><select id="fexp"><option>Tất cả</option><option>Đã có kinh nghiệm</option><option>Chưa có kinh nghiệm</option></select></div>
-      <div class="field"><label for="farea">Khu vực (nơi cư trú)</label><select id="farea"><option>Tất cả khu vực</option><option>Hải Châu</option><option>Thanh Khê</option><option>Sơn Trà</option><option>Liên Chiểu</option><option>Ngũ Hành Sơn</option></select></div>
-      <div class="field"><label for="flang">Trình độ ngoại ngữ</label><select id="flang"><option>Không yêu cầu</option><option>Từ giao tiếp cơ bản</option><option>Từ khá</option><option>Tốt</option></select></div>
-      <div class="field"><label for="fsort">Sắp xếp</label><select id="fsort"><option>Mới cập nhật hồ sơ</option><option>Có kinh nghiệm trước</option><option>Tuổi tăng dần</option></select></div>
+      <fieldset><legend>Hình thức muốn làm</legend><div class="chips"><button type="button" class="chip" aria-pressed="false" data-mode="online">Online</button><button type="button" class="chip" aria-pressed="false" data-mode="offline">Offline</button><button type="button" class="chip" aria-pressed="false" data-mode="both">Cả hai</button></div></fieldset>
+      <fieldset><legend>Thời gian rảnh (chọn nhiều)</legend><div class="chips"><button type="button" class="chip" aria-pressed="false" data-slot="morning">Sáng</button><button type="button" class="chip" aria-pressed="false" data-slot="afternoon">Chiều</button><button type="button" class="chip" aria-pressed="false" data-slot="evening">Tối</button><button type="button" class="chip" aria-pressed="false" data-slot="weekend">Cuối tuần</button></div></fieldset>
+      <div class="field"><label for="fexp">Kinh nghiệm</label><select id="fexp"><option value="">Tất cả</option><option value="true">Đã có kinh nghiệm</option><option value="false">Chưa có kinh nghiệm</option></select></div>
+      <div class="field"><label for="farea">Khu vực (nơi cư trú)</label><select id="farea"><option value="">Tất cả khu vực</option><option>Hải Châu</option><option>Thanh Khê</option><option>Sơn Trà</option><option>Liên Chiểu</option><option>Ngũ Hành Sơn</option></select></div>
+      <div class="field"><label for="flang">Trình độ ngoại ngữ</label><select id="flang"><option value="0">Không yêu cầu</option><option value="1">Từ giao tiếp cơ bản</option><option value="2">Từ khá</option><option value="3">Tốt</option></select></div>
+      <div class="field"><label for="fsort">Sắp xếp</label><select id="fsort"><option value="updated">Mới cập nhật hồ sơ</option><option value="experience">Có kinh nghiệm trước</option><option value="age">Tuổi tăng dần</option></select></div>
     </div>
   </section>
-  <div class="title-row"><h1>Những ứng viên tiềm năng</h1><span class="muted small">0 ứng viên</span></div>
-  <div class="empty" role="status"><strong style="font-size:16px">Chưa có dữ liệu</strong></div>
+  <div class="title-row"><h1>Những ứng viên tiềm năng</h1><span class="muted small" id="ccount"></span></div>
+  <div id="clist"><p class="muted">Đang tải…</p></div>
 </main>
 <footer class="foot"><div class="wrap"><span>© CaRảnh · Bản quyền thuộc nhóm phát triển</span><a href="overview.html">Tìm hiểu các chức năng</a></div></footer>
 </div>
 <script src="/js/main.js"></script>
 <script src="/js/auth.js"></script>
+<script src="/js/candidates.js"></script>
 </body>
 </html>

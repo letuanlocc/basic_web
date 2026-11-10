@@ -1,6 +1,6 @@
 // CaRảnh – việc làm: danh sách, chi tiết + ứng tuyển, công việc của tôi, đăng tin, quản lý tin (nhà tuyển dụng)
 (function () {
-  var A = window.CR_AUTH;
+  var A; // gán lúc DOMContentLoaded vì auth.js có thể được nạp sau file này
   var page = document.body.getAttribute('data-page');
   var DAY = { 0: 'T2', 1: 'T3', 2: 'T4', 3: 'T5', 4: 'T6', 5: 'T7', 6: 'CN' }; // 0 = thứ Hai (khớp week_start + weekday)
   var STATUS = { pending: ['warn', 'Đang chờ'], accepted: ['ok', 'Đã được nhận'], rejected: ['err', 'Bị từ chối'], withdrawn: ['', 'Đã hủy'] };
@@ -402,6 +402,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', function () {
+    A = window.CR_AUTH;
     ({ list: initList, detail: initDetail, myjobs: initMyJobs, positions: initPositions, newpost: initNewPost }[page] || function () {})();
   });
 })();
