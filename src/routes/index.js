@@ -7,6 +7,7 @@ router.use('/me', require('./meRoutes'));
 router.use('/positions', require('./positionRoutes'));
 router.use('/shifts', require('./shiftRoutes'));
 router.use('/applications', require('./applicationRoutes'));
+router.use('/seekers', require('./seekerRoutes'));
 router.use('/invitations', require('./invitationRoutes'));
 router.use('/employments', require('./employmentRoutes'));
 
