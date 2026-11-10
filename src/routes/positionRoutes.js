@@ -23,15 +23,19 @@ router.post('/:id/apply', requireAuth, requireRole('seeker'), asyncHandler(async
   ok(res, { application_id: await req.m.applications.apply(req.params.id) }, 201)));
 
 // ---- Nhà tuyển dụng ----
-// body: { title, mode, headcount, pending_limit, open_hour, close_hour, ..., items: [{kind, content}] }
+// body: { title, mode, headcount, deadline, start_date, contact_name, contact_phone, work_days, ..., items: [{kind, content}], shifts: [{name, start_hour, end_hour}] }
 router.post('/', requireAuth, requireRole('employer'),
   validate('title', 'mode', 'headcount', 'pending_limit', 'open_hour', 'close_hour', 'min_week_hours',
     'max_week_hours', 'max_day_hours', 'max_shift_hours', 'max_per_shift', 'deadline', 'start_date',
     'contact_name', 'contact_phone'),
   asyncHandler(async (req, res) => {
     const shop = await req.m.shops.getMine(req.user.id);
-    const { items, ...body } = req.body;
-    ok(res, await req.m.positions.create(shop.id, body, items), 201);
+    const { items, shifts, ...body } = req.body;
+    const created = await req.m.positions.create(shop.id, body, items);
+    for (const [i, sh] of (Array.isArray(shifts) ? shifts : []).entries()) {
+      await req.m.shifts.create(created.id, { ...sh, sort_order: i });
+    }
+    ok(res, await req.m.positions.detail(created.id), 201);
   }));
 
 router.put('/:id', requireAuth, requireRole('employer'), asyncHandler(async (req, res) => {

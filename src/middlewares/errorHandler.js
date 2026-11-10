@@ -10,9 +10,14 @@ function errorHandler(err, req, res, next) {
   let status = err.status || 500;
   if (err.code === '23505') status = 409;
   if (err.code === '23503') status = 400;
+  // vi phạm CHECK / NOT NULL / sai kiểu dữ liệu: lỗi do dữ liệu người dùng gửi lên
+  let message = err.message;
+  if (err.code === '23514') { status = 400; message = 'Dữ liệu không hợp lệ: ' + (message.match(/constraint "([^"]+)"/)?.[1] || 'vi phạm ràng buộc'); }
+  if (err.code === '23502') { status = 400; message = 'Thiếu thông tin bắt buộc' + (message.match(/column "([^"]+)"/) ? ': ' + message.match(/column "([^"]+)"/)[1] : ''); }
+  if (err.code === '22P02') { status = 400; message = 'Dữ liệu sai định dạng'; }
 
   if (status === 500) console.error(err);
-  res.status(status).json({ success: false, message: err.message || 'Lỗi server' });
+  res.status(status).json({ success: false, message: message || 'Lỗi server' });
 }
 
 module.exports = { notFound, errorHandler };

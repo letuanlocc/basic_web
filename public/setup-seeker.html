@@ -9,32 +9,34 @@
 <body>
 <div class="page">
 
-<div data-layout="plain"></div>
+<div data-layout="plain" data-require="seeker"></div>
 <main class="stack-lg">
   <nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Trang chủ</a> → <a href="register.html">Đăng ký</a> → <span>Cập nhật hồ sơ</span></nav>
-  <form class="form-card" style="align-self:center;max-width:820px;gap:24px">
+  <form class="form-card" data-profile="seeker" data-next="jobs.html" style="align-self:center;max-width:820px;gap:24px">
     <div><p class="eyebrow">Bước 2/2 · Người tìm việc</p><h1>Hoàn thiện hồ sơ của bạn</h1><p class="lead">Hồ sơ đầy đủ giúp nhà tuyển dụng tìm thấy bạn nhanh hơn. Bạn có thể bỏ qua và cập nhật sau.</p></div>
     <div class="row" style="align-items:flex-start;gap:28px">
       <button type="button" class="drop" style="width:150px;height:200px;flex:0 0 auto" data-todo="Tải ảnh thẻ"><svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"></path><path d="M6 10l6-6 6 6"></path><path d="M4 20h16"></path></svg>Tải ảnh thẻ 3×4</button>
       <div class="cols" style="flex:1 1 360px">
-        <div class="field full"><label for="fn">Họ và tên</label><input id="fn" type="text" placeholder="Nguyễn Văn A" ></div>
-        <div class="field"><label for="yob">Năm sinh</label><input id="yob" type="number" placeholder="2005" ></div>
-        <div class="field"><label for="gd">Giới tính</label><select id="gd"><option>Chọn giới tính</option><option>Nam</option><option>Nữ</option><option>Khác</option></select></div>
-        <div class="field full"><label for="addr">Nơi cư trú</label><input id="addr" type="text" placeholder="Quận/huyện, tỉnh/thành phố" ></div>
+        <div class="field full"><label for="fn">Họ và tên</label><input id="fn" data-f="full_name" type="text" placeholder="Nguyễn Văn A" ></div>
+        <div class="field"><label for="yob">Năm sinh</label><input id="yob" data-f="birth_year" type="number" placeholder="2005" ></div>
+        <div class="field"><label for="gd">Giới tính</label><select id="gd" data-f="gender"><option value="">Chọn giới tính</option><option value="male">Nam</option><option value="female">Nữ</option><option value="other">Khác</option></select></div>
+        <div class="field full"><label for="addr">Nơi cư trú</label><input id="addr" data-f="area" type="text" placeholder="Quận/huyện, tỉnh/thành phố" ></div>
       </div>
     </div>
     <fieldset><legend>Đã có kinh nghiệm làm thêm chưa?</legend>
-      <div class="chips"><button type="button" class="chip lg solid" aria-pressed="true" data-todo="Kinh nghiệm">Chưa có</button><button type="button" class="chip lg solid" aria-pressed="false" data-todo="Kinh nghiệm">Đã có</button></div></fieldset>
+      <div class="chips"><button type="button" class="chip lg solid" aria-pressed="true" data-chip="has_experience" data-v="false">Chưa có</button><button type="button" class="chip lg solid" aria-pressed="false" data-chip="has_experience" data-v="true">Đã có</button></div></fieldset>
     <div class="cols" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))">
-      <fieldset><legend>Hình thức muốn làm</legend><div class="chips"><button type="button" class="chip lg solid" aria-pressed="false" data-todo="Hình thức">Online</button><button type="button" class="chip lg solid" aria-pressed="true" data-todo="Hình thức">Offline</button><button type="button" class="chip lg solid" aria-pressed="false" data-todo="Hình thức">Cả hai</button></div></fieldset>
-      <fieldset><legend>Thời gian rảnh (chọn nhiều)</legend><div class="chips"><button type="button" class="chip lg solid" aria-pressed="false" data-todo="Thời gian rảnh">Sáng</button><button type="button" class="chip lg solid" aria-pressed="false" data-todo="Thời gian rảnh">Chiều</button><button type="button" class="chip lg solid" aria-pressed="false" data-todo="Thời gian rảnh">Tối</button><button type="button" class="chip lg solid" aria-pressed="false" data-todo="Thời gian rảnh">Cuối tuần</button></div></fieldset>
+      <fieldset><legend>Hình thức muốn làm</legend><div class="chips"><button type="button" class="chip lg solid" aria-pressed="false" data-chip="work_mode" data-v="online">Online</button><button type="button" class="chip lg solid" aria-pressed="true" data-chip="work_mode" data-v="offline">Offline</button><button type="button" class="chip lg solid" aria-pressed="false" data-chip="work_mode" data-v="both">Cả hai</button></div></fieldset>
+      <fieldset><legend>Thời gian rảnh (chọn nhiều)</legend><div class="chips" data-multi><button type="button" class="chip lg solid" aria-pressed="false" data-chip="availability" data-v="morning">Sáng</button><button type="button" class="chip lg solid" aria-pressed="false" data-chip="availability" data-v="afternoon">Chiều</button><button type="button" class="chip lg solid" aria-pressed="false" data-chip="availability" data-v="evening">Tối</button><button type="button" class="chip lg solid" aria-pressed="false" data-chip="availability" data-v="weekend">Cuối tuần</button></div></fieldset>
     </div>
-    <div class="field"><label for="note">Lịch rảnh chi tiết <span class="hint">(không bắt buộc, hiện trên thẻ ứng viên)</span></label><input id="note" type="text" placeholder="Ví dụ: Tối T2–T6, cả ngày Chủ nhật" maxlength="100"></div>
-    <div class="field"><label for="lang">Trình độ ngoại ngữ</label><select id="lang"><option>Chưa có</option><option>Giao tiếp cơ bản</option><option>Khá (IELTS 5.0–6.0 hoặc tương đương)</option><option>Tốt (IELTS 6.5+ hoặc tương đương)</option></select></div>
-    <div class="form-actions"><a class="btn btn-lg" href="jobs.html" style="font-weight:700">Bỏ qua</a><button type="submit" class="btn btn-primary btn-lg" data-todo="Lưu hồ sơ">Tiếp tục</button></div>
+    <div class="field"><label for="note">Lịch rảnh chi tiết <span class="hint">(không bắt buộc, hiện trên thẻ ứng viên)</span></label><input id="note" data-f="availability_note" type="text" placeholder="Ví dụ: Tối T2–T6, cả ngày Chủ nhật" maxlength="100"></div>
+    <div class="field"><label for="lang">Trình độ ngoại ngữ</label><select id="lang" data-f="language_level"><option value="0">Chưa có</option><option value="1">Giao tiếp cơ bản</option><option value="2">Khá (IELTS 5.0–6.0 hoặc tương đương)</option><option value="3">Tốt (IELTS 6.5+ hoặc tương đương)</option></select></div>
+    <div class="form-actions"><a class="btn btn-lg" href="jobs.html" style="font-weight:700">Bỏ qua</a><button type="submit" class="btn btn-primary btn-lg">Tiếp tục</button></div>
   </form>
 </main>
 </div>
 <script src="/js/main.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/profile.js"></script>
 </body>
 </html>

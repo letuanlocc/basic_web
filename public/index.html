@@ -6,25 +6,30 @@
   <title>CaRảnh · Việc làm part-time</title>
   <link rel="stylesheet" href="/css/style.css" />
 </head>
-<body>
+<body data-page="list">
 <div class="page">
 
 <div data-layout="guest"></div>
 <main class="stack">
   <section class="panel" aria-labelledby="flt" style="flex-direction:row;flex-wrap:wrap;align-items:center;padding:14px 16px;gap:10px 16px">
     <h2 id="flt" style="font-size:14px;font-weight:600;color:var(--text-2)">Lọc và sắp xếp</h2>
-    <div class="chips scroll-x" role="group" aria-label="Lọc việc"><button type="button" class="chip " aria-pressed="true" data-todo="Bộ lọc: Tất cả">Tất cả</button>
-<button type="button" class="chip " aria-pressed="false" data-todo="Bộ lọc: Online">Online</button>
-<button type="button" class="chip " aria-pressed="false" data-todo="Bộ lọc: Offline">Offline</button>
-<button type="button" class="chip " aria-pressed="false" data-todo="Bộ lọc: Lương cao nhất">Lương cao nhất</button></div>
+    <div class="chips scroll-x" role="group" aria-label="Lọc việc"><button type="button" class="chip " aria-pressed="true" data-filter="all">Tất cả</button>
+<button type="button" class="chip " aria-pressed="false" data-filter="online">Online</button>
+<button type="button" class="chip " aria-pressed="false" data-filter="offline">Offline</button>
+<button type="button" class="chip " aria-pressed="false" data-filter="salary">Lương cao nhất</button></div>
   </section>
   <section aria-labelledby="jobs-h" style="display:flex;flex-direction:column;gap:16px">
-    <div class="title-row"><h1 id="jobs-h">Việc làm mới nhất</h1><span class="muted small">0 việc</span></div>
-    <div class="empty" role="status"><strong style="font-size:16px">Chưa có dữ liệu</strong></div>
+    <div class="title-row"><h1 id="jobs-h">Việc làm mới nhất</h1><span class="muted small" id="count"></span></div>
+    <p class="msg err" id="listerr" hidden></p>
+    <div class="grid-cards" id="list"></div>
+    <div id="none" class="empty" role="status" hidden><strong style="font-size:16px">Chưa có việc phù hợp</strong><span class="muted small">Thử bỏ bớt bộ lọc hoặc đổi từ khóa tìm kiếm.</span></div>
+    <div class="row" style="justify-content:center"><button type="button" class="btn" id="more" hidden>Xem thêm</button></div>
   </section>
 </main>
 <footer class="foot"><div class="wrap"><span>© CaRảnh · Bản quyền thuộc nhóm phát triển</span><a href="overview.html">Tìm hiểu các chức năng</a></div></footer>
 </div>
 <script src="/js/main.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/jobs.js"></script>
 </body>
 </html>
