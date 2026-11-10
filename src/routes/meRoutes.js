@@ -9,11 +9,14 @@ const ok = (res, data, status = 200) => res.status(status).json({ success: true,
 // Tài khoản + hồ sơ/cửa hàng của tôi
 router.get('/', asyncHandler(async (req, res) => {
   const { m, user } = req;
-  const account = await m.users.getPublic(user.id);
-  const contact = await m.users.getContact(user.id);
-  const extra = account?.role === 'employer'
-    ? { shop: await m.shops.getMine(user.id) }
-    : { profile: await m.seekers.get(user.id), profile_complete: await m.seekers.isComplete(user.id) };
+  // các truy vấn độc lập chạy song song (mỗi lần gọi Supabase ~130ms)
+  const [account, contact] = await Promise.all([m.users.getPublic(user.id), m.users.getContact(user.id)]);
+  let extra;
+  if (account?.role === 'employer') extra = { shop: await m.shops.getMine(user.id) };
+  else {
+    const [profile, profile_complete] = await Promise.all([m.seekers.get(user.id), m.seekers.isComplete(user.id)]);
+    extra = { profile, profile_complete };
+  }
   ok(res, { ...account, ...contact, ...extra });
 }));
 
