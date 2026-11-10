@@ -6,17 +6,19 @@
   <title>Chi tiết công việc · CaRảnh</title>
   <link rel="stylesheet" href="/css/style.css" />
 </head>
-<body>
+<body data-page="detail">
 <div class="page">
 
 <div data-layout="seeker" data-active="home"></div>
 <main class="stack">
   <nav class="crumbs" aria-label="Breadcrumb"><a href="jobs.html">Trang chủ</a> → <span>Chi tiết công việc</span></nav>
-  <div class="empty" role="status"><strong style="font-size:16px">Chưa có dữ liệu</strong><span class="muted small">Chưa có công việc để hiển thị.</span></div>
+  <div id="detail"><p class="muted">Đang tải…</p></div>
   <a class="btn" style="align-self:center" href="jobs.html">Về trang chủ</a>
 </main>
 <footer class="foot"><div class="wrap"><span>© CaRảnh · Bản quyền thuộc nhóm phát triển</span><a href="overview.html">Tìm hiểu các chức năng</a></div></footer>
 </div>
 <script src="/js/main.js"></script>
+<script src="/js/jobs.js"></script>
+<script src="/js/auth.js"></script>
 </body>
 </html>

@@ -25,4 +25,11 @@ const forUser = (token) =>
 /** Client quyền cao (bypass RLS, auth.uid() = null). Chỉ cho việc quản trị/cron, không dùng cho request của user. */
 const admin = SUPABASE_SECRET_KEY ? createClient(SUPABASE_URL, SUPABASE_SECRET_KEY, opts) : null;
 
-module.exports = { anon, forUser, admin };
+/**
+ * Client ẩn danh MỚI cho mỗi thao tác đăng nhập/đăng ký/đổi mật khẩu.
+ * Không dùng `anon` dùng chung vì supabase-js giữ session trong bộ nhớ: sau khi một người
+ * đăng nhập, các truy vấn dùng chung sau đó sẽ chạy với token của người đó.
+ */
+const newAnon = () => createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, opts);
+
+module.exports = { anon, forUser, admin, newAnon };

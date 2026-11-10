@@ -50,7 +50,7 @@
         '<nav class="nav desknav" aria-label="Người tìm việc">' +
         '<a class="link strong" href="my-jobs.html"' + a(cur, 'mine') + '>Xem công việc</a>' +
         '<a class="link strong" href="profile.html"' + a(cur, 'profile') + '><span class="avatar" aria-hidden="true">T</span>Tài khoản</a>' +
-        '<a class="link" href="index.html">' + ICON.out + 'Đăng xuất</a></nav></div></header>';
+        '<a class="link" href="index.html" data-logout>' + ICON.out + 'Đăng xuất</a></nav></div></header>';
     },
     employer: function (cur) {
       var items = [['candidates', 'candidates.html', 'Ứng viên'], ['positions', 'positions.html', 'Vị trí & tuyển dụng'],
@@ -62,7 +62,7 @@
       return '<header class="cr-header"><div class="bar">' + brand('candidates.html') +
         searchForm('Tìm ứng viên — vd: rảnh tối, pha chế, Hải Châu', 'Lọc').replace('<span style="color:#93500A">Sắp có</span>', '').replace(' · ', '') +
         '<div class="nav"><a class="link strong" href="shop.html"><span class="avatar" aria-hidden="true">C</span>Cửa hàng</a>' +
-        '<a class="link" href="index.html">' + ICON.out + 'Đăng xuất</a></div></div>' +
+        '<a class="link" href="index.html" data-logout>' + ICON.out + 'Đăng xuất</a></div></div>' +
         '<nav class="subnav" aria-label="Nhà tuyển dụng"><div class="bar">' + subs +
         '<button type="button" class="cta" onclick="location.href=\'new-post.html\'"' + (cur === 'new' ? ' aria-current="page"' : '') + '>+ Đăng tin tuyển</button></div></nav></header>';
     }
@@ -117,6 +117,7 @@
   }
 
   document.addEventListener('click', function (e) {
+    if (e.target.closest('[data-logout]')) { try { localStorage.removeItem('cr_session'); } catch (x) {} return; }
     var gate = e.target.closest('[data-gate]');
     if (gate) {
       e.preventDefault();
