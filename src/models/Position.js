@@ -39,7 +39,11 @@ class Position {
       this.db.from('shifts').select('id, name, start_hour, end_hour, sort_order').eq('position_id', id).is('archived_at', null).order('sort_order'),
     ]);
     if (!overview) return null;
-    return { ...overview, items: unwrap(items), shifts: unwrap(shifts) };
+    const shop = unwrap(
+      await this.db.from('shops').select('id, name, mode, industry, address, ward, city, phone, fanpage_url, photos:shop_photos(url, caption, sort_order)')
+        .eq('id', overview.shop_id).maybeSingle()
+    );
+    return { ...overview, items: unwrap(items), shifts: unwrap(shifts), shop };
   }
 
   async listByShop(shopId) {

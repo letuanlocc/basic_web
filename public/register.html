@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Đăng ký · CaRảnh</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+<div class="page">
+
+<div data-layout="plain" data-cta="login"></div>
+<main class="stack-lg">
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Trang chủ</a> → <span>Đăng ký</span></nav>
+  <form class="form-card" data-auth="register" style="align-self:center;max-width:560px">
+    <div><h1>Tạo tài khoản</h1><p class="lead">Bước 1/2 · Thông tin đăng nhập</p></div>
+    <fieldset><legend>Bạn là</legend>
+      <div class="role-pick">
+        <button type="button" aria-pressed="true" data-role="seeker"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 4-6 8-6s8 2 8 6"></path></svg><strong style="font-size:16px">Người tìm việc</strong><span>Tìm ca làm part-time</span></button>
+        <button type="button" aria-pressed="false" class="dark" data-role="employer"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l1.5-5h15L21 10"></path><path d="M4 10v10h16V10"></path><path d="M10 20v-6h4v6"></path></svg><strong style="font-size:16px">Nhà tuyển dụng</strong><span>Đăng tin, duyệt ứng viên</span></button>
+      </div></fieldset>
+    <div class="field"><label for="name">Họ và tên</label><input id="name" type="text" placeholder="Nguyễn Văn A" ></div>
+    <div class="cols">
+      <div class="field"><label for="phone">Số điện thoại</label><input id="phone" type="tel" placeholder="09xx xxx xxx" ></div>
+      <div class="field"><label for="email">Email</label><input id="email" type="email" placeholder="ban@email.com" ></div>
+      <div class="field"><label for="pw">Mật khẩu</label><input id="pw" type="password" data-meter placeholder="Tối thiểu 8 ký tự" autocomplete="new-password"></div>
+      <div class="field"><label for="pw2">Nhập lại mật khẩu</label><input id="pw2" type="password" placeholder="••••••••" ></div>
+    </div>
+    <button type="submit" class="btn btn-primary btn-lg">Tiếp tục · Hồ sơ người tìm việc</button>
+    <p class="muted small" style="margin:0;text-align:center">Đã có tài khoản? <a href="login.html" style="font-weight:700">Đăng nhập</a></p>
+    <p class="tiny muted" style="margin:0;text-align:center">Xem trước bước 2: <a href="setup-seeker.html">hồ sơ người tìm việc</a> · <a href="setup-employer.html">thông tin cửa hàng</a></p>
+  </form>
+</main>
+</div>
+<script src="/js/main.js"></script>
+<script src="/js/auth.js"></script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Việc làm dành cho bạn · CaRảnh</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body data-page="list">
+<div class="page">
+
+<div data-layout="seeker" data-active="home" data-public></div>
+<main class="stack">
+  <section class="panel" aria-labelledby="flt" style="flex-direction:row;flex-wrap:wrap;align-items:center;padding:14px 16px;gap:10px 16px">
+    <h2 id="flt" style="font-size:14px;font-weight:600;color:var(--text-2)">Lọc và sắp xếp</h2>
+    <div class="chips scroll-x" role="group" aria-label="Lọc việc"><button type="button" class="chip " aria-pressed="true" data-filter="all">Tất cả</button>
+<button type="button" class="chip " aria-pressed="false" data-filter="online">Online</button>
+<button type="button" class="chip " aria-pressed="false" data-filter="offline">Offline</button>
+<button type="button" class="chip " aria-pressed="false" data-filter="salary">Lương cao nhất</button></div>
+  </section>
+  <div class="title-row"><h1>Việc làm dành cho bạn</h1><span class="muted small" id="count"></span></div>
+  <p class="msg err" id="listerr" hidden></p>
+    <div class="grid-cards" id="list"></div>
+    <div id="none" class="empty" role="status" hidden><strong style="font-size:16px">Chưa có việc phù hợp</strong><span class="muted small">Thử bỏ bớt bộ lọc hoặc đổi từ khóa tìm kiếm.</span></div>
+    <div class="row" style="justify-content:center"><button type="button" class="btn" id="more" hidden>Xem thêm</button></div>
+</main>
+<footer class="foot"><div class="wrap"><span>© CaRảnh · Bản quyền thuộc nhóm phát triển</span><a href="overview.html">Tìm hiểu các chức năng</a></div></footer>
+</div>
+<script src="/js/main.js"></script>
+<script src="/js/jobs.js"></script>
+<script src="/js/auth.js"></script>
+</body>
+</html>

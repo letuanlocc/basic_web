@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hồ sơ · CaRảnh</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+<div class="page">
+
+<div data-layout="seeker" data-active="profile"></div>
+<main class="stack">
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="jobs.html">Trang chủ</a> → <span>Hồ sơ</span></nav>
+  <form class="form-card" data-profile="seeker" style="max-width:900px;align-self:center;gap:22px">
+    <h1 style="font-size:24px;letter-spacing:.02em">HỒ SƠ</h1>
+    <div class="row" style="align-items:flex-start;gap:28px">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:10px"><button type="button" class="drop" style="width:130px;height:170px" data-todo="Ảnh đại diện">Ảnh đại diện</button><span class="badge ok b">NGƯỜI TÌM VIỆC</span></div>
+      <div class="cols" style="flex:1 1 360px">
+        <div class="field full"><label for="pn">Họ tên *</label><input id="pn" data-f="full_name" type="text" placeholder="Nhập họ tên" ></div>
+        <div class="field"><label for="py">Năm sinh *</label><input id="py" data-f="birth_year" type="number" placeholder="Nhập năm sinh" ></div>
+        <div class="field"><label for="pp">Số điện thoại *</label><input id="pp" data-f="phone" type="tel" placeholder="Nhập số điện thoại" ></div>
+      </div>
+    </div>
+    <div class="cols" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr))">
+      <div class="field"><label for="pg">Giới tính *</label><select id="pg" data-f="gender"><option value="">Chọn giới tính</option><option value="female">Nữ</option><option value="male">Nam</option><option value="other">Khác</option></select></div><div class="field"><label for="pa">Nơi cư trú (quận) *</label><select id="pa" data-f="area"><option value="">Chọn khu vực</option><option value="Hải Châu">Hải Châu</option><option value="Thanh Khê">Thanh Khê</option><option value="Sơn Trà">Sơn Trà</option><option value="Liên Chiểu">Liên Chiểu</option><option value="Ngũ Hành Sơn">Ngũ Hành Sơn</option></select></div><div class="field"><label for="pl">Trình độ ngoại ngữ</label><select id="pl" data-f="language_level"><option value="0">Chưa có</option><option value="1">Giao tiếp cơ bản</option><option value="2">Khá (IELTS 5.0–6.0 hoặc tương đương)</option><option value="3">Tốt (IELTS 6.5+ hoặc tương đương)</option></select></div>
+    </div>
+    <div class="cols" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))">
+      <fieldset><legend>Hình thức muốn làm *</legend><div class="chips"><button type="button" class="chip lg solid" aria-pressed="false" data-chip="work_mode" data-v="online">Online</button><button type="button" class="chip lg solid" aria-pressed="false" data-chip="work_mode" data-v="offline">Offline</button><button type="button" class="chip lg solid" aria-pressed="false" data-chip="work_mode" data-v="both">Cả hai</button></div></fieldset>
+      <fieldset><legend>Thời gian rảnh (chọn nhiều) *</legend><div class="chips" data-multi><button type="button" class="chip lg solid" aria-pressed="false" data-chip="availability" data-v="morning">Sáng</button><button type="button" class="chip lg solid" aria-pressed="false" data-chip="availability" data-v="afternoon">Chiều</button><button type="button" class="chip lg solid" aria-pressed="false" data-chip="availability" data-v="evening">Tối</button><button type="button" class="chip lg solid" aria-pressed="false" data-chip="availability" data-v="weekend">Cuối tuần</button></div></fieldset>
+    </div>
+    <div class="cols" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))">
+      <div class="field"><label for="ps">Điểm mạnh</label><textarea id="ps" data-f="strengths" rows="3" placeholder="Ví dụ: giao tiếp tốt, nhanh nhẹn"></textarea></div>
+      <div class="field"><label for="pw">Điểm cần cải thiện</label><textarea id="pw" data-f="improvements" rows="3" placeholder="Ví dụ: chưa quen pha chế"></textarea></div>
+    </div>
+    <fieldset><legend>Đã có kinh nghiệm làm thêm chưa?</legend><div class="chips"><button type="button" class="chip lg solid" aria-pressed="false" data-chip="has_experience" data-v="false">Chưa có</button><button type="button" class="chip lg solid" aria-pressed="false" data-chip="has_experience" data-v="true">Đã có</button></div></fieldset>
+    <div class="field"><label for="pe">Ghi rõ kinh nghiệm</label><textarea id="pe" data-f="experience" rows="3" placeholder="Ví dụ: phục vụ quán cà phê 6 tháng"></textarea></div>
+    <div class="field"><label for="pt">Lịch rảnh chi tiết <span class="hint">(hiện trên thẻ ứng viên)</span></label><input id="pt" data-f="availability_note" type="text" placeholder="Ví dụ: Tối T2–T6, cả ngày Chủ nhật" maxlength="100"></div>
+    <div class="form-actions"><a class="btn btn-lg" href="change-password.html" style="font-weight:700">Đổi mật khẩu</a><button type="submit" class="btn btn-primary btn-lg">Lưu hồ sơ</button></div>
+  </form>
+</main>
+<footer class="foot"><div class="wrap"><span>© CaRảnh · Bản quyền thuộc nhóm phát triển</span><a href="overview.html">Tìm hiểu các chức năng</a></div></footer>
+</div>
+<script src="/js/main.js"></script>
+<script src="/js/auth.js"></script>
+<script src="/js/profile.js"></script>
+</body>
+</html>
