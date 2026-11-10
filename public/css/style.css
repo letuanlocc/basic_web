@@ -199,7 +199,7 @@ textarea { resize: vertical; }
 /* schedule grid */
 .sched-wrap { overflow-x: auto; background: #fff; border: 1px solid var(--line); border-radius: var(--r-lg); }
 .sched { min-width: 720px; display: flex; flex-direction: column; }
-.sched .r { display: grid; grid-template-columns: 110px repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--line-3); }
+.sched .r { display: grid; grid-template-columns: 110px repeat(var(--n, 3), minmax(0, 1fr)); border-top: 1px solid var(--line-3); }
 .sched .r:first-child { border-top: 0; background: var(--bg); }
 .sched .r > * { padding: 10px; min-height: 72px; }
 .sched .r:first-child > * { min-height: 0; }
