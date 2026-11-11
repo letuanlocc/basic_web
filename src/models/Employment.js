@@ -41,7 +41,7 @@ class Employment {
    */
   async saveSchedule(employmentId, weekStart, cells) {
     return unwrap(
-      await this.db.rpc('save_schedule', { p_employment_id: employmentId, p_week_start: weekStart, p_cells: cells })
+      await this.db.rpc('save_schedule_exclusive', { p_employment_id: employmentId, p_week_start: weekStart, p_cells: cells })
     );
   }
 

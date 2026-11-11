@@ -41,9 +41,9 @@
         var c = rows[wd][s.shift_id];
         if (!c) return '<span></span>';
         var key = s.shift_id + ':' + wd, mine = edit ? !!sel[key] : c.mine;
-        var full = c.people >= c.max_per_shift && !mine;
+        var full = c.people > 0 && !mine;
         var cls = 'cell' + (mine ? ' mine' : full ? ' full' : c.understaffed ? ' need' : '');
-        var state = mine ? 'Đã chọn' : full ? 'Đã đủ người' : c.understaffed ? 'Đang thiếu người' : '';
+        var state = mine ? 'Đã chọn' : full ? 'Đã có người đăng ký' : c.understaffed ? 'Đang thiếu người' : '';
         var inner = '<span class="top"><span>' + c.people + '/' + c.max_per_shift + ' người</span></span>' +
           (state ? '<span class="ppl">' + state + '</span>' : '') +
           (!edit && c.names.length ? '<span class="ppl">' + esc(c.names.join(', ')) + '</span>' : '');
@@ -80,13 +80,13 @@
       cells.forEach(function (c) { if (sel[c.shift_id + ':' + c.weekday]) hours += c.end_hour - c.start_hour; });
       var limit = (p.min_week_hours != null || p.max_week_hours != null)
         ? 'Quy định: ' + (p.min_week_hours || 0) + ' – ' + (p.max_week_hours || '…') + ' giờ/tuần. ' : '';
-      box.innerHTML = '<p class="msg info">' + esc(limit) + 'Bạn đang chọn <strong>' + count() + ' ca · ' + hours + ' giờ</strong>. Ca đã qua không đổi được.</p>' +
+      box.innerHTML = '<p class="msg info">' + esc(limit) + 'Mỗi ca trong một ngày chỉ có một người giữ; ai lưu trước được chọn trước. Bạn đang chọn <strong>' + count() + ' ca · ' + hours + ' giờ</strong>. Ca đã qua không đổi được.</p>' +
         grid(cells, sel, true) +
         '<p class="msg" id="smsg" role="status" hidden></p>' +
         '<div class="row" style="justify-content:flex-end"><button type="button" class="btn btn-primary btn-lg" id="ssave">Lưu lịch làm</button></div>';
     }
 
-    function load() {
+    function load(notice) {
       var j = current();
       box.innerHTML = '<p class="muted">Đang tải…</p>';
       A.call('GET', '/api/positions/' + j.position.id + '/schedule?week_start=' + weekStart()).then(function (rows) {
@@ -94,7 +94,13 @@
         rows.forEach(function (c) { if (c.mine) sel[c.shift_id + ':' + c.weekday] = 1; });
         if (!rows.length) { box.innerHTML = empty('Vị trí này chưa có ca làm', 'Hãy liên hệ chủ quán để thêm ca.'); return; }
         paint();
-      }).catch(function (e) { box.innerHTML = fail(e); });
+        if (notice) {
+          var m = document.getElementById('smsg');
+          m.hidden = false; m.className = 'msg err'; m.textContent = notice;
+        }
+      }).catch(function (e) {
+        box.innerHTML = fail(notice ? new Error(notice + ' Không tải lại được lịch: ' + e.message) : e);
+      });
     }
 
     box.addEventListener('click', function (e) {
@@ -123,8 +129,12 @@
             (warn ? ' Lưu ý: chưa đủ số giờ tối thiểu mỗi tuần của vị trí này.' : '');
         });
       }).catch(function (er) {
-        save.disabled = false; save.textContent = 'Lưu lịch làm';
-        out.hidden = false; out.className = 'msg err'; out.textContent = er.message;
+        if (/Ca này vừa được người khác đăng ký/.test(er.message)) {
+          load(er.message);
+        } else {
+          save.disabled = false; save.textContent = 'Lưu lịch làm';
+          out.hidden = false; out.className = 'msg err'; out.textContent = er.message;
+        }
       });
     });
 
@@ -135,6 +145,9 @@
       if (!rows.length) { box.innerHTML = empty('Bạn chưa được nhận vào vị trí nào', 'Khi chủ quán nhận hồ sơ, bạn sẽ đăng ký ca tại đây.'); return; }
       posSel.innerHTML = rows.map(function (r) { return '<option>' + esc(r.position.title + ' · ' + (r.position.shop && r.position.shop.name)) + '</option>'; }).join('');
       posBox.hidden = rows.length < 2;
+      var selectedPosition = new URLSearchParams(location.search).get('position');
+      var selectedIndex = rows.findIndex(function (r) { return r.position.id === selectedPosition; });
+      if (selectedIndex >= 0) posSel.selectedIndex = selectedIndex;
       load();
     }).catch(function (e) { box.innerHTML = fail(e); });
   }

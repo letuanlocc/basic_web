@@ -190,7 +190,8 @@
           var st = STATUS[r.status] || ['', r.status];
           return '<article class="card">' + pos(r.position) + '<div class="badges">' + badge(st[0], st[1]) + (r.source === 'invited' ? badge('', 'Được mời') : '') + '</div>' +
             (r.reject_reason ? '<p class="desc">' + esc(r.reject_reason) + '</p>' : '') +
-            (r.status === 'pending' ? '<button type="button" class="btn btn-danger push" data-act="withdraw" data-id="' + esc(r.id) + '">Hủy hồ sơ</button>' : '') + '</article>';
+            (r.status === 'pending' ? '<button type="button" class="btn btn-danger push" data-act="withdraw" data-id="' + esc(r.id) + '">Hủy hồ sơ</button>' :
+              r.status === 'accepted' ? '<a class="btn btn-primary push" href="schedule.html?position=' + encodeURIComponent(r.position.id) + '">Chọn lịch làm</a>' : '') + '</article>';
         }
         if (tab === 'invites') {
           return '<article class="card">' + pos(r.position) + (r.message ? '<p class="desc">“' + esc(r.message) + '”</p>' : '') +
