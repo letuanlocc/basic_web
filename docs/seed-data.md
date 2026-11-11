@@ -100,9 +100,9 @@ Số điện thoại chỉ cần khớp CHECK của schema, không dùng để g
 | Mã | Cửa hàng | Vị trí | Hình thức | Lương minh họa |
 |---|---|---|---|---|
 | p1 | Cà phê Mộc / e1 | Nhân viên phục vụ | Part-time, offline | 25.000đ/giờ |
-| p2 | Cà phê Mộc / e1 | Nhân viên thu ngân | Full-time, offline | 7.500.000đ/tháng |
+| p2 | Cà phê Mộc / e1 | Nhân viên thu ngân | Full-time, offline | 30.000đ/giờ |
 | p3 | Bếp An / e2 | Nhân viên phụ bếp | Part-time, offline | 28.000đ/giờ |
-| p4 | Tiệm Lá / e3 | Nhân viên bán hàng | Full-time, offline | 7.200.000đ/tháng |
+| p4 | Tiệm Lá / e3 | Nhân viên bán hàng | Full-time, offline | 25.000đ/giờ |
 | p5 | Studio Mây / e4 | Cộng tác viên nội dung | Part-time, online | 35.000đ/giờ |
 
 `work_form` chứa Full-time/Part-time. `mode` chứa online/offline; đây là hai khái niệm khác nhau.
@@ -181,8 +181,9 @@ File `supabase/check-demo.sql` gồm các truy vấn SELECT để kiểm tra đ�
 Chỉ xem `shop_photos` trên Dashboard không có nghĩa là Dashboard sẽ hiển thị được đường dẫn ảnh tương đối này.
 
 Seed thành công không tự nối API vào HTML. Ngày 11/11/2026 đã đối chiếu bản Vercel được nhóm chia sẻ:
-`/api/positions` trả đúng dữ liệu mẫu và đơn vị lương; giao diện hiện còn gắn `đ/giờ` cho cả lương tháng.
-Đây là lỗi hiển thị, không sửa số tiền hay đơn vị đúng trong database để khớp với giao diện.
+Trước điều chỉnh, `/api/positions` trả đúng lương tháng nhưng giao diện gắn cố định `đ/giờ`.
+Theo yêu cầu dùng lương giờ cho prototype hiện tại, bộ mẫu đã đổi thu ngân thành 30.000đ/giờ và bán hàng thành 25.000đ/giờ.
+Đây là hai mức tiền demo mới do người dùng chọn, không phải phép quy đổi lương tháng. Các tin còn lại và Full-time/Part-time giữ nguyên.
 
 Kiểm tra các file sắp commit và thêm đúng file mới:
 
@@ -218,3 +219,14 @@ Phạm vi phần việc là dữ liệu mẫu và công cụ kiểm tra database
 - Cửa hàng Cà phê Mộc từng bị trống lĩnh vực; đã được người dùng cho phép bổ sung lại “Cà phê”. RPC xác nhận hồ sơ đủ sau cập nhật.
 - Tin phục vụ đã hết hạn ngày 10/11/2026, nên bản Vercel trả 4 tin đang tuyển. Đây không phải thiếu bản ghi thứ năm.
 - Kiểm chứng sau sửa: `node --test scripts/seed-demo.test.js` đạt 19/19 bài; `node scripts/seed-demo.js --check` đạt trên Supabase thật. Kiểm tra chỉ đọc, không tạo lại bộ mẫu.
+
+### Bộ mẫu lương giờ cho prototype hiện tại
+
+- Thu ngân: 30.000đ/giờ; bán hàng: 25.000đ/giờ, theo xác nhận của người dùng.
+- Mọi tin mẫu hiện dùng `salary_unit=hour`. Không sửa formatter giao diện hoặc đăng nhập.
+- `supabase/update-demo-hourly-pay.sql` là bản cập nhật có transaction cho hai tin cũ đã seed. Có kiểm tra owner/email/marker và giá trị cũ; chạy lại với đúng dữ liệu mới không thay đổi thêm.
+- Không dùng `--apply` để mong tự đổi lương của tin đã tồn tại: seed giữ nguyên các tin có sẵn. Dùng bản cập nhật riêng sau khi đã kiểm tra đúng project.
+- Không chạy reset, không đổi trạng thái đơn, lời mời, nhân viên hay lịch.
+
+- Đã chạy SQL cập nhật bằng một transaction trên Supabase ngày 11/11/2026; thu ngân 30.000đ/giờ, bán hàng 25.000đ/giờ.
+- Sau cập nhật: 20/20 bài kiểm tra offline đạt, luồng `--check` thực tế đạt. API Vercel và trang chủ hiển thị đúng hai mức mới. Không kiểm thử lại toàn bộ chức năng web trong thay đổi dữ liệu này.

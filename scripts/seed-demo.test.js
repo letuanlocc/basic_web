@@ -250,10 +250,17 @@ test('read audit still rejects the wrong employment/application link', async () 
   await assert.rejects(seed.check(admin, anon), /1 nh.n vi.n m.u/);
 });
 
-for (const patch of [{ salary_unit: 'hour' }, { salary_amount: 7200 }]) {
+for (const patch of [{ salary_unit: 'month' }, { salary_amount: 7200 }]) {
   test('read audit rejects incorrect stored salary ' + JSON.stringify(patch), async () => {
     const { admin, anon, tables } = auditFixture();
     Object.assign(tables.positions.find(p => p.id === 'p4'), patch);
     await assert.rejects(seed.check(admin, anon), /Sai m.c l..ng/);
   });
 }
+
+
+test('current prototype demo salaries all use hourly units and agreed amounts', () => {
+  assert.ok(seed.JOBS.every(j => j.salary_unit === 'hour'));
+  assert.equal(seed.JOBS.find(j => j.key === 'p2').salary_amount, 30000);
+  assert.equal(seed.JOBS.find(j => j.key === 'p4').salary_amount, 25000);
+});

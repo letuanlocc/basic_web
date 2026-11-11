@@ -26,9 +26,9 @@ const SHOPS = [
 ];
 const JOBS = [
   { key: 'p1', owner: 'e1', title: '[DEMO] Nhân viên phục vụ', work_form: 'Part-time', salary_amount: 25000, salary_unit: 'hour', task: 'Đón khách, nhận món và phục vụ đồ uống.', requirement: 'Đúng giờ, lịch sự, có thể làm ca sáng hoặc tối.', perk: 'Được hướng dẫn công việc và hỗ trợ đồ uống trong ca.' },
-  { key: 'p2', owner: 'e1', title: '[DEMO] Nhân viên thu ngân', work_form: 'Full-time', salary_amount: 7500000, salary_unit: 'month', task: 'Nhận thanh toán và đối soát doanh thu cuối ca.', requirement: 'Cẩn thận, trung thực, sử dụng máy tính cơ bản.', perk: 'Được đào tạo sử dụng phần mềm bán hàng.' },
+  { key: 'p2', owner: 'e1', title: '[DEMO] Nhân viên thu ngân', work_form: 'Full-time', salary_amount: 30000, salary_unit: 'hour', task: 'Nhận thanh toán và đối soát doanh thu cuối ca.', requirement: 'Cẩn thận, trung thực, sử dụng máy tính cơ bản.', perk: 'Được đào tạo sử dụng phần mềm bán hàng.' },
   { key: 'p3', owner: 'e2', title: '[DEMO] Nhân viên phụ bếp', work_form: 'Part-time', salary_amount: 28000, salary_unit: 'hour', task: 'Sơ chế nguyên liệu và giữ vệ sinh khu vực bếp.', requirement: 'Gọn gàng, chịu khó, tuân thủ hướng dẫn vệ sinh.', perk: 'Hỗ trợ bữa ăn trong ca làm việc.' },
-  { key: 'p4', owner: 'e3', title: '[DEMO] Nhân viên bán hàng', work_form: 'Full-time', salary_amount: 7200000, salary_unit: 'month', task: 'Tư vấn sản phẩm và sắp xếp hàng hóa.', requirement: 'Giao tiếp rõ ràng, thân thiện với khách hàng.', perk: 'Được đào tạo kiến thức sản phẩm và kỹ năng tư vấn.' },
+  { key: 'p4', owner: 'e3', title: '[DEMO] Nhân viên bán hàng', work_form: 'Full-time', salary_amount: 25000, salary_unit: 'hour', task: 'Tư vấn sản phẩm và sắp xếp hàng hóa.', requirement: 'Giao tiếp rõ ràng, thân thiện với khách hàng.', perk: 'Được đào tạo kiến thức sản phẩm và kỹ năng tư vấn.' },
   { key: 'p5', owner: 'e4', title: '[DEMO] Cộng tác viên nội dung', work_form: 'Part-time', salary_amount: 35000, salary_unit: 'hour', task: 'Viết nội dung mạng xã hội theo kế hoạch được giao.', requirement: 'Viết tiếng Việt rõ ràng, có máy tính và Internet.', perk: 'Làm việc online theo ca, được góp ý nội dung.' },
 ];
 const EXPECTED_APPLICATIONS = [
