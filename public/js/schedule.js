@@ -73,17 +73,35 @@
 
     function current() { return jobs[posSel.selectedIndex]; }
     function count() { return Object.keys(sel).length; }
+    function hoursNotice(hours, position, hasSelection) {
+      if (!hasSelection) return null;
+      if (position.max_week_hours != null && hours > Number(position.max_week_hours)) {
+        return {
+          kind: 'err',
+          text: 'Bạn đã chọn quá số giờ quy định trong 1 tuần (' + hours + '/' + position.max_week_hours + ' giờ).'
+        };
+      }
+      if (position.min_week_hours != null && hours < Number(position.min_week_hours)) {
+        return {
+          kind: 'warn',
+          text: 'Bạn đã chọn ít hơn số giờ quy định trong 1 tuần (' + hours + '/' + position.min_week_hours + ' giờ).'
+        };
+      }
+      return null;
+    }
 
     function paint() {
       var j = current(), p = j.position;
       var hours = 0;
       cells.forEach(function (c) { if (sel[c.shift_id + ':' + c.weekday]) hours += c.end_hour - c.start_hour; });
+      var notice = hoursNotice(hours, p, count() > 0);
       var limit = (p.min_week_hours != null || p.max_week_hours != null)
         ? 'Quy định: ' + (p.min_week_hours || 0) + ' – ' + (p.max_week_hours || '…') + ' giờ/tuần. ' : '';
       box.innerHTML = '<p class="msg info">' + esc(limit) + 'Mỗi ca trong một ngày chỉ có một người giữ; ai lưu trước được chọn trước. Bạn đang chọn <strong>' + count() + ' ca · ' + hours + ' giờ</strong>. Ca đã qua không đổi được.</p>' +
+        (notice ? '<p class="msg ' + notice.kind + '" role="status">' + esc(notice.text) + '</p>' : '') +
         grid(cells, sel, true) +
         '<p class="msg" id="smsg" role="status" hidden></p>' +
-        '<div class="row" style="justify-content:flex-end"><button type="button" class="btn btn-primary btn-lg" id="ssave">Lưu lịch làm</button></div>';
+        '<div class="row" style="justify-content:flex-end"><button type="button" class="btn btn-primary btn-lg" id="ssave"' + (notice && notice.kind === 'err' ? ' disabled' : '') + '>Lưu lịch làm</button></div>';
     }
 
     function load(notice) {
@@ -114,19 +132,28 @@
       var save = e.target.closest('#ssave');
       if (!save) return;
       var out = document.getElementById('smsg');
+      var position = current().position, totalHours = 0;
+      cells.forEach(function (c) { if (sel[c.shift_id + ':' + c.weekday]) totalHours += c.end_hour - c.start_hour; });
+      var notice = hoursNotice(totalHours, position, count() > 0);
+      if (notice && notice.kind === 'err') {
+        out.hidden = false; out.className = 'msg err'; out.textContent = notice.text;
+        return;
+      }
       var body = cells.filter(function (c) { return sel[c.shift_id + ':' + c.weekday]; })
         .map(function (c) { return { shift_id: c.shift_id, weekday: c.weekday }; });
       save.disabled = true; save.textContent = 'Đang lưu…';
       A.call('PUT', '/api/employments/' + current().id + '/schedule', { week_start: weekStart(), cells: body }).then(function (r) {
         var warn = r && r.below_min_week;
+        var savedHours = r && r.total_hours != null ? r.total_hours : totalHours;
+        var savedNotice = hoursNotice(savedHours, position, count() > 0 || warn);
         return A.call('GET', '/api/positions/' + current().position.id + '/schedule?week_start=' + weekStart()).then(function (rows) {
           cells = rows; sel = {};
           rows.forEach(function (c) { if (c.mine) sel[c.shift_id + ':' + c.weekday] = 1; });
           paint();
           var m = document.getElementById('smsg');
-          m.hidden = false; m.className = 'msg' + (warn ? ' warn' : '');
-          m.textContent = 'Đã lưu lịch làm.' + (r && r.total_hours != null ? ' Tổng ' + r.total_hours + ' giờ trong tuần.' : '') +
-            (warn ? ' Lưu ý: chưa đủ số giờ tối thiểu mỗi tuần của vị trí này.' : '');
+          m.hidden = false; m.className = 'msg' + (savedNotice ? ' ' + savedNotice.kind : '');
+          m.textContent = 'Đã lưu lịch làm.' + (savedHours != null ? ' Tổng ' + savedHours + ' giờ trong tuần.' : '') +
+            (savedNotice ? ' ' + savedNotice.text : '');
         });
       }).catch(function (er) {
         if (/Ca này vừa được người khác đăng ký/.test(er.message)) {
