@@ -13,7 +13,7 @@
   }
   function $(id) { return document.getElementById(id); }
   function hh(h) { return String(h).padStart(2, '0') + ':00'; }
-  function salary(p) { return p.salary_amount ? Number(p.salary_amount).toLocaleString('vi-VN') + 'đ/giờ' : 'Thỏa thuận'; }
+  var salary = window.CR_SALARY;
   function days(p) { return (p.work_days || []).map(function (d) { return DAY[d]; }).join(', '); }
   function when(p) {
     var t = [];
@@ -316,7 +316,10 @@
     }
     function read() {
       return {
-        title: val('n_title'), mode: mode, salary_amount: num('n_salary'), summary: val('n_summary'),
+        title: val('n_title'), mode: mode,
+        salary_amount: val('n_salary_unit') === 'negotiable' ? null : num('n_salary'),
+        salary_unit: val('n_salary_unit') === 'negotiable' || num('n_salary') == null ? 'negotiable' : val('n_salary_unit'),
+        summary: val('n_summary'),
         no_experience: $('n_noexp').checked, accepts_intern: $('n_intern').checked,
         address: val('n_addr'), work_form: val('n_form'),
         work_days: Array.prototype.filter.call(form.querySelectorAll('[data-day]'), function (b) { return b.getAttribute('aria-pressed') === 'true'; })
@@ -336,11 +339,15 @@
 
     function preview() {
       var d = read();
-      $('preview').innerHTML = d.title ? card({ id: '', title: d.title, shop_name: shopName, mode: d.mode, salary_amount: d.salary_amount, work_days: d.work_days,
+      $('preview').innerHTML = d.title ? card({ id: '', title: d.title, shop_name: shopName, mode: d.mode, salary_amount: d.salary_amount, salary_unit: d.salary_unit, work_days: d.work_days,
         open_hour: d.open_hour, close_hour: d.close_hour, address: d.address, summary: d.summary }, true, true)
         : empty('Nhập tên vị trí để xem trước');
     }
     form.addEventListener('input', preview);
+    form.addEventListener('change', preview);
+    $('n_salary_unit').addEventListener('change', function () {
+      $('n_salary').disabled = this.value === 'negotiable';
+    });
 
     var shopName = '';
     A.call('GET', '/api/me').then(function (me) {
@@ -355,6 +362,8 @@
     function check(d) {
       if (!d.title) return 'Vui lòng nhập tên vị trí';
       if (!d.address) return 'Vui lòng nhập địa điểm làm việc';
+      if (['hour', 'shift', 'day', 'month', 'negotiable'].indexOf(d.salary_unit) < 0) return 'Vui lòng chọn đơn vị lương hợp lệ';
+      if (d.salary_unit !== 'negotiable' && (!Number.isInteger(d.salary_amount) || d.salary_amount <= 0 || d.salary_amount > 2147483647)) return 'Mức lương phải là số nguyên dương, không vượt 2.147.483.647';
       if (!d.work_days.length) return 'Chọn ít nhất một ngày làm việc';
       if (!d.shifts.length) return 'Thêm ít nhất một ca làm việc';
       for (var i = 0; i < d.shifts.length; i++) {
