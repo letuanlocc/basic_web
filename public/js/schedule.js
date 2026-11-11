@@ -152,7 +152,8 @@
           paint();
           var m = document.getElementById('smsg');
           m.hidden = false; m.className = 'msg' + (savedNotice ? ' ' + savedNotice.kind : '');
-          m.textContent = 'Đã lưu lịch làm.' + (savedHours != null ? ' Tổng ' + savedHours + ' giờ trong tuần.' : '') +
+          m.textContent = 'Đăng ký ca thành công. HR có thể xem lịch đã cập nhật trong mục Lịch làm.' +
+            (savedHours != null ? ' Tổng ' + savedHours + ' giờ trong tuần.' : '') +
             (savedNotice ? ' ' + savedNotice.text : '');
         });
       }).catch(function (er) {
@@ -182,12 +183,14 @@
   // ================= Chủ quán: xem lịch nhân viên =================
   function initEmployer() {
     var positions = [], rule = document.getElementById('rule'), rulebox = document.getElementById('rulebox'),
-      rulemsg = document.getElementById('rulemsg'), rulesave = document.getElementById('rulesave');
+      rulemsg = document.getElementById('rulemsg'), rulesave = document.getElementById('rulesave'),
+      refresh = document.getElementById('refreshSchedule');
 
     function current() { return positions[posSel.selectedIndex]; }
 
-    function load() {
+    function load(showUpdated) {
       var p = current();
+      refresh.disabled = true;
       box.innerHTML = '<p class="muted">Đang tải…</p>';
       Promise.all([
         A.call('GET', '/api/positions/' + p.id + '/schedule?week_start=' + weekStart()),
@@ -203,8 +206,17 @@
               '<button type="button" class="btn btn-danger btn-sm" data-remove="' + esc(s.id) + '">Xóa khỏi danh sách</button></li>';
           }).join('') + '</ul>'
           : '<p class="muted small" style="margin:0">Chưa có nhân viên nào ở vị trí này.</p>') + '</section>';
-        box.innerHTML = (cells.length ? grid(cells, {}, false) : empty('Vị trí này chưa có ca làm', 'Thêm ca làm khi đăng tin để nhân viên đăng ký lịch.')) + people;
-      }).catch(function (e) { box.innerHTML = fail(e); });
+        var booked = cells.filter(function (c) { return c.people > 0; }).length;
+        var schedule = cells.length
+          ? '<section class="panel"><div class="row between"><h2 style="margin:0">Lịch đã đăng ký</h2><span class="badge">' + booked + ' ca có người</span></div>' +
+            '<p class="muted small">Lịch được cập nhật sau khi nhân viên lưu ca. Tên người đăng ký hiển thị ngay trong từng ca.</p>' + grid(cells, {}, false) + '</section>'
+          : empty('Vị trí này chưa có ca làm', 'Thêm ca làm khi đăng tin để nhân viên đăng ký lịch.');
+        box.innerHTML = (showUpdated === true ? '<p class="msg info" role="status">Đã tải lịch mới nhất từ dữ liệu đăng ký của nhân viên.</p>' : '') + schedule + people;
+        refresh.disabled = false;
+      }).catch(function (e) {
+        box.innerHTML = fail(e);
+        refresh.disabled = false;
+      });
     }
 
     box.addEventListener('click', function (e) {
@@ -225,7 +237,8 @@
     });
 
     tabs(load);
-    posSel.addEventListener('change', load);
+    posSel.addEventListener('change', function () { load(); });
+    refresh.addEventListener('click', function () { load(true); });
     A.call('GET', '/api/me/shop/positions').then(function (rows) {
       positions = rows;
       if (!rows.length) { box.innerHTML = empty('Chưa có vị trí nào', 'Đăng tin tuyển để bắt đầu quản lý lịch làm.'); return; }
