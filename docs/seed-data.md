@@ -180,8 +180,9 @@ File `supabase/check-demo.sql` gồm các truy vấn SELECT để kiểm tra đ�
 Ảnh cửa hàng trỏ tới `/demo/shops/*.svg`; cần chép các file vào repo và phục vụ thư mục `public` như app hiện tại.
 Chỉ xem `shop_photos` trên Dashboard không có nghĩa là Dashboard sẽ hiển thị được đường dẫn ảnh tương đối này.
 
-Phần giao diện trên `develop` được kiểm tra trước đó còn chưa gọi API; seed thành công không tự nối API vào HTML.
-Khi frontend đã nối API, kiểm tra `/api/positions` và `/api/positions/<id>` qua server đang chạy.
+Seed thành công không tự nối API vào HTML. Ngày 11/11/2026 đã đối chiếu bản Vercel được nhóm chia sẻ:
+`/api/positions` trả đúng dữ liệu mẫu và đơn vị lương; giao diện hiện còn gắn `đ/giờ` cho cả lương tháng.
+Đây là lỗi hiển thị, không sửa số tiền hay đơn vị đúng trong database để khớp với giao diện.
 
 Kiểm tra các file sắp commit và thêm đúng file mới:
 
@@ -204,3 +205,16 @@ Nếu `git status` có file `.env` sắp được commit, bỏ riêng file đó 
 - [Supabase Auth Admin listUsers](https://supabase.com/docs/reference/javascript/auth-admin-listusers).
 
 Auth Admin API chỉ chạy ở Node trên máy/server, không đưa secret key vào trình duyệt.
+
+
+### Cập nhật kiểm tra ngày 11/11/2026
+
+Phạm vi phần việc là dữ liệu mẫu và công cụ kiểm tra database; không sửa giao diện, đăng nhập hay cấu hình deployment.
+
+- `--check` chỉ tính employment thuộc hai seeker đã được xác nhận marker của bộ seed. Nhân viên do tài khoản khác ứng tuyển vào cửa hàng mẫu không làm bộ seed báo sai. Vẫn yêu cầu đúng một nhân viên mẫu, liên kết đúng đơn accepted và không chấp nhận employment thừa của seeker mẫu.
+- Bổ sung đối chiếu cả `salary_amount` và `salary_unit` của năm tin với bộ mẫu; không tự đổi dữ liệu khi sai.
+- Ngày kiểm tra, database có đủ 6 tài khoản mẫu, 4 cửa hàng, 5 vị trí, 10 ca, 4 trạng thái đơn, 3 trạng thái lời mời, 1 nhân viên mẫu và 4 tin đã lưu. Nhóm đã tạo thêm một lời mời cho seeker mẫu và hai nhân viên từ tài khoản khác; các bản ghi đó được giữ nguyên.
+- Lịch hiện có 3 ô trong tuần bắt đầu 09/11/2026. Không tự khôi phục lịch tuần sau vì nhóm có thể đã thay đổi trong lúc thử.
+- Cửa hàng Cà phê Mộc từng bị trống lĩnh vực; đã được người dùng cho phép bổ sung lại “Cà phê”. RPC xác nhận hồ sơ đủ sau cập nhật.
+- Tin phục vụ đã hết hạn ngày 10/11/2026, nên bản Vercel trả 4 tin đang tuyển. Đây không phải thiếu bản ghi thứ năm.
+- Kiểm chứng sau sửa: `node --test scripts/seed-demo.test.js` đạt 19/19 bài; `node scripts/seed-demo.js --check` đạt trên Supabase thật. Kiểm tra chỉ đọc, không tạo lại bộ mẫu.

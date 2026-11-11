@@ -311,8 +311,9 @@ async function check(admin, anon) {
     invariant(shop && shop.mode === item.mode, `Thiếu/sai cửa hàng ${item.name}.`);
     invariant(await rpc(anon, 'is_shop_complete', { p_shop_id: shop.id }), `Hồ sơ ${item.name} chưa đủ.`);
     for (const job of JOBS.filter(j => j.owner === item.owner)) {
-      const p = oneOrNone(await rows(admin, 'positions', { shop_id: shop.id, title: job.title }, 'id,work_form,mode'), job.title);
+      const p = oneOrNone(await rows(admin, 'positions', { shop_id: shop.id, title: job.title }, 'id,work_form,mode,salary_amount,salary_unit'), job.title);
       invariant(p && p.work_form === job.work_form && p.mode === item.mode, `Thiếu/sai ${job.title}.`);
+      invariant(p.salary_amount === job.salary_amount && p.salary_unit === job.salary_unit, `Sai mức lương/đơn vị lương của ${job.title}.`);
       const shifts = await rows(admin, 'shifts', { position_id: p.id }, 'id,name,archived_at,start_hour,end_hour');
       for (const shift of shiftsFor(job)) invariant(shifts.some(s => s.name === shift.name && s.archived_at === null && s.start_hour === shift.start_hour && s.end_hour === shift.end_hour), `Thiếu/sai ${shift.name} của ${job.title}.`);
       const items = await rows(admin, 'position_items', { position_id: p.id }, 'kind');
@@ -331,12 +332,12 @@ async function check(admin, anon) {
     const inv = oneOrNone(await rows(admin, 'invitations', { seeker_id: people[expected.seeker].id, position_id: positions[expected.job].id }, 'id,status'), 'Lời mời');
     invariant(inv?.status === expected.status, `Sai trạng thái lời mời ${expected.seeker}/${expected.job}.`);
   }
-  const employees = await unwrap(admin.from('employments').select('id,position_id,seeker_id,application_id,ended_at').in('position_id', Object.values(positions).map(p => p.id)).is('ended_at', null), 'Kiểm tra nhân viên');
+  const employees = await unwrap(admin.from('employments').select('id,position_id,seeker_id,application_id,ended_at').in('position_id', Object.values(positions).map(p => p.id)).in('seeker_id', [people.s1.id, people.s2.id]).is('ended_at', null), 'Kiểm tra nhân viên');
   invariant(employees.length === 1 && employees[0].seeker_id === people.s1.id && employees[0].position_id === positions.p1.id && employees[0].application_id === applicationIds.p1, 'Cần đúng 1 nhân viên mẫu đang làm, liên kết đúng đơn được nhận.');
   for (const saved of SAVED) invariant((await rows(admin, 'saved_jobs', { seeker_id: people[saved.seeker].id, position_id: positions[saved.job].id }, 'position_id')).length === 1, 'Thiếu tin đã lưu.');
   const cells = await rows(admin, 'shift_assignments', { employment_id: employees[0].id }, 'id');
   invariant(cells.length >= 3, 'Cần ít nhất 3 ô lịch của nhân viên mẫu.');
-  console.log('ĐẠT: 6 tài khoản, 4 cửa hàng, 5 vị trí, 10 ca; đủ 4 trạng thái đơn, 3 trạng thái lời mời, 1 nhân viên, 4 tin đã lưu và lịch mẫu.');
+  console.log('ĐẠT: đủ các bản ghi mẫu: 6 tài khoản, 4 cửa hàng, 5 vị trí đúng lương/đơn vị, 10 ca; đủ 4 trạng thái đơn, 3 trạng thái lời mời, 1 nhân viên mẫu, 4 tin đã lưu và lịch mẫu. Giữ nguyên dữ liệu thử ngoài bộ mẫu.');
 }
 function printPlan() {
   console.log(`CaRảnh seed ${SEED}; project ${PROJECT}`);
@@ -375,4 +376,4 @@ if (require.main === module) main().catch(error => {
   console.error('Các bước đã thành công được giữ lại. Sửa nguyên nhân rồi chạy lại; không dùng reset/xóa database.');
   process.exitCode = 1;
 });
-module.exports = { ACCOUNTS, SHOPS, JOBS, EXPECTED_APPLICATIONS, EXPECTED_INVITATIONS, SAVED, SQL_SHA256, config, datePlus, weekDates, jobBody, shiftsFor, missingFields, oneOrNone, ensureApplication, ensureInvitation, main };
+module.exports = { ACCOUNTS, SHOPS, JOBS, EXPECTED_APPLICATIONS, EXPECTED_INVITATIONS, SAVED, SQL_SHA256, config, datePlus, weekDates, jobBody, shiftsFor, missingFields, oneOrNone, ensureApplication, ensureInvitation, check, main };
