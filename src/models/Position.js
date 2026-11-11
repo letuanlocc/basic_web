@@ -14,17 +14,29 @@ class Position {
     this.db = db;
   }
 
-  /** Danh sách việc (không dấu, lọc hình thức, sắp xếp 'new' | 'salary', phân trang). */
+  /** Danh sách việc đang tuyển, tìm theo tên việc/quán/địa điểm/mô tả, lọc và phân trang. */
   async search({ q = null, mode = null, sort = 'new', limit = 6, offset = 0 } = {}) {
-    return unwrap(
-      await this.db.rpc('search_positions', {
-        p_q: q || null,
-        p_mode: mode || null,
-        p_sort: sort,
-        p_limit: Number(limit),
-        p_offset: Number(offset),
-      })
-    );
+    const today = new Date().toISOString().slice(0, 10);
+    let query = this.db
+      .from('position_overview')
+      .select('*')
+      .eq('is_open', true);
+    if (mode) query = query.eq('mode', mode);
+    if (q) {
+      const term = q.replace(/[\\%_"]/g, '\\$&');
+      const matches = `or(title.ilike."%${term}%",shop_name.ilike."%${term}%",address.ilike."%${term}%",summary.ilike."%${term}%")`;
+      query = query.or(`and(deadline.is.null,${matches}),and(deadline.gte.${today},${matches})`);
+    } else {
+      query = query.or(`deadline.is.null,deadline.gte.${today}`);
+    }
+    if (sort === 'salary') {
+      query = query.order('salary_amount', { ascending: false, nullsFirst: false });
+    }
+    query = query
+      .order('created_at', { ascending: false })
+      .order('id', { ascending: false })
+      .range(Number(offset), Number(offset) + Number(limit) - 1);
+    return unwrap(await query);
   }
 
   async overview(id) {
