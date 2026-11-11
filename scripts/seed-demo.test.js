@@ -169,3 +169,91 @@ test('default invocation previews without loading SDK, credentials or networking
   assert.match(result.stdout, /CHẾ ĐỘ XEM TRƯỚC/);
   assert.match(result.stdout, /seeker1@caranh-demo.test/);
 });
+
+
+function auditFixture() {
+  const authUsers = seed.ACCOUNTS.map(a => ({
+    id: a.key, email: a.email,
+    app_metadata: { caranh_seed: 'caranh-demo-v1' },
+    user_metadata: { role: a.role, phone: a.phone },
+  }));
+  const tables = {
+    users: seed.ACCOUNTS.map(a => ({ id: a.key, role: a.role })),
+    shops: seed.SHOPS.map(s => ({ id: s.slug, owner_id: s.owner, mode: s.mode })),
+    positions: seed.JOBS.map(j => ({
+      id: j.key, shop_id: seed.SHOPS.find(s => s.owner === j.owner).slug,
+      title: j.title, work_form: j.work_form,
+      mode: seed.SHOPS.find(s => s.owner === j.owner).mode,
+      salary_amount: j.salary_amount, salary_unit: j.salary_unit,
+    })),
+    shifts: seed.JOBS.flatMap(j => seed.shiftsFor(j).map((s, i) => ({
+      id: j.key + '-shift-' + i, position_id: j.key, ...s, archived_at: null,
+    }))),
+    position_items: seed.JOBS.flatMap(j => ['task', 'requirement', 'perk'].map(kind => ({ position_id: j.key, kind }))),
+    applications: seed.EXPECTED_APPLICATIONS.map(a => ({
+      id: 'app-' + a.job, seeker_id: a.seeker, position_id: a.job,
+      status: a.status, source: a.source, reject_reason: a.reject_reason || null,
+    })),
+    invitations: seed.EXPECTED_INVITATIONS.map(i => ({
+      seeker_id: i.seeker, position_id: i.job, status: i.status,
+    })),
+    employments: [{ id: 'demo-employee', seeker_id: 's1', position_id: 'p1', application_id: 'app-p1', ended_at: null }],
+    saved_jobs: seed.SAVED.map(s => ({ seeker_id: s.seeker, position_id: s.job })),
+    shift_assignments: [0, 1, 2].map(id => ({ id, employment_id: 'demo-employee' })),
+  };
+  const admin = {
+    auth: { admin: { async listUsers() { return { data: { users: authUsers }, error: null }; } } },
+    from(table) {
+      const predicates = [];
+      const query = {
+        select() { return query; },
+        eq(key, value) { predicates.push(r => r[key] === value); return query; },
+        in(key, values) { predicates.push(r => values.includes(r[key])); return query; },
+        is(key, value) { predicates.push(r => r[key] === value); return query; },
+        then(resolve, reject) {
+          return Promise.resolve({ data: tables[table].filter(r => predicates.every(p => p(r))), error: null }).then(resolve, reject);
+        },
+      };
+      return query;
+    },
+  };
+  const anon = { async rpc(name) {
+    assert.ok(['is_shop_complete', 'is_profile_complete'].includes(name));
+    return { data: true, error: null };
+  } };
+  return { admin, anon, tables };
+}
+
+test('read audit accepts non-demo employees without changing their records', async () => {
+  const { admin, anon, tables } = auditFixture();
+  tables.employments.push(
+    { id: 'other-employee', seeker_id: 'outside-demo', position_id: 'p2', application_id: 'other-app', ended_at: null },
+    { id: 'past-demo-employee', seeker_id: 's2', position_id: 'p2', application_id: 'past-app', ended_at: '2026-11-01' },
+  );
+  const before = structuredClone(tables);
+  await seed.check(admin, anon);
+  assert.deepEqual(tables, before);
+});
+
+test('read audit still rejects missing or extra active demo employees', async () => {
+  const missing = auditFixture();
+  missing.tables.employments.length = 0;
+  await assert.rejects(seed.check(missing.admin, missing.anon), /1 nh.n vi.n m.u/);
+  const extra = auditFixture();
+  extra.tables.employments.push({ id: 'extra-demo', seeker_id: 's2', position_id: 'p2', application_id: 'extra-app', ended_at: null });
+  await assert.rejects(seed.check(extra.admin, extra.anon), /1 nh.n vi.n m.u/);
+});
+
+test('read audit still rejects the wrong employment/application link', async () => {
+  const { admin, anon, tables } = auditFixture();
+  tables.employments[0].application_id = 'wrong-app';
+  await assert.rejects(seed.check(admin, anon), /1 nh.n vi.n m.u/);
+});
+
+for (const patch of [{ salary_unit: 'hour' }, { salary_amount: 7200 }]) {
+  test('read audit rejects incorrect stored salary ' + JSON.stringify(patch), async () => {
+    const { admin, anon, tables } = auditFixture();
+    Object.assign(tables.positions.find(p => p.id === 'p4'), patch);
+    await assert.rejects(seed.check(admin, anon), /Sai m.c l..ng/);
+  });
+}
