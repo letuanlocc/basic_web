@@ -173,7 +173,14 @@
         });
       }).catch(function (er) {
         if (/Ca này đã đủ người/.test(er.message)) {
-          load(er.message + ' Lịch đã được tải lại; hãy chọn ca khác rồi lưu lại.');
+          var wanted = Object.keys(sel);
+          A.call('GET', '/api/positions/' + current().position.id + '/schedule?week_start=' + weekStart()).then(function (rows) {
+            var full = rows.filter(function (c) {
+              var cap = c.max_per_shift == null ? Infinity : Number(c.max_per_shift);
+              return wanted.indexOf(c.shift_id + ':' + c.weekday) >= 0 && !c.mine && c.people >= cap;
+            }).map(function (c) { return c.shift_name + ' ' + DAY[c.weekday] + ' ' + dm(c.work_date); });
+            load('Chưa lưu được vì ' + (full.length ? full.join(', ') + ' đã đủ người' : 'có ca đã đủ người') + '. Lịch đã được tải lại; hãy chọn ca khác rồi lưu lại.');
+          }).catch(function () { load(er.message + ' Lịch đã được tải lại; hãy chọn ca khác rồi lưu lại.'); });
         } else {
           save.disabled = false; save.textContent = 'Lưu lịch làm';
           out.hidden = false; out.className = 'msg err'; out.textContent = er.message;
@@ -182,7 +189,7 @@
     });
 
     tabs(load);
-    posSel.addEventListener('change', load);
+    posSel.addEventListener('change', function () { load(); });
     A.call('GET', '/api/employments/mine').then(function (rows) {
       jobs = rows;
       if (!rows.length) { box.innerHTML = empty('Bạn chưa được nhận vào vị trí nào', 'Khi chủ quán nhận hồ sơ, bạn sẽ đăng ký ca tại đây.'); return; }
@@ -203,17 +210,19 @@
 
     function current() { return positions[posSel.selectedIndex]; }
 
-    function load(showUpdated) {
+    function load(showUpdated, quiet) {
       var p = current();
-      refresh.disabled = true;
-      box.innerHTML = '<p class="muted">Đang tải…</p>';
+      if (!quiet) {
+        refresh.disabled = true;
+        box.innerHTML = '<p class="muted">Đang tải…</p>';
+      }
       Promise.all([
         A.call('GET', '/api/positions/' + p.id + '/schedule?week_start=' + weekStart()),
         A.call('GET', '/api/positions/' + p.id + '/employees'),
         A.call('GET', '/api/positions/' + p.id)
       ]).then(function (r) {
         var cells = r[0], staff = r[1];
-        rule.value = r[2].schedule_note || ''; rulemsg.hidden = true;
+        if (!quiet) { rule.value = r[2].schedule_note || ''; rulemsg.hidden = true; }
         var people = '<section class="panel"><h2>Nhân viên (' + staff.length + ')</h2>' + (staff.length
           ? '<ul style="list-style:none;margin:0;padding:0">' + staff.map(function (s) {
             var u = (s.seeker && s.seeker.user) || {};
@@ -229,7 +238,7 @@
         box.innerHTML = (showUpdated === true ? '<p class="msg info" role="status">Đã tải lịch mới nhất từ dữ liệu đăng ký của nhân viên.</p>' : '') + schedule + people;
         refresh.disabled = false;
       }).catch(function (e) {
-        box.innerHTML = fail(e);
+        if (!quiet) box.innerHTML = fail(e); // làm mới ngầm thất bại thì giữ nguyên lịch đang hiển thị
         refresh.disabled = false;
       });
     }
@@ -254,6 +263,8 @@
     tabs(load);
     posSel.addEventListener('change', function () { load(); });
     refresh.addEventListener('click', function () { load(true); });
+    // Tự làm mới lịch mỗi 30 giây (im lặng, không đụng ô ghi chú) để HR thấy ca mới đăng ký
+    setInterval(function () { if (!document.hidden && positions.length && !refresh.disabled) load(false, true); }, 30000);
     A.call('GET', '/api/me/shop/positions').then(function (rows) {
       positions = rows;
       if (!rows.length) { box.innerHTML = empty('Chưa có vị trí nào', 'Đăng tin tuyển để bắt đầu quản lý lịch làm.'); return; }
