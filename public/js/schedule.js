@@ -41,10 +41,11 @@
         var c = rows[wd][s.shift_id];
         if (!c) return '<span></span>';
         var key = s.shift_id + ':' + wd, mine = edit ? !!sel[key] : c.mine;
-        var full = c.people > 0 && !mine;
+        var cap = c.max_per_shift == null ? Infinity : Number(c.max_per_shift);
+        var full = !mine && c.people >= cap;
         var cls = 'cell' + (mine ? ' mine' : full ? ' full' : c.understaffed ? ' need' : '');
-        var state = mine ? 'Đã chọn' : full ? 'Đã có người đăng ký' : c.understaffed ? 'Đang thiếu người' : '';
-        var inner = '<span class="top"><span>' + c.people + '/' + c.max_per_shift + ' người</span></span>' +
+        var state = mine ? 'Đã chọn' : full ? 'Đã đủ người' : c.understaffed ? 'Đang thiếu người' : '';
+        var inner = '<span class="top"><span>' + c.people + (c.max_per_shift != null ? '/' + c.max_per_shift : '') + ' người</span></span>' +
           (state ? '<span class="ppl">' + state + '</span>' : '') +
           (!edit && c.names.length ? '<span class="ppl">' + esc(c.names.join(', ')) + '</span>' : '');
         if (!edit) return '<div class="' + cls + '">' + inner + '</div>';
@@ -97,7 +98,7 @@
       var notice = hoursNotice(hours, p, count() > 0);
       var limit = (p.min_week_hours != null || p.max_week_hours != null)
         ? 'Quy định: ' + (p.min_week_hours || 0) + ' – ' + (p.max_week_hours || '…') + ' giờ/tuần. ' : '';
-      box.innerHTML = '<p class="msg info">' + esc(limit) + 'Mỗi ca trong một ngày chỉ có một người giữ; ai lưu trước được chọn trước. Bạn đang chọn <strong>' + count() + ' ca · ' + hours + ' giờ</strong>. Ca đã qua không đổi được.</p>' +
+      box.innerHTML = '<p class="msg info">' + esc(limit) + 'Mỗi ca có số người tối đa do chủ quán quy định; ai lưu trước được giữ chỗ trước. Bạn đang chọn <strong>' + count() + ' ca · ' + hours + ' giờ</strong>. Ca đã qua không đổi được.</p>' +
         (notice ? '<p class="msg ' + notice.kind + '" role="status">' + esc(notice.text) + '</p>' : '') +
         grid(cells, sel, true) +
         '<p class="msg" id="smsg" role="status" hidden></p>' +
@@ -157,7 +158,7 @@
             (savedNotice ? ' ' + savedNotice.text : '');
         });
       }).catch(function (er) {
-        if (/Ca này vừa được người khác đăng ký/.test(er.message)) {
+        if (/Ca này đã đủ người/.test(er.message)) {
           load(er.message + ' Lịch đã được tải lại; hãy chọn ca khác rồi lưu lại.');
         } else {
           save.disabled = false; save.textContent = 'Lưu lịch làm';

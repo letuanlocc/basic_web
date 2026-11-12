@@ -40,17 +40,23 @@ begin
     hashtextextended(v_position_id::text || ':' || p_week_start::text, 0)
   );
 
+  -- Ca đầy = số người khác đã giữ ca đó >= max_per_shift do chủ quán đặt (null = không giới hạn)
   if exists (
     select 1
       from jsonb_to_recordset(p_cells) as requested(shift_id uuid, weekday integer)
-      join public.shift_assignments assigned
-        on assigned.position_id = v_position_id
-       and assigned.shift_id = requested.shift_id
-       and assigned.week_start = p_week_start
-       and assigned.weekday = requested.weekday
-       and assigned.employment_id <> p_employment_id
+      join public.positions pos on pos.id = v_position_id
+     where pos.max_per_shift is not null
+       and (
+         select count(*)
+           from public.shift_assignments assigned
+          where assigned.position_id = v_position_id
+            and assigned.shift_id = requested.shift_id
+            and assigned.week_start = p_week_start
+            and assigned.weekday = requested.weekday
+            and assigned.employment_id <> p_employment_id
+       ) >= pos.max_per_shift
   ) then
-    raise exception 'Ca này vừa được người khác đăng ký. Hãy chọn ca khác.'
+    raise exception 'Ca này đã đủ người. Hãy chọn ca khác.'
       using errcode = 'P0001';
   end if;
 
