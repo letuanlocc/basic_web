@@ -78,13 +78,13 @@
       if (position.max_week_hours != null && hours > Number(position.max_week_hours)) {
         return {
           kind: 'err',
-          text: 'Bạn đã chọn quá số giờ quy định trong 1 tuần (' + hours + '/' + position.max_week_hours + ' giờ).'
+          text: 'Bạn đang chọn ' + hours + ' giờ/tuần, vượt mức tối đa ' + position.max_week_hours + ' giờ. Hãy bỏ chọn ca để giảm tổng giờ trước khi lưu.'
         };
       }
       if (position.min_week_hours != null && hours < Number(position.min_week_hours)) {
         return {
           kind: 'warn',
-          text: 'Bạn đã chọn ít hơn số giờ quy định trong 1 tuần (' + hours + '/' + position.min_week_hours + ' giờ).'
+          text: 'Bạn đang chọn ' + hours + ' giờ/tuần, thấp hơn mức tối thiểu ' + position.min_week_hours + ' giờ. Đây là cảnh báo: bạn vẫn có thể lưu lịch, hoặc chọn thêm ca để đạt mức tối thiểu.'
         };
       }
       return null;
@@ -158,7 +158,7 @@
         });
       }).catch(function (er) {
         if (/Ca này vừa được người khác đăng ký/.test(er.message)) {
-          load(er.message);
+          load(er.message + ' Lịch đã được tải lại; hãy chọn ca khác rồi lưu lại.');
         } else {
           save.disabled = false; save.textContent = 'Lưu lịch làm';
           out.hidden = false; out.className = 'msg err'; out.textContent = er.message;
