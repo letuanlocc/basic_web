@@ -76,6 +76,20 @@
     function count() { return Object.keys(sel).length; }
     function hoursNotice(hours, position, hasSelection) {
       if (!hasSelection) return null;
+      if (position.max_day_hours != null) {
+        var perDay = {};
+        cells.forEach(function (c) {
+          if (sel[c.shift_id + ':' + c.weekday]) perDay[c.weekday] = (perDay[c.weekday] || 0) + c.end_hour - c.start_hour;
+        });
+        for (var wd in perDay) {
+          if (perDay[wd] > Number(position.max_day_hours)) {
+            return {
+              kind: 'err',
+              text: 'Bạn đã chọn ' + perDay[wd] + ' giờ trong ' + DAY[wd] + ', vượt quá số giờ tối đa mỗi ngày (' + position.max_day_hours + ' giờ). Hãy bỏ bớt ca trong ngày này.'
+            };
+          }
+        }
+      }
       if (position.max_week_hours != null && hours > Number(position.max_week_hours)) {
         return {
           kind: 'err',

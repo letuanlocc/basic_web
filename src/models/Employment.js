@@ -11,7 +11,7 @@ class Employment {
     return unwrap(
       await this.db
         .from('employments')
-        .select('id, started_at, position:positions(id, title, mode, min_week_hours, max_week_hours, shop:shops(id, name))')
+        .select('id, started_at, position:positions(id, title, mode, min_week_hours, max_week_hours, max_day_hours, shop:shops(id, name))')
         .eq('seeker_id', seekerId)
         .is('ended_at', null)
     );
