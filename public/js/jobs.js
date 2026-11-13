@@ -13,7 +13,7 @@
   }
   function $(id) { return document.getElementById(id); }
   function hh(h) { return String(h).padStart(2, '0') + ':00'; }
-  function salary(p) { return p.salary_amount ? Number(p.salary_amount).toLocaleString('vi-VN') + 'đ/giờ' : 'Thỏa thuận'; }
+  var salary = window.CR_SALARY;
   function days(p) { return (p.work_days || []).map(function (d) { return DAY[d]; }).join(', '); }
   function when(p) {
     var t = [];
@@ -50,15 +50,50 @@
 
   // ---------- Danh sách việc (index.html, jobs.html) ----------
   function initList() {
-    var LIMIT = 12, state = { mode: '', sort: 'new', q: '', offset: 0 };
+    var LIMIT = 12, state = { mode: '', sort: 'new', q: '', offset: 0, skills: [], loc: '', times: [] };
     var list = $('list'), more = $('more'), count = $('count'), none = $('none'), err = $('listerr');
     var loggedIn = !!(A && A.get());
     var shown = 0;
 
+    // Từ khóa gửi lên server = từ khóa đã lọc từ thừa + các kỹ năng AI nhận ra
+    function searchText() { return [state.q].concat(state.skills).join(' ').trim(); }
+
+    var chipBox = $('aichips');
+    function drawChips() {
+      if (!chipBox) return;
+      var h = state.skills.map(function (t, i) { return chip('Kỹ năng', t, 'skills', i); })
+        .concat(state.loc ? [chip('Khu vực', state.loc, 'loc', 0)] : []).join('');
+      if (state.times.length) h += '<span class="tiny muted">Thời gian nhận ra: ' + esc(state.times.join(', ')) + ' (chưa lọc được)</span>';
+      chipBox.innerHTML = h; chipBox.hidden = !h;
+    }
+    function chip(label, text, key, i) {
+      return '<button type="button" class="chip" aria-pressed="true" data-rm="' + key + ':' + i + '" aria-label="Bỏ lọc ' + esc(label) + ' ' + esc(text) + '">' +
+        esc(label) + ': ' + esc(text) + ' ✕</button>';
+    }
+    if (chipBox) chipBox.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-rm]'); if (!b) return;
+      var p = b.getAttribute('data-rm').split(':');
+      if (p[0] === 'loc') state.loc = ''; else state.skills.splice(Number(p[1]), 1);
+      drawChips(); load(true);
+    });
+    function clearAi() { state.skills = []; state.loc = ''; state.times = []; drawChips(); }
+
+    // Enter: nhờ AI tách nhãn + bỏ từ thừa. Lỗi mạng thì tìm theo nguyên văn.
+    function aiSearch(text) {
+      if (!text) { state.q = ''; clearAi(); return load(true); }
+      pub('/api/positions/parse?q=' + encodeURIComponent(text)).then(function (r) {
+        var by = function (l) { return r.entities.filter(function (e) { return e.label === l; }).map(function (e) { return e.text; }); };
+        state.q = r.keyword; state.skills = by('SKILL'); state.times = by('TIME');
+        state.loc = by('LOC')[0] || '';
+        drawChips(); load(true);
+      }).catch(function () { state.q = text; clearAi(); load(true); });
+    }
+
     function load(reset) {
       if (reset) { state.offset = 0; shown = 0; list.innerHTML = ''; }
       var url = '/api/positions?limit=' + LIMIT + '&offset=' + state.offset + '&sort=' + state.sort +
-        (state.mode ? '&mode=' + state.mode : '') + (state.q ? '&q=' + encodeURIComponent(state.q) : '');
+        (state.mode ? '&mode=' + state.mode : '') +
+        (searchText() ? '&q=' + encodeURIComponent(searchText()) : '') + (state.loc ? '&loc=' + encodeURIComponent(state.loc) : '');
       more.disabled = true;
       pub(url).then(function (rows) {
         err.hidden = true;
@@ -84,8 +119,8 @@
     // ô tìm kiếm trên thanh đầu trang
     var q = $('q'), t;
     if (q) {
-      q.addEventListener('input', function () { clearTimeout(t); t = setTimeout(function () { state.q = q.value.trim(); load(true); }, 350); });
-      q.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); clearTimeout(t); state.q = q.value.trim(); load(true); } });
+      q.addEventListener('input', function () { clearTimeout(t); t = setTimeout(function () { clearAi(); state.q = q.value.trim(); load(true); }, 350); });
+      q.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); clearTimeout(t); aiSearch(q.value.trim()); } });
     }
     load(true);
   }
@@ -341,7 +376,10 @@
     }
     function read() {
       return {
-        title: val('n_title'), mode: mode, salary_amount: num('n_salary'), summary: val('n_summary'),
+        title: val('n_title'), mode: mode,
+        salary_amount: val('n_salary_unit') === 'negotiable' ? null : num('n_salary'),
+        salary_unit: val('n_salary_unit') === 'negotiable' || num('n_salary') == null ? 'negotiable' : val('n_salary_unit'),
+        summary: val('n_summary'),
         no_experience: $('n_noexp').checked, accepts_intern: $('n_intern').checked,
         address: val('n_addr'), work_form: val('n_form'),
         work_days: Array.prototype.filter.call(form.querySelectorAll('[data-day]'), function (b) { return b.getAttribute('aria-pressed') === 'true'; })
@@ -361,11 +399,89 @@
 
     function preview() {
       var d = read();
-      $('preview').innerHTML = d.title ? card({ id: '', title: d.title, shop_name: shopName, mode: d.mode, salary_amount: d.salary_amount, work_days: d.work_days,
+      $('preview').innerHTML = d.title ? card({ id: '', title: d.title, shop_name: shopName, mode: d.mode, salary_amount: d.salary_amount, salary_unit: d.salary_unit, work_days: d.work_days,
         open_hour: d.open_hour, close_hour: d.close_hour, address: d.address, summary: d.summary }, true, true)
         : empty('Nhập tên vị trí để xem trước');
     }
     form.addEventListener('input', preview);
+    form.addEventListener('change', preview);
+    $('n_salary_unit').addEventListener('change', function () {
+      $('n_salary').disabled = this.value === 'negotiable';
+    });
+
+    // ----- Điền form từ dữ liệu (bản nháp hoặc tin cũ) -----
+    function setVal(id, v) { $(id).value = v == null ? '' : v; }
+    function itemsText(d, kind) {
+      return (d.items || []).filter(function (i) { return i.kind === kind; }).map(function (i) { return i.content; }).join('\n');
+    }
+    function apply(d) {
+      setVal('n_title', d.title); setVal('n_summary', d.summary); setVal('n_addr', d.address); setVal('n_form', d.work_form);
+      setVal('n_salary', d.salary_amount);
+      setVal('n_salary_unit', d.salary_unit || 'negotiable');
+      $('n_salary').disabled = $('n_salary_unit').value === 'negotiable';
+      $('n_noexp').checked = !!d.no_experience; $('n_intern').checked = !!d.accepts_intern;
+      mode = d.mode === 'online' ? 'online' : 'offline';
+      form.querySelectorAll('[data-chip]').forEach(function (x) { x.setAttribute('aria-pressed', String(x.getAttribute('data-v') === mode)); });
+      form.querySelectorAll('[data-day]').forEach(function (b) {
+        b.setAttribute('aria-pressed', String((d.work_days || []).indexOf(Number(b.getAttribute('data-day'))) >= 0));
+      });
+      shifts.innerHTML = '';
+      (d.shifts && d.shifts.length ? d.shifts : []).forEach(function (s) { addShift(s.name, s.start_hour, s.end_hour); });
+      [['n_open', 'open_hour'], ['n_close', 'close_hour'], ['n_head', 'headcount'], ['n_pend', 'pending_limit'],
+        ['n_minw', 'min_week_hours'], ['n_maxw', 'max_week_hours'], ['n_maxd', 'max_day_hours'],
+        ['n_minp', 'min_per_shift'], ['n_maxp', 'max_per_shift'], ['n_deadline', 'deadline'], ['n_start', 'start_date'],
+        ['n_mgr', 'contact_name'], ['n_mgp', 'contact_phone']].forEach(function (p) { setVal(p[0], d[p[1]]); });
+      setVal('n_tasks', itemsText(d, 'task')); setVal('n_reqs', itemsText(d, 'requirement')); setVal('n_perks', itemsText(d, 'perk'));
+      preview();
+    }
+
+    // ----- Bản nháp: tự lưu trong trình duyệt, mất khi đăng thành công hoặc bấm xóa -----
+    var DRAFT = 'cr_post_draft', draftNote = $('draftnote');
+    function store(fn) { try { return fn(localStorage); } catch (x) { return null; } }
+    function saveDraft() {
+      var ok = store(function (ls) { ls.setItem(DRAFT, JSON.stringify(read())); return true; });
+      if (ok) draftNote.textContent = 'Đã lưu bản nháp trong trình duyệt này.';
+    }
+    var timer;
+    function queueDraft() { clearTimeout(timer); timer = setTimeout(saveDraft, 400); }
+    form.addEventListener('input', queueDraft);
+    form.addEventListener('change', queueDraft);
+    shifts.addEventListener('click', queueDraft);
+    form.addEventListener('click', function (e) { if (e.target.closest('[data-chip],[data-day],#addShift')) queueDraft(); });
+
+    var saved = store(function (ls) { return ls.getItem(DRAFT); });
+    if (saved) {
+      try { apply(JSON.parse(saved)); draftNote.textContent = 'Đã khôi phục bản nháp lần trước.'; } catch (x) { store(function (ls) { ls.removeItem(DRAFT); }); }
+    }
+    $('clearDraft').addEventListener('click', function () {
+      clearTimeout(timer);
+      store(function (ls) { ls.removeItem(DRAFT); });
+      form.reset(); apply({ shifts: [{ name: 'Ca sáng', start_hour: 8, end_hour: 12 }] });
+      draftNote.textContent = 'Đã xóa bản nháp.';
+    });
+
+    // ----- Lấy từ tin cũ làm mẫu -----
+    var tpl = $('n_tpl');
+    A.call('GET', '/api/me/shop/positions').then(function (rows) {
+      if (!rows.length) { $('tplfield').hidden = true; return; }
+      tpl.innerHTML = '<option value="">— Chọn tin cũ —</option>' + rows.map(function (r) {
+        return '<option value="' + esc(r.id) + '">' + esc(r.title) + '</option>';
+      }).join('');
+    }).catch(function () { $('tplfield').hidden = true; });
+    tpl.addEventListener('change', function () {
+      if (!tpl.value) return;
+      var id = tpl.value;
+      draftNote.textContent = 'Đang tải tin mẫu…';
+      Promise.all([
+        A.call('GET', '/api/positions/' + id),
+        A.call('GET', '/api/positions/' + id + '/contact').catch(function () { return {}; })
+      ]).then(function (r) {
+        var d = Object.assign({}, r[0], r[1] || {});
+        delete d.deadline; delete d.start_date; // hạn và ngày bắt đầu của tin cũ đã quá hạn
+        apply(d); saveDraft();
+        draftNote.textContent = 'Đã điền từ tin “' + (r[0].title || '') + '”. Hãy chỉnh lại rồi đăng, nhớ chọn hạn ứng tuyển và ngày bắt đầu mới.';
+      }).catch(function (er) { draftNote.textContent = 'Không tải được tin mẫu: ' + er.message; });
+    });
 
     var shopName = '';
     A.call('GET', '/api/me').then(function (me) {
@@ -380,6 +496,8 @@
     function check(d) {
       if (!d.title) return 'Vui lòng nhập tên vị trí';
       if (!d.address) return 'Vui lòng nhập địa điểm làm việc';
+      if (['hour', 'shift', 'day', 'month', 'negotiable'].indexOf(d.salary_unit) < 0) return 'Vui lòng chọn đơn vị lương hợp lệ';
+      if (d.salary_unit !== 'negotiable' && (!Number.isInteger(d.salary_amount) || d.salary_amount <= 0 || d.salary_amount > 2147483647)) return 'Mức lương phải là số nguyên dương, không vượt 2.147.483.647';
       if (!d.work_days.length) return 'Chọn ít nhất một ngày làm việc';
       if (!d.shifts.length) return 'Thêm ít nhất một ca làm việc';
       for (var i = 0; i < d.shifts.length; i++) {
@@ -420,7 +538,7 @@
       d.max_shift_hours = Math.max.apply(null, d.shifts.map(function (s) { return s.end_hour - s.start_hour; }));
       Object.keys(d).forEach(function (k) { if (d[k] === null || d[k] === '') delete d[k]; });
       var btn = form.querySelector('button[type=submit]'); btn.disabled = true; btn.textContent = 'Đang đăng…';
-      A.call('POST', '/api/positions', d).then(function () { location.href = 'positions.html'; })
+      A.call('POST', '/api/positions', d).then(function () { clearTimeout(timer); store(function (ls) { ls.removeItem(DRAFT); }); location.href = 'positions.html'; })
         .catch(function (er) { btn.disabled = false; btn.textContent = 'Đăng tin tuyển'; msg(err, er.message); });
     });
     preview();

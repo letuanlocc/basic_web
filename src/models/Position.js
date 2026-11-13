@@ -14,8 +14,11 @@ class Position {
     this.db = db;
   }
 
-  /** Danh sách việc đang tuyển, tìm theo tên việc/quán/địa điểm/mô tả, lọc và phân trang. */
-  async search({ q = null, mode = null, sort = 'new', limit = 6, offset = 0 } = {}) {
+  /**
+   * Danh sách việc đang tuyển, tìm theo tên việc/quán/địa điểm/mô tả, lọc và phân trang.
+   * loc (tùy chọn, từ NER): chỉ giữ tin có khu vực này trong địa chỉ/phường, không phân biệt dấu và hoa thường.
+   */
+  async search({ q = null, mode = null, sort = 'new', limit = 6, offset = 0, loc = null } = {}) {
     const today = new Date().toISOString().slice(0, 10);
     let query = this.db
       .from('position_overview')
@@ -34,9 +37,16 @@ class Position {
     }
     query = query
       .order('created_at', { ascending: false })
-      .order('id', { ascending: false })
-      .range(Number(offset), Number(offset) + Number(limit) - 1);
-    return unwrap(await query);
+      .order('id', { ascending: false });
+    if (!loc) return unwrap(await query.range(Number(offset), Number(offset) + Number(limit) - 1));
+
+    // Có lọc khu vực: lấy tối đa 200 tin khớp từ khóa rồi lọc theo chuỗi địa chỉ trong Node.
+    const plain = (t) => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/gi, 'd').toLowerCase();
+    const want = plain(loc);
+    const rows = unwrap(await query.range(0, 199));
+    return rows
+      .filter((r) => plain([r.address, r.shop_ward, r.shop_city, r.shop_name].join(' ')).includes(want))
+      .slice(Number(offset), Number(offset) + Number(limit));
   }
 
   async overview(id) {
