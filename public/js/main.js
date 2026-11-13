@@ -17,10 +17,9 @@
     return '<a class="brand" href="' + href + '" aria-label="CaRảnh – trang chủ"><span class="logo" aria-hidden="true">' + ICON.logo + '</span>CaRảnh</a>';
   };
   var searchForm = function (ph, label) {
-    return '<form class="search" role="search" onsubmit="return false"><label class="sr-only" for="q">Tìm kiếm</label>' +
-      '<div class="box">' + ICON.search + '<input id="q" type="search" placeholder="' + ph + '"></div>' +
-      // nút phụ chỉ còn ở trang nhà tuyển dụng ("Lọc"); nút "Tìm bằng AI" đã bỏ vì Enter trong ô tìm đã dùng NER
-      (label ? '<button type="button" class="btn" data-todo="Tìm kiếm" style="color:#5B6270">' + label + ' · <span style="color:#93500A">Sắp có</span></button>' : '') + '</form>';
+    return '<form class="search" role="search" onsubmit="return false"><label class="sr-only" for="q">' + (label ? 'Tìm ứng viên' : 'Tìm kiếm') + '</label>' +
+      '<div class="box">' + ICON.search + '<input id="q" type="search" placeholder="' + ph + '"' + (label ? ' maxlength="200"' : '') + '></div>' +
+      (label ? '<button type="submit" class="btn" style="color:#5B6270">' + label + '</button>' : '') + '</form>';
   };
   var a = function (cur, key) { return cur === key ? ' aria-current="page"' : ''; };
 
@@ -61,7 +60,7 @@
           (i[3] ? '<span class="count-pill">' + i[3] + '</span>' : '') + '</button>';
       }).join('');
       return '<header class="cr-header"><div class="bar">' + brand('candidates.html') +
-        searchForm('Tìm ứng viên — vd: rảnh tối, pha chế, Hải Châu', 'Lọc').replace('<span style="color:#93500A">Sắp có</span>', '').replace(' · ', '') +
+        searchForm('Tên, kỹ năng, khu vực — vd: Minh An, pha chế, Hải Châu', 'Tìm') +
         '<div class="nav"><a class="link strong" href="shop.html"><span class="avatar" aria-hidden="true">C</span>Cửa hàng</a>' +
         '<a class="link" href="index.html" data-logout>' + ICON.out + 'Đăng xuất</a></div></div>' +
         '<nav class="subnav" aria-label="Nhà tuyển dụng"><div class="bar">' + subs +
@@ -92,6 +91,13 @@
     if (el) {
       var type = el.getAttribute('data-layout'), cur = el.getAttribute('data-active') || '';
       el.outerHTML = layouts[type](cur, el);
+      if (type === 'employer' && document.body.getAttribute('data-page') !== 'candidates') {
+        document.getElementById('q').closest('form').addEventListener('submit', function (e) {
+          e.preventDefault();
+          var term = document.getElementById('q').value.trim();
+          location.href = 'candidates.html' + (term ? '?q=' + encodeURIComponent(term) : '');
+        });
+      }
       var b = bottoms[type];
       if (b) {
         var nav = document.createElement('nav');
