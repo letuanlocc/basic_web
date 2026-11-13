@@ -50,7 +50,8 @@
       if (s.length) p.set('slots', s.join(','));
       if ($('fexp').value) p.set('has_experience', $('fexp').value);
       if ($('farea').value) p.set('area', $('farea').value);
-      if ($('flang').value !== '0') p.set('min_lang', $('flang').value);
+      if ($('flang').value === '0') p.set('language_level', '0');
+      else if ($('flang').value !== '') p.set('min_lang', $('flang').value);
       p.set('sort', $('fsort').value);
       return p.toString();
     }
@@ -97,7 +98,7 @@
       modeBtns.forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
       slotBtns.forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
       search.value = '';
-      $('fexp').value = ''; $('farea').value = ''; $('flang').value = '0'; $('fsort').value = 'updated';
+      $('fexp').value = ''; $('farea').value = ''; $('flang').value = ''; $('fsort').value = 'updated';
       later();
     });
     load();

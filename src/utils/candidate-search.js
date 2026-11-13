@@ -16,12 +16,13 @@ const SLOT = {
   morning: 'rảnh sáng morning', afternoon: 'rảnh chiều afternoon',
   evening: 'rảnh tối evening', weekend: 'rảnh cuối tuần weekend',
 };
+const LANGUAGE = { 0: 'chưa có ngoại ngữ', 1: 'giao tiếp cơ bản ngoại ngữ', 2: 'khá ngoại ngữ', 3: 'tốt ngoại ngữ' };
 const MODE = { online: 'online', offline: 'offline', both: 'online offline' };
 
 function matches(row, words) {
   const text = normalize([
     row.user && row.user.full_name, row.area, row.experience, row.strengths,
-    row.availability_note, MODE[row.work_mode],
+    row.availability_note, MODE[row.work_mode], LANGUAGE[row.language_level],
     ...(row.availability || []).map(a => SLOT[a.slot] || ''),
   ].filter(Boolean).join(' '));
   return words.every(word => text.includes(word));
