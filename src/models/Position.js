@@ -91,3 +91,4 @@ class Position {
 }
 
 module.exports = Position;
+module.exports.FIELDS = FIELDS;

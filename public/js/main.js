@@ -135,7 +135,8 @@
   // form không gửi đi đâu cả
   document.addEventListener('submit', function (e) {
     var f = e.target;
-    if (f.hasAttribute('data-auth')) return;
+    // form đã có script riêng xử lý (gọi preventDefault trước) thì bỏ qua
+    if (f.hasAttribute('data-auth') || e.defaultPrevented) return;
     e.preventDefault();
     var t = f.querySelector('[data-todo]');
     if (t) t.click(); else window.crDialog('Tính năng chưa có sẵn', 'Biểu mẫu này chưa xử lý dữ liệu.');

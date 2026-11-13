@@ -17,7 +17,7 @@ function errorHandler(err, req, res, next) {
   if (err.code === '22P02') { status = 400; message = 'Dữ liệu sai định dạng'; }
 
   if (status === 500) console.error(err);
-  res.status(status).json({ success: false, message: message || 'Lỗi server' });
+  res.status(status).json({ success: false, message: message || 'Lỗi server', ...(err.extra || {}) });
 }
 
 module.exports = { notFound, errorHandler };

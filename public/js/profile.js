@@ -55,12 +55,70 @@
     return out;
   }
 
-  function validate(kind, d) {
-    if (d.phone && !/^0\d{9}$/.test(String(d.phone).replace(/[\s.]/g, ''))) return 'Số điện thoại phải gồm 10 chữ số, bắt đầu bằng 0';
-    if (kind === 'seeker' && d.birth_year && (d.birth_year < 1950 || d.birth_year > new Date().getFullYear() - 14)) return 'Năm sinh không hợp lệ';
-    if (kind === 'seeker' && d.full_name === null) return 'Vui lòng nhập họ và tên';
-    if (kind === 'shop' && !d.name) return 'Vui lòng nhập tên công ty / cửa hàng';
-    return '';
+  // Hồ sơ cửa hàng phải đủ các mục này mới được lưu (server cũng kiểm tra lại)
+  var SHOP_REQUIRED = [
+    ['name', 'tên công ty / cửa hàng'], ['mode', 'hình thức làm việc'], ['industry', 'lĩnh vực'], ['city', 'tỉnh / thành phố'],
+    ['ward', 'phường / xã'], ['address', 'địa chỉ cụ thể'], ['phone', 'SĐT cửa hàng']
+  ];
+
+  // Trả { text, field } hoặc null. field = tên cột để đưa con trỏ tới đúng ô.
+  function validate(form, kind, d) {
+    if (kind === 'shop') {
+      for (var i = 0; i < SHOP_REQUIRED.length; i++) {
+        if (!d[SHOP_REQUIRED[i][0]]) return { text: 'Vui lòng nhập ' + SHOP_REQUIRED[i][1], field: SHOP_REQUIRED[i][0] };
+      }
+    }
+    if (d.phone && !/^0\d{9}$/.test(String(d.phone).replace(/[\s.]/g, ''))) return { text: 'Số điện thoại phải gồm 10 chữ số, bắt đầu bằng 0', field: 'phone' };
+    if (kind === 'seeker' && d.full_name === null) return { text: 'Vui lòng nhập họ và tên', field: 'full_name' };
+    if (kind === 'seeker' && d.birth_year && (d.birth_year < 1950 || d.birth_year > new Date().getFullYear() - 14)) return { text: 'Năm sinh không hợp lệ', field: 'birth_year' };
+    if (kind === 'shop' && d.mode !== 'online' && form.querySelectorAll('#photos .thumb').length < 1) {
+      return { text: 'Cửa hàng làm việc trực tiếp cần ít nhất 1 ảnh nơi làm việc', field: 'photos' };
+    }
+    return null;
+  }
+  function markInvalid(form, field) {
+    form.querySelectorAll('[aria-invalid]').forEach(function (el) { el.removeAttribute('aria-invalid'); });
+    var el = field === 'photos' ? form.querySelector('#photo_pick')
+      : form.querySelector('[data-f="' + field + '"]') || form.querySelector('[data-chip="' + field + '"]');
+    if (!el) return;
+    if (el.matches('input, select, textarea')) el.setAttribute('aria-invalid', 'true');
+    el.focus();
+  }
+
+  // ---- Ảnh tải từ máy: nén bằng canvas rồi gửi data URL ----
+  // opts: { maxW, maxH, ratio (rộng/cao, cắt giữa nếu có), quality }
+  function readImage(file, opts) {
+    return new Promise(function (resolve, reject) {
+      if (!file || !/^image\/(jpeg|png|webp)$/.test(file.type)) return reject(new Error('Chỉ nhận ảnh JPG, PNG hoặc WEBP'));
+      if (file.size > 15 * 1024 * 1024) return reject(new Error('Ảnh quá lớn (tối đa 15 MB)'));
+      var url = URL.createObjectURL(file), img = new Image();
+      img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('Không đọc được ảnh này')); };
+      img.onload = function () {
+        URL.revokeObjectURL(url);
+        var sx = 0, sy = 0, sw = img.naturalWidth, sh = img.naturalHeight;
+        if (opts.ratio) {
+          if (sw / sh > opts.ratio) { var w = sh * opts.ratio; sx = (sw - w) / 2; sw = w; }
+          else { var h = sw / opts.ratio; sy = (sh - h) / 2; sh = h; }
+        }
+        var k = Math.min(1, opts.maxW / sw, opts.maxH / sh);
+        var c = document.createElement('canvas');
+        c.width = Math.round(sw * k); c.height = Math.round(sh * k);
+        var ctx = c.getContext('2d');
+        ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, c.width, c.height); // PNG trong suốt → nền trắng
+        ctx.drawImage(img, sx, sy, sw, sh, 0, 0, c.width, c.height);
+        resolve(c.toDataURL('image/jpeg', opts.quality || 0.82));
+      };
+      img.src = url;
+    });
+  }
+
+  function drawAvatar(form) {
+    var inp = form.querySelector('[data-f="avatar_url"]'), img = form.querySelector('#avatar_img'), ph = form.querySelector('#avatar_ph');
+    if (!inp || !img) return;
+    var rm = form.querySelector('#avatar_rm');
+    img.hidden = !inp.value; ph.hidden = !!inp.value;
+    if (rm) rm.hidden = !inp.value;
+    if (inp.value) img.src = inp.value;
   }
 
   function init(form) {
@@ -84,16 +142,24 @@
       }).join('');
     }
     function reloadPhotos() { return A.call('GET', '/api/me').then(function (me) { drawPhotos(me.shop && me.shop.photos); }); }
-    var add = document.getElementById('photo_add');
-    if (kind === 'shop' && add) {
-      add.addEventListener('click', function () {
-        var inp = document.getElementById('photo_url'), url = inp.value.trim();
-        if (!/^https?:\/\/\S+$/i.test(url)) return msg(form, 'Đường dẫn ảnh phải bắt đầu bằng http:// hoặc https://');
-        add.disabled = true;
-        A.call('POST', '/api/me/shop/photos', { url: url, sort_order: document.querySelectorAll('#photos .thumb').length })
-          .then(function () { inp.value = ''; return reloadPhotos(); })
-          .then(function () { add.disabled = false; })
-          .catch(function (e) { add.disabled = false; msg(form, e.message); });
+    var pick = document.getElementById('photo_file');
+    if (kind === 'shop' && pick) {
+      var pickBtn = document.getElementById('photo_pick'), pickText = pickBtn.textContent;
+      pickBtn.addEventListener('click', function () { pick.click(); });
+      pick.addEventListener('change', function () {
+        var files = Array.prototype.slice.call(pick.files || []);
+        pick.value = '';
+        if (!files.length) return;
+        pickBtn.disabled = true; pickBtn.textContent = 'Đang tải ảnh…';
+        var start = document.querySelectorAll('#photos .thumb').length;
+        // tải lần lượt từng ảnh để giữ thứ tự
+        files.reduce(function (p, f, i) {
+          return p.then(function () { return readImage(f, { maxW: 1280, maxH: 1280, quality: 0.8 }); })
+            .then(function (data) { return A.call('POST', '/api/me/shop/photos', { url: data, sort_order: start + i }); });
+        }, Promise.resolve())
+          .then(reloadPhotos)
+          .catch(function (e) { msg(form, e.message); return reloadPhotos().catch(function () {}); })
+          .then(function () { pickBtn.disabled = false; pickBtn.textContent = pickText; });
       });
       document.getElementById('photos').addEventListener('click', function (e) {
         var b = e.target.closest('[data-rm]'); if (!b) return;
@@ -102,15 +168,34 @@
       });
     }
 
+    // Ảnh thẻ người tìm việc: cắt giữa theo tỉ lệ 3×4, lưu cùng hồ sơ khi bấm Lưu
+    var av = document.getElementById('avatar_file');
+    if (kind === 'seeker' && av) {
+      drawAvatar(form);
+      av.addEventListener('change', function () {
+        var f = av.files && av.files[0]; av.value = '';
+        if (!f) return;
+        readImage(f, { maxW: 360, maxH: 480, ratio: 3 / 4, quality: 0.85 }).then(function (data) {
+          form.querySelector('[data-f="avatar_url"]').value = data;
+          drawAvatar(form);
+          msg(form, 'Đã chọn ảnh thẻ. Bấm lưu để cập nhật hồ sơ.', 'info');
+        }).catch(function (e) { msg(form, e.message); });
+      });
+      var rm = document.getElementById('avatar_rm');
+      if (rm) rm.addEventListener('click', function () { form.querySelector('[data-f="avatar_url"]').value = ''; drawAvatar(form); });
+    }
+
     A.call('GET', '/api/me').then(function (me) {
       fill(form, Object.assign({}, me, kind === 'seeker' ? me.profile : me.shop));
       if (kind === 'shop' && me.shop) { fill(form, me.shop); drawPhotos(me.shop.photos); }
+      if (kind === 'seeker') drawAvatar(form);
     }).catch(function (e) { msg(form, 'Không tải được hồ sơ: ' + e.message); });
 
     form.addEventListener('submit', function (e) {
       e.preventDefault();
-      var d = collect(form), err = validate(kind, d);
-      if (err) return msg(form, err);
+      var d = collect(form), err = validate(form, kind, d);
+      if (err) { markInvalid(form, err.field); return msg(form, err.text); }
+      form.querySelectorAll('[aria-invalid]').forEach(function (el) { el.removeAttribute('aria-invalid'); });
       if (d.phone) d.phone = String(d.phone).replace(/[\s.]/g, '');
       btn.disabled = true; btn.textContent = 'Đang lưu…';
       var calls = [];
