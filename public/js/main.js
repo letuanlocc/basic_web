@@ -19,7 +19,8 @@
   var searchForm = function (ph, label) {
     return '<form class="search" role="search" onsubmit="return false"><label class="sr-only" for="q">Tìm kiếm</label>' +
       '<div class="box">' + ICON.search + '<input id="q" type="search" placeholder="' + ph + '"></div>' +
-      '<button type="button" class="btn" data-todo="Tìm kiếm" style="color:#5B6270" title="Tìm bằng câu tự nhiên. Đang huấn luyện mô hình.">' + (label || 'Tìm bằng AI') + ' · <span style="color:#93500A">Sắp có</span></button></form>';
+      // nút phụ chỉ còn ở trang nhà tuyển dụng ("Lọc"); nút "Tìm bằng AI" đã bỏ vì Enter trong ô tìm đã dùng NER
+      (label ? '<button type="button" class="btn" data-todo="Tìm kiếm" style="color:#5B6270">' + label + ' · <span style="color:#93500A">Sắp có</span></button>' : '') + '</form>';
   };
   var a = function (cur, key) { return cur === key ? ' aria-current="page"' : ''; };
 
