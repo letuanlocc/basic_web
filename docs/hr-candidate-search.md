@@ -34,3 +34,18 @@ Lọc từ khóa và khung giờ trước khi giới hạn kết quả (mặc đ
 - Chưa xác nhận bản Vercel; cần nhóm trưởng duyệt và cập nhật deployment sau PR.
 
 Ảnh bằng chứng thử nghiệm lưu cục bộ trong `output/playwright/`, không đưa artifact hoặc thông tin phiên đăng nhập lên Git.
+
+## Bổ sung: ngoại ngữ “Chưa có”
+
+Hồ sơ người tìm việc có 4 mức 0–3. HR có 5 lựa chọn vì “Không yêu cầu” là không lọc, tách riêng với “Chưa có” (mức 0):
+- Không yêu cầu: lấy mọi mức.
+- Chưa có: chỉ `language_level=0`.
+- Từ giao tiếp cơ bản: `min_lang=1`.
+- Từ khá: `min_lang=2`.
+- Tốt: `min_lang=3`.
+
+API bổ sung `language_level` chính xác 0–3, không đổi nghĩa `min_lang=0` của client cũ. Giá trị không hợp lệ bị từ chối với HTTP 400. Trường null/thiếu không bị coi là mức 0.
+
+Tìm từ khóa cũng xét các nhãn ngoại ngữ có/không dấu. Đây vẫn là tìm văn bản đa trường; dùng bộ lọc để chọn chính xác mức 0.
+
+Kiểm chứng bổ sung: tổng 22/22 bài kiểm tra đạt. App cục bộ đọc Supabase thật trả 8 hồ sơ khi không yêu cầu, 5 hồ sơ mức 0, lần lượt 3/1/1 hồ sơ cho ngưỡng 1/2/3 tại thời điểm kiểm tra. Giao diện khớp API; tìm tên demo kèm mức 0, reset về tất cả và viewport 390px đạt. Không sửa dữ liệu hồ sơ.

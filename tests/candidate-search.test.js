@@ -65,7 +65,7 @@ function controller() {
   function el(value = '') { return { value, innerHTML: '', textContent: '', attrs: {}, listeners: {},
     setAttribute(k,v) { this.attrs[k] = v; }, addEventListener(k,f) { this.listeners[k] = f; } }; }
   for (const id of ['q','clist','ccount','fexp','farea','flang','fsort','freset']) elements[id] = el();
-  elements.flang.value = '0'; elements.fsort.value = 'updated';
+  elements.flang.value = ''; elements.fsort.value = 'updated';
   const form = el(); elements.q.closest = () => form;
   const requests = [], timers = new Map(); let next = 0;
   const context = {
@@ -119,4 +119,41 @@ test('typing invalidates a response even before debounce timer starts next reque
   assert.doesNotMatch(c.elements.clist.innerHTML,/Stale initial candidate/);
   c.flush(); c.requests[1].resolve([person(2,'An')]); await tick();
   assert.match(c.elements.clist.innerHTML,/>An</);
+});
+
+test('language filter distinguishes all levels, level zero, and minimum thresholds', async () => {
+  const rows=[0,1,2,3,null].map((level,i)=>person(i,'Ứng viên '+i,{language_level:level}));
+  const model=new Seeker(database(rows));
+  assert.equal((await model.search()).length,5);
+  assert.equal((await model.search({min_lang:'0'})).length,5); // giữ tương thích API cũ
+  assert.deepEqual((await model.search({language_level:'0'})).map(r=>r.language_level),[0]);
+  assert.deepEqual((await model.search({language_level:0})).map(r=>r.language_level),[0]);
+  assert.deepEqual((await model.search({min_lang:'1'})).map(r=>r.language_level),[1,2,3]);
+  assert.deepEqual((await model.search({min_lang:'2'})).map(r=>r.language_level),[2,3]);
+  assert.deepEqual((await model.search({min_lang:'3'})).map(r=>r.language_level),[3]);
+});
+test('keyword search includes all four language labels without treating null as zero', async () => {
+  const rows=[0,1,2,3,null].map((level,i)=>person(i,'Ứng viên '+i,{language_level:level}));
+  const model=new Seeker(database(rows));
+  for (const [q,level]of [['chua co ngoai ngu',0],['GIAO TIẾP CƠ BẢN',1],['ngoai ngu kha',2],['ngoai ngu tot',3]]) {
+    assert.deepEqual((await model.search({q})).map(r=>r.language_level),[level]);
+  }
+});
+test('invalid exact language levels are rejected before database access',async()=>{
+  const model=new Seeker({from(){assert.fail('must not query');}});
+  for(const language_level of [null,[],{},'4','-1','1.5','abc']) {
+    await assert.rejects(model.search({language_level}),e=>e.status===400);
+  }
+});
+test('HR zero-level option sends an exact filter and reset removes it',()=>{
+  const c=controller();
+  c.elements.flang.value='0';c.elements.flang.listeners.change();c.flush();
+  let params=new URLSearchParams(c.requests.at(-1).url.split('?')[1]);
+  assert.equal(params.get('language_level'),'0');assert.equal(params.has('min_lang'),false);
+  c.elements.flang.value='2';c.elements.flang.listeners.change();c.flush();
+  params=new URLSearchParams(c.requests.at(-1).url.split('?')[1]);
+  assert.equal(params.get('min_lang'),'2');assert.equal(params.has('language_level'),false);
+  c.elements.flang.value='0';c.elements.freset.listeners.click();c.flush();
+  params=new URLSearchParams(c.requests.at(-1).url.split('?')[1]);
+  assert.equal(c.elements.flang.value,'');assert.equal(params.has('language_level'),false);
 });
