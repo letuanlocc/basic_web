@@ -154,6 +154,7 @@ textarea { resize: vertical; }
 .msg.warn { background: var(--warn-bg); color: var(--warn); }
 .msg.err { background: var(--err-bg); color: var(--err); }
 .msg.info { background: var(--bg-2); color: var(--text-2); font-weight: 400; line-height: 1.5; }
+.pre-line { white-space: pre-line; }
 .banner { background: #fff; border: 1px solid var(--primary-line); border-radius: var(--r-lg); padding: 12px 16px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
 .banner.warn { border-color: #F5D9A8; background: var(--warn-bg); }
 

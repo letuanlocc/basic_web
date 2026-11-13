@@ -16,8 +16,11 @@
   <div class="two-col rev">
     <form class="stack-col" id="postForm" style="gap:16px">
       <p class="msg warn" id="editwarn" role="status" hidden></p>
+      <div class="sect" id="tplbox"><div class="field" id="tplfield"><label for="n_tpl">Dùng tin cũ làm mẫu</label><select id="n_tpl"><option value="">Đang tải…</option></select></div>
+        <p class="tiny muted" style="margin:0" id="draftnote" role="status">Nội dung bạn nhập được tự lưu thành bản nháp trong trình duyệt này.</p>
+        <button type="button" class="btn btn-sm" id="clearDraft" style="align-self:flex-start">Xóa bản nháp, nhập lại từ đầu</button></div>
       <fieldset class="sect"><legend class="sr-only">Tiêu đề tin</legend><h2>Tiêu đề tin</h2>
-        <div class="cols"><div class="field"><label for="n_title">Tên vị trí *</label><input id="n_title" type="text" placeholder="Ví dụ: Nhân viên thu ngân" ></div><div class="field"><label for="n_salary">Mức lương</label><input id="n_salary" type="text" placeholder="Ví dụ: 25000 (đ/giờ) hoặc để trống = Thỏa thuận" ></div></div>
+        <div class="cols"><div class="field"><label for="n_title">Tên vị trí *</label><input id="n_title" type="text" placeholder="Ví dụ: Nhân viên thu ngân" ></div><div class="field"><label for="n_salary">Mức lương</label><input id="n_salary" type="number" min="1" max="2147483647" step="1" inputmode="numeric" placeholder="Ví dụ: 25000" aria-describedby="n_salary_hint"><span class="hint" id="n_salary_hint">Để trống số tiền nếu lương thỏa thuận.</span></div><div class="field"><label for="n_salary_unit">Đơn vị lương</label><select id="n_salary_unit" name="salary_unit"><option value="hour">Theo giờ</option><option value="shift">Theo ca</option><option value="day">Theo ngày</option><option value="month">Theo tháng</option><option value="negotiable">Thỏa thuận</option></select></div></div>
         <div class="field"><label for="n_summary">Mô tả ngắn trên thẻ việc (tối đa 120 ký tự)</label><input id="n_summary" type="text" placeholder="Ví dụ: Order, mang đồ uống, dọn bàn." maxlength="120"></div>
         <div class="row"><label class="small"><input type="checkbox" id="n_noexp" style="width:auto"> Không yêu cầu kinh nghiệm</label><label class="small"><input type="checkbox" id="n_intern" style="width:auto"> Nhận thực tập</label></div></fieldset>
       <fieldset class="sect"><legend class="sr-only">1. Thông tin công việc</legend><h2>1. Thông tin công việc</h2>
@@ -50,6 +53,7 @@
 <footer class="foot"><div class="wrap"><span>© CaRảnh · Bản quyền thuộc nhóm phát triển</span><a href="overview.html">Tìm hiểu các chức năng</a></div></footer>
 </div>
 <script src="/js/main.js"></script>
+<script src="/js/salary.js"></script>
 <script src="/js/jobs.js"></script>
 <script src="/js/auth.js"></script>
 </body>

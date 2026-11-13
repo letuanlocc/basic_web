@@ -12,7 +12,7 @@
 <div data-layout="employer" data-active="staff"></div>
 <main class="stack">
   <h1 style="margin:0;font-size:26px">Lịch làm của nhân viên</h1>
-  <div class="row between"><div class="tabs pill" role="tablist"><button type="button" role="tab" aria-selected="true" data-week="0">Tuần này</button><button type="button" role="tab" aria-selected="false" data-week="1">Tuần sau</button></div><div class="field" id="posbox" hidden><label for="pos">Vị trí</label><select id="pos"></select></div></div>
+  <div class="row between"><div class="tabs pill" role="tablist"><button type="button" role="tab" aria-selected="true" data-week="0">Tuần này</button><button type="button" role="tab" aria-selected="false" data-week="1">Tuần sau</button></div><div class="row"><div class="field" id="posbox" hidden><label for="pos">Vị trí</label><select id="pos"></select></div><button type="button" class="btn" id="refreshSchedule">Làm mới lịch</button></div></div>
   <div id="sbody"><p class="muted">Đang tải…</p></div>
   <section class="panel" id="rulebox" hidden><div class="field"><label for="rule">Ghi chú quy định cho nhân viên</label><textarea id="rule" rows="3" maxlength="500" placeholder="Ví dụ: Đăng ký ca cho tuần sau trước tối Chủ nhật."></textarea></div>
     <div class="row" style="justify-content:flex-end"><p class="msg" id="rulemsg" role="status" hidden></p><button type="button" class="btn btn-primary" id="rulesave">Lưu ghi chú</button></div></section>

@@ -5,9 +5,9 @@ const HOUR_STEP = 0.25;
 const TZ = 'Asia/Ho_Chi_Minh';
 
 // Nhóm "nhạy cảm": đổi khi đã có hồ sơ / nhân viên thì phải xác nhận (confirm_sensitive)
-const SENSITIVE = ['salary_amount', 'work_days', 'open_hour', 'close_hour'];
+const SENSITIVE = ['salary_amount', 'salary_unit', 'work_days', 'open_hour', 'close_hour'];
 const SENSITIVE_LABEL = {
-  salary_amount: 'mức lương', work_days: 'ngày làm', open_hour: 'giờ mở cửa', close_hour: 'giờ đóng cửa', shifts: 'ca làm',
+  salary_amount: 'mức lương', salary_unit: 'đơn vị lương', work_days: 'ngày làm', open_hour: 'giờ mở cửa', close_hour: 'giờ đóng cửa', shifts: 'ca làm',
 };
 
 const num = (v) => (v === null || v === undefined || v === '' ? null : Number(v));
@@ -51,7 +51,10 @@ function validatePosition(p, { requireContact = false } = {}) {
   if (!p.title || !String(p.title).trim()) return 'Vui lòng nhập tên vị trí';
   if (!p.address || !String(p.address).trim()) return 'Vui lòng nhập địa điểm làm việc';
   if (p.mode !== 'online' && p.mode !== 'offline') return 'Hình thức làm việc không hợp lệ';
+  const unit = p.salary_unit || 'negotiable';
+  if (!['hour', 'shift', 'day', 'month', 'negotiable'].includes(unit)) return 'Đơn vị lương không hợp lệ';
   const salary = num(p.salary_amount);
+  if (unit !== 'negotiable' && (!Number.isInteger(salary) || salary <= 0 || salary > 2147483647)) return 'Mức lương phải là số nguyên dương';
   if (salary !== null && (!Number.isFinite(salary) || salary < 0)) return 'Mức lương không hợp lệ';
 
   const days = Array.isArray(p.work_days) ? p.work_days.map(Number) : [];
