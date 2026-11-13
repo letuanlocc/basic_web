@@ -45,6 +45,16 @@ class Employment {
     );
   }
 
+  /** Chủ quán: các ô (ca, thứ) một nhân viên đang giữ trong tuần. */
+  async getCells(employmentId, weekStart) {
+    return unwrap(await this.db.rpc('get_employment_cells', { p_employment_id: employmentId, p_week_start: weekStart }));
+  }
+
+  /** Chủ quán: thay toàn bộ ca của một nhân viên trong tuần (được vượt giới hạn người/giờ). */
+  async manageSchedule(employmentId, weekStart, cells) {
+    return unwrap(await this.db.rpc('manage_schedule', { p_employment_id: employmentId, p_week_start: weekStart, p_cells: cells }));
+  }
+
   /** Lưới lịch cả tuần của một vị trí (chủ quán hoặc nhân viên của vị trí đó). */
   async getSchedule(positionId, weekStart) {
     return unwrap(await this.db.rpc('get_position_schedule', { p_position_id: positionId, p_week_start: weekStart }));
