@@ -349,6 +349,80 @@
       $('n_salary').disabled = this.value === 'negotiable';
     });
 
+    // ----- Điền form từ dữ liệu (bản nháp hoặc tin cũ) -----
+    function setVal(id, v) { $(id).value = v == null ? '' : v; }
+    function itemsText(d, kind) {
+      return (d.items || []).filter(function (i) { return i.kind === kind; }).map(function (i) { return i.content; }).join('\n');
+    }
+    function apply(d) {
+      setVal('n_title', d.title); setVal('n_summary', d.summary); setVal('n_addr', d.address); setVal('n_form', d.work_form);
+      setVal('n_salary', d.salary_amount);
+      setVal('n_salary_unit', d.salary_unit || 'negotiable');
+      $('n_salary').disabled = $('n_salary_unit').value === 'negotiable';
+      $('n_noexp').checked = !!d.no_experience; $('n_intern').checked = !!d.accepts_intern;
+      mode = d.mode === 'online' ? 'online' : 'offline';
+      form.querySelectorAll('[data-chip]').forEach(function (x) { x.setAttribute('aria-pressed', String(x.getAttribute('data-v') === mode)); });
+      form.querySelectorAll('[data-day]').forEach(function (b) {
+        b.setAttribute('aria-pressed', String((d.work_days || []).indexOf(Number(b.getAttribute('data-day'))) >= 0));
+      });
+      shifts.innerHTML = '';
+      (d.shifts && d.shifts.length ? d.shifts : []).forEach(function (s) { addShift(s.name, s.start_hour, s.end_hour); });
+      [['n_open', 'open_hour'], ['n_close', 'close_hour'], ['n_head', 'headcount'], ['n_pend', 'pending_limit'],
+        ['n_minw', 'min_week_hours'], ['n_maxw', 'max_week_hours'], ['n_maxd', 'max_day_hours'],
+        ['n_minp', 'min_per_shift'], ['n_maxp', 'max_per_shift'], ['n_deadline', 'deadline'], ['n_start', 'start_date'],
+        ['n_mgr', 'contact_name'], ['n_mgp', 'contact_phone']].forEach(function (p) { setVal(p[0], d[p[1]]); });
+      setVal('n_tasks', itemsText(d, 'task')); setVal('n_reqs', itemsText(d, 'requirement')); setVal('n_perks', itemsText(d, 'perk'));
+      preview();
+    }
+
+    // ----- Bản nháp: tự lưu trong trình duyệt, mất khi đăng thành công hoặc bấm xóa -----
+    var DRAFT = 'cr_post_draft', draftNote = $('draftnote');
+    function store(fn) { try { return fn(localStorage); } catch (x) { return null; } }
+    function saveDraft() {
+      var ok = store(function (ls) { ls.setItem(DRAFT, JSON.stringify(read())); return true; });
+      if (ok) draftNote.textContent = 'Đã lưu bản nháp trong trình duyệt này.';
+    }
+    var timer;
+    function queueDraft() { clearTimeout(timer); timer = setTimeout(saveDraft, 400); }
+    form.addEventListener('input', queueDraft);
+    form.addEventListener('change', queueDraft);
+    shifts.addEventListener('click', queueDraft);
+    form.addEventListener('click', function (e) { if (e.target.closest('[data-chip],[data-day],#addShift')) queueDraft(); });
+
+    var saved = store(function (ls) { return ls.getItem(DRAFT); });
+    if (saved) {
+      try { apply(JSON.parse(saved)); draftNote.textContent = 'Đã khôi phục bản nháp lần trước.'; } catch (x) { store(function (ls) { ls.removeItem(DRAFT); }); }
+    }
+    $('clearDraft').addEventListener('click', function () {
+      clearTimeout(timer);
+      store(function (ls) { ls.removeItem(DRAFT); });
+      form.reset(); apply({ shifts: [{ name: 'Ca sáng', start_hour: 8, end_hour: 12 }] });
+      draftNote.textContent = 'Đã xóa bản nháp.';
+    });
+
+    // ----- Lấy từ tin cũ làm mẫu -----
+    var tpl = $('n_tpl');
+    A.call('GET', '/api/me/shop/positions').then(function (rows) {
+      if (!rows.length) { $('tplfield').hidden = true; return; }
+      tpl.innerHTML = '<option value="">— Chọn tin cũ —</option>' + rows.map(function (r) {
+        return '<option value="' + esc(r.id) + '">' + esc(r.title) + '</option>';
+      }).join('');
+    }).catch(function () { $('tplfield').hidden = true; });
+    tpl.addEventListener('change', function () {
+      if (!tpl.value) return;
+      var id = tpl.value;
+      draftNote.textContent = 'Đang tải tin mẫu…';
+      Promise.all([
+        A.call('GET', '/api/positions/' + id),
+        A.call('GET', '/api/positions/' + id + '/contact').catch(function () { return {}; })
+      ]).then(function (r) {
+        var d = Object.assign({}, r[0], r[1] || {});
+        delete d.deadline; delete d.start_date; // hạn và ngày bắt đầu của tin cũ đã quá hạn
+        apply(d); saveDraft();
+        draftNote.textContent = 'Đã điền từ tin “' + (r[0].title || '') + '”. Hãy chỉnh lại rồi đăng, nhớ chọn hạn ứng tuyển và ngày bắt đầu mới.';
+      }).catch(function (er) { draftNote.textContent = 'Không tải được tin mẫu: ' + er.message; });
+    });
+
     var shopName = '';
     A.call('GET', '/api/me').then(function (me) {
       var s = me.shop || {};
@@ -404,7 +478,7 @@
       d.max_shift_hours = Math.max.apply(null, d.shifts.map(function (s) { return s.end_hour - s.start_hour; }));
       Object.keys(d).forEach(function (k) { if (d[k] === null || d[k] === '') delete d[k]; });
       var btn = form.querySelector('button[type=submit]'); btn.disabled = true; btn.textContent = 'Đang đăng…';
-      A.call('POST', '/api/positions', d).then(function () { location.href = 'positions.html'; })
+      A.call('POST', '/api/positions', d).then(function () { clearTimeout(timer); store(function (ls) { ls.removeItem(DRAFT); }); location.href = 'positions.html'; })
         .catch(function (er) { btn.disabled = false; btn.textContent = 'Đăng tin tuyển'; msg(err, er.message); });
     });
     preview();
