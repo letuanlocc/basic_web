@@ -207,6 +207,7 @@
   // ---------- Công việc của tôi ----------
   function initMyJobs() {
     var box = $('mlist'), tab = 'apps', data = { apps: [], invites: [], saved: [] };
+    var notice = null;
     var tabs = document.querySelectorAll('[data-tab]');
 
     function pos(p) {
@@ -219,17 +220,19 @@
         b.querySelector('.n').textContent = data[b.getAttribute('data-tab')].length;
       });
       var rows = data[tab];
-      if (!rows.length) { box.innerHTML = empty(tab === 'apps' ? 'Bạn chưa ứng tuyển việc nào' : tab === 'invites' ? 'Chưa có lời mời nào' : 'Chưa lưu việc nào', 'Xem các việc mới ở Trang chủ.'); return; }
-      box.innerHTML = '<div class="grid-cards">' + rows.map(function (r) {
+      var noticeHtml = notice ? '<p class="msg info" role="status">' + esc(notice) + '</p>' : '';
+      if (!rows.length) { box.innerHTML = noticeHtml + empty(tab === 'apps' ? 'Bạn chưa ứng tuyển việc nào' : tab === 'invites' ? 'Chưa có lời mời nào' : 'Chưa lưu việc nào', 'Xem các việc mới ở Trang chủ.'); return; }
+      box.innerHTML = noticeHtml + '<div class="grid-cards">' + rows.map(function (r) {
         if (tab === 'apps') {
           var st = STATUS[r.status] || ['', r.status];
           return '<article class="card">' + pos(r.position) + '<div class="badges">' + badge(st[0], st[1]) + (r.source === 'invited' ? badge('', 'Được mời') : '') + '</div>' +
             (r.reject_reason ? '<p class="desc">' + esc(r.reject_reason) + '</p>' : '') +
-            (r.status === 'pending' ? '<button type="button" class="btn btn-danger push" data-act="withdraw" data-id="' + esc(r.id) + '">Hủy hồ sơ</button>' : '') + '</article>';
+            (r.status === 'pending' ? '<button type="button" class="btn btn-danger push" data-act="withdraw" data-id="' + esc(r.id) + '">Hủy hồ sơ</button>' :
+              r.status === 'accepted' ? '<a class="btn btn-primary push" href="schedule.html?position=' + encodeURIComponent(r.position.id) + '">Chọn lịch làm</a>' : '') + '</article>';
         }
         if (tab === 'invites') {
           return '<article class="card">' + pos(r.position) + (r.message ? '<p class="desc">“' + esc(r.message) + '”</p>' : '') +
-            '<div class="row"><button type="button" class="btn" data-act="accept" data-id="' + esc(r.id) + '">Nhận lời mời</button>' +
+            '<div class="row"><button type="button" class="btn" data-act="accept" data-id="' + esc(r.id) + '">Nhận lời mời ứng tuyển</button>' +
             '<button type="button" class="btn" data-act="decline" data-id="' + esc(r.id) + '">Từ chối</button></div></article>';
         }
         var p = r.position;
@@ -251,7 +254,29 @@
       else if (act === 'accept' || act === 'decline') call = A.call('POST', '/api/invitations/' + id + '/respond', { accept: act === 'accept' });
       else call = A.call('DELETE', '/api/me/saved/' + id);
       b.disabled = true;
-      call.then(load).catch(function (er) { b.disabled = false; alert(er.message); });
+      call.then(function (result) {
+        if (act === 'accept') {
+          tab = 'apps';
+          return load().then(function () {
+            var application = data.apps.find(function (a) { return a.id === (result && result.application_id); });
+            if (application && application.status === 'accepted') {
+              return A.call('GET', '/api/employments/mine').then(function (employments) {
+                var employment = employments.find(function (e) { return e.position.id === application.position.id; });
+                if (employment) {
+                  location.href = 'schedule.html?position=' + encodeURIComponent(application.position.id);
+                  return;
+                }
+                notice = 'Hồ sơ đã được HR chấp nhận nhưng chưa có vị trí đang làm để đăng ký lịch. Vui lòng liên hệ HR.';
+                draw();
+              });
+            }
+            notice = 'Đã nhận lời mời ứng tuyển. Bạn chỉ có thể chọn lịch sau khi HR chấp nhận hồ sơ.';
+            draw();
+          });
+        }
+        if (act === 'decline') notice = 'Đã từ chối lời mời.';
+        return load();
+      }).catch(function (er) { b.disabled = false; alert(er.message); });
     });
     load();
   }
