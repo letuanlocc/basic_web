@@ -136,7 +136,7 @@
     var map = {
       'Invalid login credentials': 'Email/số điện thoại hoặc mật khẩu không đúng',
       'Email not confirmed': 'Email chưa được xác nhận. Hãy kiểm tra hộp thư của bạn',
-      'User already registered': 'Email này đã được đăng ký'
+      'User already registered': 'Email này đã được sử dụng'
     };
     if (/is invalid$/.test(msg)) return 'Email không hợp lệ hoặc tên miền không được chấp nhận';
     if (/rate limit/i.test(msg)) return 'Hệ thống gửi email đang quá tải, vui lòng thử lại sau ít phút';
