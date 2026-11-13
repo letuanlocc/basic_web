@@ -112,7 +112,8 @@
       var notice = hoursNotice(hours, p, count() > 0);
       var limit = (p.min_week_hours != null || p.max_week_hours != null)
         ? 'Quy định: ' + (p.min_week_hours || 0) + ' – ' + (p.max_week_hours || '…') + ' giờ/tuần. ' : '';
-      box.innerHTML = '<p class="msg info">' + esc(limit) + 'Mỗi ca có số người tối đa do chủ quán quy định; ai lưu trước được giữ chỗ trước. Bạn đang chọn <strong>' + count() + ' ca · ' + hours + ' giờ</strong>. Ca đã qua không đổi được.</p>' +
+      var note = p.schedule_note ? '<p class="msg info"><strong>Ghi chú từ chủ quán:</strong> <span class="pre-line">' + esc(p.schedule_note) + '</span></p>' : '';
+      box.innerHTML = note + '<p class="msg info">' + esc(limit) + 'Mỗi ca có số người tối đa do chủ quán quy định; ai lưu trước được giữ chỗ trước. Bạn đang chọn <strong>' + count() + ' ca · ' + hours + ' giờ</strong>. Ca đã qua không đổi được.</p>' +
         (notice ? '<p class="msg ' + notice.kind + '" role="status">' + esc(notice.text) + '</p>' : '') +
         grid(cells, sel, true) +
         '<p class="msg" id="smsg" role="status" hidden></p>' +
