@@ -132,10 +132,11 @@
       window.crDialog('Tính năng chưa có sẵn', '“' + name + '” chưa được xây dựng. Hiện tại trang chỉ có giao diện, phần xử lý sẽ được bổ sung sau.');
     }
   });
-  // form không gửi đi đâu cả
+  // Chỉ dành cho form chưa có logic: form đã có handler riêng (auth, profile, đăng tin…)
+  // đã gọi preventDefault() ở bước trước nên được bỏ qua.
   document.addEventListener('submit', function (e) {
     var f = e.target;
-    if (f.hasAttribute('data-auth')) return;
+    if (e.defaultPrevented || f.hasAttribute('data-auth') || f.hasAttribute('data-profile')) return;
     e.preventDefault();
     var t = f.querySelector('[data-todo]');
     if (t) t.click(); else window.crDialog('Tính năng chưa có sẵn', 'Biểu mẫu này chưa xử lý dữ liệu.');
