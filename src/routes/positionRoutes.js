@@ -3,12 +3,16 @@ const { requireAuth, optionalAuth, requireRole } = require('../middlewares/auth'
 const asyncHandler = require('../utils/asyncHandler');
 const validate = require('../middlewares/validate');
 const { httpError } = require('../utils/db');
+const { analyze } = require('../utils/ner');
 
 const ok = (res, data, status = 200) => res.status(status).json({ success: true, data });
 
 // ---- Công khai ----
 // GET /api/positions?q=&mode=online|offline&sort=new|salary&limit=6&offset=0
 router.get('/', optionalAuth, asyncHandler(async (req, res) => ok(res, await req.m.positions.search(req.query))));
+
+// GET /api/positions/parse?q=... → { keyword, entities: [{text, label}], source } (NER cho thanh tìm kiếm)
+router.get('/parse', asyncHandler(async (req, res) => ok(res, await analyze(req.query.q))));
 
 router.get('/:id', optionalAuth, asyncHandler(async (req, res) => {
   const data = await req.m.positions.detail(req.params.id);
