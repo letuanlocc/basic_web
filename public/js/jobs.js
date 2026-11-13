@@ -50,15 +50,50 @@
 
   // ---------- Danh sách việc (index.html, jobs.html) ----------
   function initList() {
-    var LIMIT = 12, state = { mode: '', sort: 'new', q: '', offset: 0 };
+    var LIMIT = 12, state = { mode: '', sort: 'new', q: '', offset: 0, skills: [], loc: '', times: [] };
     var list = $('list'), more = $('more'), count = $('count'), none = $('none'), err = $('listerr');
     var loggedIn = !!(A && A.get());
     var shown = 0;
 
+    // Từ khóa gửi lên server = từ khóa đã lọc từ thừa + các kỹ năng AI nhận ra
+    function searchText() { return [state.q].concat(state.skills).join(' ').trim(); }
+
+    var chipBox = $('aichips');
+    function drawChips() {
+      if (!chipBox) return;
+      var h = state.skills.map(function (t, i) { return chip('Kỹ năng', t, 'skills', i); })
+        .concat(state.loc ? [chip('Khu vực', state.loc, 'loc', 0)] : []).join('');
+      if (state.times.length) h += '<span class="tiny muted">Thời gian nhận ra: ' + esc(state.times.join(', ')) + ' (chưa lọc được)</span>';
+      chipBox.innerHTML = h; chipBox.hidden = !h;
+    }
+    function chip(label, text, key, i) {
+      return '<button type="button" class="chip" aria-pressed="true" data-rm="' + key + ':' + i + '" aria-label="Bỏ lọc ' + esc(label) + ' ' + esc(text) + '">' +
+        esc(label) + ': ' + esc(text) + ' ✕</button>';
+    }
+    if (chipBox) chipBox.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-rm]'); if (!b) return;
+      var p = b.getAttribute('data-rm').split(':');
+      if (p[0] === 'loc') state.loc = ''; else state.skills.splice(Number(p[1]), 1);
+      drawChips(); load(true);
+    });
+    function clearAi() { state.skills = []; state.loc = ''; state.times = []; drawChips(); }
+
+    // Enter: nhờ AI tách nhãn + bỏ từ thừa. Lỗi mạng thì tìm theo nguyên văn.
+    function aiSearch(text) {
+      if (!text) { state.q = ''; clearAi(); return load(true); }
+      pub('/api/positions/parse?q=' + encodeURIComponent(text)).then(function (r) {
+        var by = function (l) { return r.entities.filter(function (e) { return e.label === l; }).map(function (e) { return e.text; }); };
+        state.q = r.keyword; state.skills = by('SKILL'); state.times = by('TIME');
+        state.loc = by('LOC')[0] || '';
+        drawChips(); load(true);
+      }).catch(function () { state.q = text; clearAi(); load(true); });
+    }
+
     function load(reset) {
       if (reset) { state.offset = 0; shown = 0; list.innerHTML = ''; }
       var url = '/api/positions?limit=' + LIMIT + '&offset=' + state.offset + '&sort=' + state.sort +
-        (state.mode ? '&mode=' + state.mode : '') + (state.q ? '&q=' + encodeURIComponent(state.q) : '');
+        (state.mode ? '&mode=' + state.mode : '') +
+        (searchText() ? '&q=' + encodeURIComponent(searchText()) : '') + (state.loc ? '&loc=' + encodeURIComponent(state.loc) : '');
       more.disabled = true;
       pub(url).then(function (rows) {
         err.hidden = true;
@@ -84,8 +119,8 @@
     // ô tìm kiếm trên thanh đầu trang
     var q = $('q'), t;
     if (q) {
-      q.addEventListener('input', function () { clearTimeout(t); t = setTimeout(function () { state.q = q.value.trim(); load(true); }, 350); });
-      q.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); clearTimeout(t); state.q = q.value.trim(); load(true); } });
+      q.addEventListener('input', function () { clearTimeout(t); t = setTimeout(function () { clearAi(); state.q = q.value.trim(); load(true); }, 350); });
+      q.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); clearTimeout(t); aiSearch(q.value.trim()); } });
     }
     load(true);
   }

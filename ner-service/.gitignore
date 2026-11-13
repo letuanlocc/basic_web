@@ -1,0 +1,6 @@
+__pycache__/
+.venv/
+# checkpoint ~515MB vượt giới hạn git: tải lên nơi deploy riêng (xem README.md)
+model/*.pt
+model/*.bin
+model/*.safetensors

@@ -15,7 +15,8 @@ class Position {
   }
 
   /** Danh sách việc (không dấu, lọc hình thức, sắp xếp 'new' | 'salary', phân trang). */
-  async search({ q = null, mode = null, sort = 'new', limit = 6, offset = 0 } = {}) {
+  async search({ q = null, mode = null, sort = 'new', limit = 6, offset = 0, loc = null } = {}) {
+    if (loc) return this.searchByLoc({ q, mode, sort, limit, offset, loc });
     return unwrap(
       await this.db.rpc('search_positions', {
         p_q: q || null,
@@ -25,6 +26,17 @@ class Position {
         p_offset: Number(offset),
       })
     );
+  }
+
+  /** Lọc theo khu vực (quận/phường) bằng so khớp chuỗi địa chỉ, không phân biệt dấu/hoa thường. */
+  async searchByLoc({ q, mode, sort, limit, offset, loc }) {
+    const plain = (t) => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/gi, 'd').toLowerCase();
+    const want = plain(loc);
+    const rows = unwrap(
+      await this.db.rpc('search_positions', { p_q: q || null, p_mode: mode || null, p_sort: sort, p_limit: 200, p_offset: 0 })
+    );
+    const hit = rows.filter((r) => plain([r.address, r.shop_address, r.shop_ward, r.ward, r.shop_name].join(' ')).includes(want));
+    return hit.slice(Number(offset), Number(offset) + Number(limit));
   }
 
   async overview(id) {
