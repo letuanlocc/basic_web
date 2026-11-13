@@ -38,10 +38,12 @@
   function initList() {
     var box = $('clist'), count = $('ccount');
     var modeBtns = document.querySelectorAll('[data-mode]'), slotBtns = document.querySelectorAll('[data-slot]');
-    var timer;
+    var timer, version = 0, search = $('q');
+    count.setAttribute('aria-live', 'polite');
 
     function params() {
       var p = new URLSearchParams();
+      if (search.value.trim()) p.set('q', search.value.trim());
       modeBtns.forEach(function (b) { if (b.getAttribute('aria-pressed') === 'true') p.set('work_mode', b.getAttribute('data-mode')); });
       var s = [];
       slotBtns.forEach(function (b) { if (b.getAttribute('aria-pressed') === 'true') s.push(b.getAttribute('data-slot')); });
@@ -53,14 +55,31 @@
       return p.toString();
     }
     function load() {
+      clearTimeout(timer);
+      var request = ++version;
+      box.setAttribute('aria-busy', 'true');
+      count.textContent = 'Đang tìm…';
+      box.innerHTML = '<p class="muted" role="status">Đang tìm ứng viên…</p>';
       A.call('GET', '/api/seekers?' + params()).then(function (rows) {
-        count.textContent = rows.length + ' ứng viên';
+        if (request !== version) return;
+        box.setAttribute('aria-busy', 'false');
+        count.textContent = rows.length + ' ứng viên' + (rows.length === 50 ? ' (tối đa 50 kết quả, hãy thêm từ khóa/bộ lọc)' : '');
         box.innerHTML = rows.length
           ? '<div class="grid-cards">' + rows.map(card).join('') + '</div>'
-          : empty('Không có ứng viên phù hợp', 'Thử bỏ bớt bộ lọc để xem thêm ứng viên.');
-      }).catch(function (e) { count.textContent = ''; box.innerHTML = '<p class="msg err" role="alert">Không tải được danh sách ứng viên: ' + esc(e.message) + '</p>'; });
+          : empty('Không có ứng viên phù hợp', 'Thử đổi từ khóa hoặc bỏ bớt bộ lọc.');
+      }).catch(function (e) {
+        if (request !== version) return;
+        box.setAttribute('aria-busy', 'false');
+        count.textContent = '';
+        box.innerHTML = '<p class="msg err" role="alert">Không tải được danh sách ứng viên: ' + esc(e.message) + '</p>';
+      });
     }
-    function later() { clearTimeout(timer); timer = setTimeout(load, 150); }
+    function later() { ++version; clearTimeout(timer); timer = setTimeout(load, 250); }
+    search.value = qs('q') || '';
+    search.maxLength = 200;
+    search.addEventListener('input', later);
+    search.addEventListener('search', load);
+    search.closest('form').addEventListener('submit', function (e) { e.preventDefault(); load(); });
 
     // hình thức chọn một; khung giờ chọn nhiều
     modeBtns.forEach(function (b) {
@@ -77,6 +96,7 @@
     $('freset').addEventListener('click', function () {
       modeBtns.forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
       slotBtns.forEach(function (b) { b.setAttribute('aria-pressed', 'false'); });
+      search.value = '';
       $('fexp').value = ''; $('farea').value = ''; $('flang').value = '0'; $('fsort').value = 'updated';
       later();
     });
@@ -131,6 +151,10 @@
     }
   }
 
-  if (page === 'candidates') initList();
-  else if (page === 'candidate') initDetail();
+  function init() {
+    A = window.CR_AUTH;
+    if (page === 'candidates') initList();
+    else if (page === 'candidate') initDetail();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();

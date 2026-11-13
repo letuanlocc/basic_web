@@ -1,4 +1,5 @@
 const { unwrap, pick } = require('../utils/db');
+const { terms: searchTerms, matches: matchesCandidate } = require('../utils/candidate-search');
 
 const FIELDS = [
   'avatar_url', 'birth_year', 'gender', 'area', 'work_mode', 'availability_note',
@@ -41,20 +42,34 @@ class SeekerProfile {
    * Danh sách ứng viên cho chủ quán. Lọc: work_mode (online|offline|both), slots (rảnh ít nhất một khung),
    * has_experience (true|false), area (chứa chuỗi). sort: updated | experience | age.
    */
-  async search({ work_mode, slots, has_experience, area, min_lang, sort = 'updated', limit = 50 } = {}) {
-    let q = this.db.from('seeker_profiles').select(LIST_SELECT).limit(Math.min(Number(limit) || 50, 100));
-    if (work_mode === 'online' || work_mode === 'offline') q = q.in('work_mode', [work_mode, 'both']);
-    else if (work_mode === 'both') q = q.eq('work_mode', 'both');
-    if (Number(min_lang) > 0) q = q.gte('language_level', Number(min_lang));
-    if (has_experience === 'true' || has_experience === 'false') q = q.eq('has_experience', has_experience === 'true');
-    if (area) q = q.ilike('area', '%' + String(area).replace(/[%,()]/g, ' ') + '%');
-    if (sort === 'experience') q = q.order('has_experience', { ascending: false }).order('updated_at', { ascending: false });
-    else if (sort === 'age') q = q.order('birth_year', { ascending: false, nullsFirst: false });
-    else q = q.order('updated_at', { ascending: false });
-    let rows = unwrap(await q);
+  async search({ q: query = '', work_mode, slots, has_experience, area, min_lang, sort = 'updated', limit = 50 } = {}) {
+    const words = searchTerms(query);
     const want = String(slots || '').split(',').filter(Boolean);
-    if (want.length) rows = rows.filter((r) => (r.availability || []).some((a) => want.includes(a.slot)));
-    return rows;
+    const take = Math.min(Math.max(Math.floor(Number(limit)) || 50, 1), 100);
+    const pageSize = 200;
+    const results = [];
+    // Lọc từ khóa/giờ rảnh trước giới hạn kết quả, không chỉ tìm trong 50 hồ sơ đầu.
+    // Giữ RLS và token người dùng; không dùng service-role để tìm hồ sơ.
+    for (let offset = 0; ; offset += pageSize) {
+      let q = this.db.from('seeker_profiles').select(LIST_SELECT);
+      if (work_mode === 'online' || work_mode === 'offline') q = q.in('work_mode', [work_mode, 'both']);
+      else if (work_mode === 'both') q = q.eq('work_mode', 'both');
+      if (Number(min_lang) > 0) q = q.gte('language_level', Number(min_lang));
+      if (has_experience === 'true' || has_experience === 'false') q = q.eq('has_experience', has_experience === 'true');
+      if (area) q = q.ilike('area', '%' + String(area).replace(/[%,()]/g, ' ') + '%');
+      if (sort === 'experience') q = q.order('has_experience', { ascending: false }).order('updated_at', { ascending: false });
+      else if (sort === 'age') q = q.order('birth_year', { ascending: false, nullsFirst: false });
+      else q = q.order('updated_at', { ascending: false });
+      q = q.order('user_id', { ascending: true }).range(offset, offset + pageSize - 1);
+      const batch = unwrap(await q);
+      for (const row of batch) {
+        if (want.length && !(row.availability || []).some(a => want.includes(a.slot))) continue;
+        if (!matchesCandidate(row, words)) continue;
+        results.push(row);
+        if (results.length === take) return results;
+      }
+      if (batch.length < pageSize) return results;
+    }
   }
 
   /** Đủ 7 ô bắt buộc mới được ứng tuyển. */
