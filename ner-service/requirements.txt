@@ -1,0 +1,21 @@
+# Dịch vụ NER CaRảnh. Cài torch (CPU) riêng trước:
+#   pip install torch==2.7.1 --index-url https://download.pytorch.org/whl/cpu
+#   pip install -r requirements.txt
+# Phiên bản lấy từ requirements_working.txt của phobert_ner (đã chạy được trên Python 3.12).
+# Cần Java (JRE 8+) cho VnCoreNLP.
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+transformers==4.46.3
+tokenizers==0.20.3
+huggingface_hub==0.36.2
+sentencepiece==0.2.2
+pytorch-crf==0.7.2
+pandas==2.2.3
+numpy==2.2.6
+scikit-learn==1.5.2
+matplotlib==3.9.2
+tqdm==4.70.1
+prettytable==3.18.0
+tensorboardX==2.6.5
+jsonlines==4.0.0
+vncorenlp==1.0.3

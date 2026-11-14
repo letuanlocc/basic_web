@@ -12,18 +12,22 @@
 <div data-layout="employer" data-active="new"></div>
 <main class="stack">
   <a class="back" href="positions.html">← Vị trí &amp; tuyển dụng</a>
-  <div><h1 style="margin:0 0 4px;font-size:26px">Đăng tin tuyển</h1><p class="muted small" style="margin:0">Các phần đánh số khớp 1–1 với trang chi tiết công việc mà ứng viên thấy. Khung bên phải là bản xem trước.</p></div>
+  <div><h1 id="postHead" style="margin:0 0 4px;font-size:26px">Đăng tin tuyển</h1><p class="muted small" style="margin:0" id="postLead">Các phần đánh số khớp 1–1 với trang chi tiết công việc mà ứng viên thấy. Khung bên phải là bản xem trước.</p></div>
   <div class="two-col rev">
     <form class="stack-col" id="postForm" style="gap:16px">
+      <p class="msg warn" id="editwarn" role="status" hidden></p>
+      <div class="sect" id="tplbox"><div class="field" id="tplfield"><label for="n_tpl">Dùng tin cũ làm mẫu</label><select id="n_tpl"><option value="">Đang tải…</option></select></div>
+        <p class="tiny muted" style="margin:0" id="draftnote" role="status">Nội dung bạn nhập được tự lưu thành bản nháp trong trình duyệt này.</p>
+        <button type="button" class="btn btn-sm" id="clearDraft" style="align-self:flex-start">Xóa bản nháp, nhập lại từ đầu</button></div>
       <fieldset class="sect"><legend class="sr-only">Tiêu đề tin</legend><h2>Tiêu đề tin</h2>
-        <div class="cols"><div class="field"><label for="n_title">Tên vị trí *</label><input id="n_title" type="text" placeholder="Ví dụ: Nhân viên thu ngân" ></div><div class="field"><label for="n_salary">Mức lương</label><input id="n_salary" type="text" placeholder="Ví dụ: 25000 (đ/giờ) hoặc để trống = Thỏa thuận" ></div></div>
+        <div class="cols"><div class="field"><label for="n_title">Tên vị trí *</label><input id="n_title" type="text" placeholder="Ví dụ: Nhân viên thu ngân" ></div><div class="field"><label for="n_salary">Mức lương</label><input id="n_salary" type="number" min="1" max="2147483647" step="1" inputmode="numeric" placeholder="Ví dụ: 25000" aria-describedby="n_salary_hint"><span class="hint" id="n_salary_hint">Để trống số tiền nếu lương thỏa thuận.</span></div><div class="field"><label for="n_salary_unit">Đơn vị lương</label><select id="n_salary_unit" name="salary_unit"><option value="hour">Theo giờ</option><option value="shift">Theo ca</option><option value="day">Theo ngày</option><option value="month">Theo tháng</option><option value="negotiable">Thỏa thuận</option></select></div></div>
         <div class="field"><label for="n_summary">Mô tả ngắn trên thẻ việc (tối đa 120 ký tự)</label><input id="n_summary" type="text" placeholder="Ví dụ: Order, mang đồ uống, dọn bàn." maxlength="120"></div>
         <div class="row"><label class="small"><input type="checkbox" id="n_noexp" style="width:auto"> Không yêu cầu kinh nghiệm</label><label class="small"><input type="checkbox" id="n_intern" style="width:auto"> Nhận thực tập</label></div></fieldset>
       <fieldset class="sect"><legend class="sr-only">1. Thông tin công việc</legend><h2>1. Thông tin công việc</h2>
         <div class="field"><span class="lab">Hình thức</span><div class="chips" role="radiogroup"><button type="button" role="radio" class="chip lg solid" aria-pressed="true" data-chip="mode" data-v="offline">Offline</button><button type="button" role="radio" class="chip lg solid" aria-pressed="false" data-chip="mode" data-v="online">Online</button></div></div>
         <div class="cols"><div class="field"><label for="n_addr">Địa điểm làm việc *</label><input id="n_addr" type="text" placeholder="Số nhà, đường, quận" ></div><div class="field"><label for="n_form">Cách làm việc</label><input id="n_form" type="text" placeholder="Ví dụ: Trực tiếp tại cửa hàng" ></div></div>
         <div class="field"><span class="lab">Ngày làm việc * <span class="hint">(ca lặp lại các ngày này mỗi tuần)</span></span><div class="chips"><button type="button" class="chip" aria-pressed="false" data-day="0">T2</button><button type="button" class="chip" aria-pressed="false" data-day="1">T3</button><button type="button" class="chip" aria-pressed="false" data-day="2">T4</button><button type="button" class="chip" aria-pressed="false" data-day="3">T5</button><button type="button" class="chip" aria-pressed="false" data-day="4">T6</button><button type="button" class="chip" aria-pressed="false" data-day="5">T7</button><button type="button" class="chip" aria-pressed="false" data-day="6">CN</button></div></div>
-        <div class="field"><span class="lab">Ca làm việc * <span class="hint">(phải nằm trong giờ mở cửa ở phần 3)</span></span>
+        <div class="field"><span class="lab">Ca làm việc * <span class="hint">(phải nằm trong giờ mở cửa ở phần 3; chọn được phút theo bước 15, ví dụ 08:30, 12:45)</span></span>
           <div id="shifts" class="stack-col" style="gap:8px"></div>
           <button type="button" class="btn btn-sm" id="addShift" style="align-self:flex-start">+ Thêm ca</button></div>
         <p class="tiny muted" style="margin:0">Ảnh nơi làm việc lấy từ Hồ sơ cửa hàng – dùng chung cho mọi tin.</p></fieldset>
@@ -34,14 +38,14 @@
           <div class="field"><label for="n_perks">Quyền lợi</label><textarea id="n_perks" rows="4" placeholder="Lương theo giờ&#10;Có đào tạo"></textarea></div></div></fieldset>
       <fieldset class="sect"><legend class="sr-only">3. Lịch làm việc và yêu cầu thời gian</legend><h2>3. Lịch làm việc và yêu cầu thời gian</h2>
         <div class="cols" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr))">
-          <div class="field"><label for="n_open">Giờ mở cửa</label><input id="n_open" type="number" min="0"></div><div class="field"><label for="n_close">Giờ đóng cửa</label><input id="n_close" type="number" min="0"></div><div class="field"><label for="n_head">Số người cần tuyển</label><input id="n_head" type="number" min="0"></div><div class="field"><label for="n_pend">Giới hạn hồ sơ chờ</label><input id="n_pend" type="number" min="0"></div><div class="field"><label for="n_minw">Tối thiểu giờ/tuần</label><input id="n_minw" type="number" min="0"></div><div class="field"><label for="n_maxw">Tối đa giờ/tuần</label><input id="n_maxw" type="number" min="0"></div><div class="field"><label for="n_maxd">Tối đa giờ/ngày</label><input id="n_maxd" type="number" min="0"></div><div class="field"><label for="n_minp">Tối thiểu người/ca</label><input id="n_minp" type="number" min="0"></div><div class="field"><label for="n_maxp">Tối đa người/ca</label><input id="n_maxp" type="number" min="0"></div>
+          <div class="field"><label for="n_open">Giờ mở cửa *</label><select id="n_open"></select></div><div class="field"><label for="n_close">Giờ đóng cửa *</label><select id="n_close"></select></div><div class="field"><label for="n_head">Số người cần tuyển</label><input id="n_head" type="number" min="0"></div><div class="field"><label for="n_pend">Giới hạn hồ sơ chờ</label><input id="n_pend" type="number" min="0"></div><div class="field"><label for="n_minw">Tối thiểu giờ/tuần</label><input id="n_minw" type="number" min="0"></div><div class="field"><label for="n_maxw">Tối đa giờ/tuần</label><input id="n_maxw" type="number" min="0"></div><div class="field"><label for="n_maxd">Tối đa giờ/ngày</label><input id="n_maxd" type="number" min="0"></div><div class="field"><label for="n_minp">Tối thiểu người/ca</label><input id="n_minp" type="number" min="0"></div><div class="field"><label for="n_maxp">Tối đa người/ca</label><input id="n_maxp" type="number" min="0"></div>
           <div class="field"><label for="n_deadline">Hạn ứng tuyển *</label><input id="n_deadline" type="date"></div><div class="field"><label for="n_start">Ngày bắt đầu làm *</label><input id="n_start" type="date"></div></div></fieldset>
       <fieldset class="sect"><legend class="sr-only">4. Thông tin nhà tuyển dụng</legend><h2>4. Thông tin nhà tuyển dụng</h2>
         <p class="msg info" style="margin:0" id="shopinfo">Đang tải…</p>
         <div class="cols"><div class="field"><label for="n_mgr">Người liên hệ phỏng vấn *</label><input id="n_mgr" type="text" placeholder="Ví dụ: Chị Hạnh – quản lý" ></div><div class="field"><label for="n_mgp">SĐT liên hệ *</label><input id="n_mgp" type="tel" placeholder="10 số, bắt đầu bằng 0" ></div></div>
         <p class="tiny muted" style="margin:0">SĐT chỉ hiện với ứng viên sau khi họ nộp hồ sơ.</p></fieldset>
       <p class="msg err" id="posterr" hidden></p>
-      <div class="row" style="justify-content:flex-end"><a class="btn btn-lg" style="font-weight:700" href="positions.html">Hủy</a><button type="submit" class="btn btn-primary btn-lg">Đăng tin tuyển</button></div>
+      <div class="row" style="justify-content:flex-end"><a class="btn btn-lg" style="font-weight:700" href="positions.html">Hủy</a><button type="submit" class="btn btn-primary btn-lg" id="postSubmit">Đăng tin tuyển</button></div>
     </form>
     <aside class="preview" aria-label="Xem trước"><span class="tiny" style="font-weight:700;letter-spacing:.08em;color:var(--text-3)">XEM TRƯỚC · ứng viên sẽ thấy</span><div id="preview"></div></aside>
   </div>
@@ -49,7 +53,8 @@
 <footer class="foot"><div class="wrap"><span>© CaRảnh · Bản quyền thuộc nhóm phát triển</span><a href="overview.html">Tìm hiểu các chức năng</a></div></footer>
 </div>
 <script src="/js/main.js"></script>
-<script src="/js/jobs.js"></script>
 <script src="/js/auth.js"></script>
+<script src="/js/salary.js"></script>
+<script src="/js/jobs.js"></script>
 </body>
 </html>

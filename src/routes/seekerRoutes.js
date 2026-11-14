@@ -6,7 +6,7 @@ const { httpError } = require('../utils/db');
 router.use(requireAuth, requireRole('employer'));
 const ok = (res, data) => res.json({ success: true, data });
 
-// GET /api/seekers?work_mode=online|offline|both&slots=morning,evening&has_experience=true&area=&min_lang=0-3&sort=updated|experience|age
+// GET /api/seekers?q=&work_mode=online|offline|both&slots=morning,evening&has_experience=true&area=&min_lang=0-3&language_level=0-3&sort=updated|experience|age
 router.get('/', asyncHandler(async (req, res) => ok(res, await req.m.seekers.search(req.query))));
 
 router.get('/:id', asyncHandler(async (req, res) => {

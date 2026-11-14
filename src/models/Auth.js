@@ -17,8 +17,19 @@ module.exports = {
   async register({ email, password, full_name, phone, role = 'seeker' }) {
     checkPassword(password);
     if (!['seeker', 'employer'].includes(role)) throw httpError(400, 'role phải là seeker hoặc employer');
-    const ok = unwrap(await anon.rpc('phone_available', { p_phone: phone }));
-    if (!ok) throw httpError(409, 'Số điện thoại không hợp lệ hoặc đã được sử dụng');
+    needAdmin();
+    email = String(email).trim().toLowerCase();
+    phone = String(phone).replace(/[\s.]/g, '');
+    if (!/^\S+@\S+\.\S+$/.test(email)) throw httpError(400, 'Email không hợp lệ');
+    if (!/^0\d{9}$/.test(phone)) throw httpError(400, 'Số điện thoại phải gồm 10 chữ số, bắt đầu bằng 0');
+
+    // Kiểm tra trùng trong public.users (secret key, bỏ qua RLS) TRƯỚC khi gọi signUp
+    const byEmail = await admin.from('users').select('id').eq('email', email).limit(1);
+    if (byEmail.error) throw httpError(500, 'Không kiểm tra được thông tin đăng ký, vui lòng thử lại');
+    if (byEmail.data.length) throw httpError(400, 'Email này đã được sử dụng');
+    const byPhone = await admin.from('users').select('id').eq('phone', phone).limit(1);
+    if (byPhone.error) throw httpError(500, 'Không kiểm tra được thông tin đăng ký, vui lòng thử lại');
+    if (byPhone.data.length) throw httpError(400, 'Số điện thoại này đã được đăng ký');
 
     const { data, error } = await newAnon().auth.signUp({
       email,
@@ -26,6 +37,10 @@ module.exports = {
       options: { data: { full_name, phone, role } },
     });
     if (error) throw httpError(400, error.message);
+    // Email đã có trong auth.users nhưng thiếu ở public.users: Supabase trả user "giả" (identities rỗng)
+    if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+      throw httpError(400, 'Email này đã được sử dụng');
+    }
     return { user: data.user, session: data.session };
   },
 
