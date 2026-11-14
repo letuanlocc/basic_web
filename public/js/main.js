@@ -19,8 +19,7 @@
   var searchForm = function (ph, label) {
     return '<form class="search" role="search" onsubmit="return false"><label class="sr-only" for="q">Tìm kiếm</label>' +
       '<div class="box">' + ICON.search + '<input id="q" type="search" placeholder="' + ph + '"></div>' +
-      // nút phụ chỉ còn ở trang nhà tuyển dụng ("Lọc"); nút "Tìm bằng AI" đã bỏ vì Enter trong ô tìm đã dùng NER
-      (label ? '<button type="button" class="btn" data-todo="Tìm kiếm" style="color:#5B6270">' + label + ' · <span style="color:#93500A">Sắp có</span></button>' : '') + '</form>';
+      '<button type="button" class="btn" data-todo="Tìm kiếm" style="color:#5B6270" title="Tìm bằng câu tự nhiên. Đang huấn luyện mô hình.">' + (label || 'Tìm bằng AI') + ' · <span style="color:#93500A">Sắp có</span></button></form>';
   };
   var a = function (cur, key) { return cur === key ? ' aria-current="page"' : ''; };
 
@@ -133,11 +132,10 @@
       window.crDialog('Tính năng chưa có sẵn', '“' + name + '” chưa được xây dựng. Hiện tại trang chỉ có giao diện, phần xử lý sẽ được bổ sung sau.');
     }
   });
-  // Chỉ dành cho form chưa có logic: form đã có handler riêng (auth, profile, đăng tin…)
-  // đã gọi preventDefault() ở bước trước nên được bỏ qua.
+  // form không gửi đi đâu cả
   document.addEventListener('submit', function (e) {
     var f = e.target;
-    if (e.defaultPrevented || f.hasAttribute('data-auth') || f.hasAttribute('data-profile')) return;
+    if (f.hasAttribute('data-auth')) return;
     e.preventDefault();
     var t = f.querySelector('[data-todo]');
     if (t) t.click(); else window.crDialog('Tính năng chưa có sẵn', 'Biểu mẫu này chưa xử lý dữ liệu.');

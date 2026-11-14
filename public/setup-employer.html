@@ -14,20 +14,20 @@
   <nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Trang chủ</a> → <a href="register.html">Đăng ký</a> → <span>Cập nhật hồ sơ nhà tuyển dụng</span></nav>
   <form class="form-card" data-profile="shop" data-next="candidates.html" style="align-self:center;max-width:720px;gap:20px">
     <div><p class="eyebrow">Bước 2/2 · Nhà tuyển dụng</p><h1>Thông tin công ty / cửa hàng</h1><p class="lead">Ứng viên sẽ thấy thông tin này trên mọi tin tuyển dụng của bạn.</p></div>
-    <div class="field"><label for="shop">Tên công ty / cửa hàng *</label><input id="shop" data-f="name" type="text" placeholder="Ví dụ: Quán cà phê Mộc" ></div>
-    <fieldset><legend>Hình thức làm việc *</legend><div class="chips"><button type="button" class="chip lg solid" aria-pressed="true" data-chip="mode" data-v="offline">Offline</button><button type="button" class="chip lg solid" aria-pressed="false" data-chip="mode" data-v="online">Online</button><button type="button" class="chip lg solid" aria-pressed="false" data-chip="mode" data-v="both">Cả hai</button></div></fieldset>
-    <div class="field"><label for="field">Lĩnh vực làm việc *</label><select id="field" data-f="industry"><option value="">Chọn lĩnh vực</option><option value="Ăn uống – F&B">Ăn uống – F&amp;B</option><option value="Bán lẻ">Bán lẻ</option><option value="Giáo dục – gia sư">Giáo dục – gia sư</option><option value="Văn phòng – nhập liệu">Văn phòng – nhập liệu</option><option value="Sáng tạo nội dung">Sáng tạo nội dung</option></select></div>
+    <div class="field"><label for="shop">Tên công ty / cửa hàng</label><input id="shop" data-f="name" type="text" placeholder="Ví dụ: Quán cà phê Mộc" ></div>
+    <fieldset><legend>Hình thức làm việc</legend><div class="chips"><button type="button" class="chip lg solid" aria-pressed="true" data-chip="mode" data-v="offline">Offline</button><button type="button" class="chip lg solid" aria-pressed="false" data-chip="mode" data-v="online">Online</button><button type="button" class="chip lg solid" aria-pressed="false" data-chip="mode" data-v="both">Cả hai</button></div></fieldset>
+    <div class="field"><label for="field">Lĩnh vực làm việc</label><select id="field" data-f="industry"><option value="">Chọn lĩnh vực</option><option value="Ăn uống – F&B">Ăn uống – F&amp;B</option><option value="Bán lẻ">Bán lẻ</option><option value="Giáo dục – gia sư">Giáo dục – gia sư</option><option value="Văn phòng – nhập liệu">Văn phòng – nhập liệu</option><option value="Sáng tạo nội dung">Sáng tạo nội dung</option></select></div>
     <div class="cols" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr))">
-      <div class="field"><label for="city">Tỉnh / thành phố *</label><select id="city" data-f="city"><option value="Đà Nẵng">Đà Nẵng</option><option value="Hà Nội">Hà Nội</option><option value="TP. Hồ Chí Minh">TP. Hồ Chí Minh</option></select></div>
-      <div class="field"><label for="ward">Phường / xã *</label><input id="ward" data-f="ward" type="text" placeholder="Ví dụ: Phường Hải Châu" ></div>
-      <div class="field"><label for="addr">Địa chỉ cụ thể *</label><input id="addr" data-f="address" type="text" placeholder="Số nhà, đường" ></div>
-      <div class="field"><label for="sp">SĐT cửa hàng *</label><input id="sp" data-f="phone" type="tel" placeholder="10 số" ></div>
+      <div class="field"><label for="city">Tỉnh / thành phố</label><select id="city" data-f="city"><option value="Đà Nẵng">Đà Nẵng</option><option value="Hà Nội">Hà Nội</option><option value="TP. Hồ Chí Minh">TP. Hồ Chí Minh</option></select></div>
+      <div class="field"><label for="ward">Phường / xã</label><input id="ward" data-f="ward" type="text" placeholder="Ví dụ: Phường Hải Châu" ></div>
+      <div class="field"><label for="addr">Địa chỉ cụ thể</label><input id="addr" data-f="address" type="text" placeholder="Số nhà, đường" ></div>
+      <div class="field"><label for="sp">SĐT cửa hàng</label><input id="sp" data-f="phone" type="tel" placeholder="10 số" ></div>
       <div class="field full"><label for="web">Website / fanpage</label><input id="web" data-f="fanpage_url" type="url" placeholder="https://" ></div>
     </div>
     <div class="field"><span class="lab">Ảnh nơi làm việc (mặt tiền, khu vực làm việc, quầy)</span>
       <div id="photos" class="thumbs"></div>
-      <div class="row" style="gap:8px"><button type="button" class="btn" id="photo_pick">Tải ảnh từ máy</button><input id="photo_file" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden></div>
-      <p class="tiny muted" style="margin:0">Cửa hàng làm việc trực tiếp (offline) cần ít nhất 1 ảnh mới đăng được tin. Chọn ảnh JPG, PNG hoặc WEBP từ máy (tối đa 8 ảnh, có thể chọn nhiều ảnh một lần); ảnh lớn được tự thu nhỏ.</p></div>
+      <div class="row" style="gap:8px"><input id="photo_url" type="url" placeholder="Dán đường dẫn ảnh (https://…)" aria-label="Đường dẫn ảnh" style="flex:1 1 240px;width:auto"><button type="button" class="btn" id="photo_add">Thêm ảnh</button></div>
+      <p class="tiny muted" style="margin:0">Cửa hàng làm việc trực tiếp (offline) cần ít nhất 1 ảnh mới đăng được tin. Ảnh được thêm bằng đường dẫn.</p></div>
     <p class="msg info">Bạn có thể bỏ qua và điền sau ở <strong>Hồ sơ cửa hàng</strong> (bấm vào tên quán trên thanh đầu trang). Cần đủ tên, hình thức, lĩnh vực, địa chỉ, SĐT và ít nhất 1 ảnh nơi làm việc thì mới đăng được tin tuyển. Các thông tin này hiện ở mục "4. Thông tin nhà tuyển dụng" trên mọi tin bạn đăng.</p>
     <div class="form-actions"><a class="btn btn-lg" href="candidates.html" style="font-weight:700">Bỏ qua</a><button type="submit" class="btn btn-primary btn-lg">Tiếp tục</button></div>
   </form>
