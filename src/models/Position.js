@@ -14,39 +14,17 @@ class Position {
     this.db = db;
   }
 
-  /**
-   * Danh sách việc đang tuyển, tìm theo tên việc/quán/địa điểm/mô tả, lọc và phân trang.
-   * loc (tùy chọn, từ NER): chỉ giữ tin có khu vực này trong địa chỉ/phường, không phân biệt dấu và hoa thường.
-   */
-  async search({ q = null, mode = null, sort = 'new', limit = 6, offset = 0, loc = null } = {}) {
-    const today = new Date().toISOString().slice(0, 10);
-    let query = this.db
-      .from('position_overview')
-      .select('*')
-      .eq('is_open', true);
-    if (mode) query = query.eq('mode', mode);
-    if (q) {
-      const term = q.replace(/[\\%_"]/g, '\\$&');
-      const matches = `or(title.ilike."%${term}%",shop_name.ilike."%${term}%",address.ilike."%${term}%",summary.ilike."%${term}%")`;
-      query = query.or(`and(deadline.is.null,${matches}),and(deadline.gte.${today},${matches})`);
-    } else {
-      query = query.or(`deadline.is.null,deadline.gte.${today}`);
-    }
-    if (sort === 'salary') {
-      query = query.order('salary_amount', { ascending: false, nullsFirst: false });
-    }
-    query = query
-      .order('created_at', { ascending: false })
-      .order('id', { ascending: false });
-    if (!loc) return unwrap(await query.range(Number(offset), Number(offset) + Number(limit) - 1));
-
-    // Có lọc khu vực: lấy tối đa 200 tin khớp từ khóa rồi lọc theo chuỗi địa chỉ trong Node.
-    const plain = (t) => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/gi, 'd').toLowerCase();
-    const want = plain(loc);
-    const rows = unwrap(await query.range(0, 199));
-    return rows
-      .filter((r) => plain([r.address, r.shop_ward, r.shop_city, r.shop_name].join(' ')).includes(want))
-      .slice(Number(offset), Number(offset) + Number(limit));
+  /** Danh sách việc (không dấu, lọc hình thức, sắp xếp 'new' | 'salary', phân trang). */
+  async search({ q = null, mode = null, sort = 'new', limit = 6, offset = 0 } = {}) {
+    return unwrap(
+      await this.db.rpc('search_positions', {
+        p_q: q || null,
+        p_mode: mode || null,
+        p_sort: sort,
+        p_limit: Number(limit),
+        p_offset: Number(offset),
+      })
+    );
   }
 
   async overview(id) {
@@ -113,4 +91,3 @@ class Position {
 }
 
 module.exports = Position;
-module.exports.FIELDS = FIELDS;

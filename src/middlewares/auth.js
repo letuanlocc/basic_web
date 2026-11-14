@@ -2,26 +2,11 @@ const { anon, forUser } = require('../config/supabase');
 const buildModels = require('../models');
 const { httpError } = require('../utils/db');
 
-/**
- * Xác thực token. Ưu tiên kiểm tra chữ ký bằng JWKS (có cache, không gọi mạng mỗi request);
- * không được thì hỏi Supabase (getUser). Đánh đổi: user bị khóa/xóa vẫn dùng được token đến khi nó hết hạn.
- */
-async function resolveUser(token) {
-  try {
-    const { data } = await anon.auth.getClaims(token);
-    const c = data && data.claims;
-    if (c && c.sub && c.role === 'authenticated') {
-      return { id: c.sub, email: c.email, phone: c.phone, app_metadata: c.app_metadata || {}, user_metadata: c.user_metadata || {} };
-    }
-  } catch (e) { /* rơi xuống getUser */ }
+async function load(req, token) {
   const { data, error } = await anon.auth.getUser(token);
   if (error || !data.user) throw httpError(401, 'Token không hợp lệ hoặc đã hết hạn');
-  return data.user;
-}
-
-async function load(req, token) {
   req.token = token;
-  req.user = await resolveUser(token);
+  req.user = data.user;
   req.db = forUser(token);
   req.m = buildModels(req.db);
 }
