@@ -295,3 +295,12 @@ textarea { resize: vertical; }
 .thumb { position: relative; aspect-ratio: 4 / 3; border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; background: var(--bg-2); }
 .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .thumb button { position: absolute; top: 6px; right: 6px; min-height: 32px; padding: 0 10px; border: 0; border-radius: 6px; background: rgba(22,24,29,.78); color: #fff; font-size: 13px; }
+
+/* Ảnh thẻ người tìm việc (tải từ máy) */
+.avatar-pick { display: flex; flex-direction: column; align-items: center; gap: 8px; flex: 0 0 auto; text-align: center; }
+.drop.photo-id { cursor: pointer; overflow: hidden; padding: 0; }
+.drop.photo-id:hover { border-color: var(--primary); color: var(--primary-dark); }
+.avatar-pick:focus-within .drop.photo-id { outline: 2px solid var(--primary); outline-offset: 2px; }
+.drop.photo-id img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.avatar-ph { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 8px; }
+[aria-invalid="true"] { border-color: var(--err) !important; }

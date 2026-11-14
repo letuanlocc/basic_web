@@ -12,7 +12,9 @@
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; });
   }
   function $(id) { return document.getElementById(id); }
-  function hh(h) { return String(h).padStart(2, '0') + ':00'; }
+  // giờ dạng số thập phân: 8.5 → 08:30, 12.75 → 12:45
+  function hh(h) { var m = Math.round(Number(h) * 60); return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }
+  function todayISO() { var d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); }
   var salary = window.CR_SALARY;
   function days(p) { return (p.work_days || []).map(function (d) { return DAY[d]; }).join(', '); }
   function when(p) {
@@ -301,6 +303,7 @@
           '<dl class="facts"><dt>Lương</dt><dd class="b">' + esc(salary(p)) + '</dd><dt>Đã nhận</dt><dd>' + p.filled + '/' + p.headcount + ' người</dd>' +
           '<dt>Hồ sơ chờ</dt><dd>' + p.pending + '</dd><dt>Hạn ứng tuyển</dt><dd>' + dateVN(p.deadline) + '</dd></dl>' +
           '<div class="row"><button type="button" class="btn" data-act="apps">Hồ sơ ứng viên</button>' +
+          '<a class="btn" href="new-post.html?edit=' + encodeURIComponent(p.id) + '">Sửa tin</a>' +
           '<button type="button" class="btn" data-act="' + (p.is_open ? 'close' : 'open') + '">' + (p.is_open ? 'Đóng tin' : 'Mở lại tin') + '</button></div>' +
           '<ul class="apps" style="list-style:none;margin:0;padding:0" hidden></ul></article>';
       }).join('') + '</div>';
@@ -335,30 +338,42 @@
     load();
   }
 
-  // ---------- Đăng tin tuyển ----------
+  // ---------- Đăng tin tuyển / Sửa tin (new-post.html?edit=<id>) ----------
   function initNewPost() {
-    var form = $('postForm'), shifts = $('shifts'), mode = 'offline';
+    var form = $('postForm'), shifts = $('shifts'), mode = 'offline', err = $('posterr');
+    var editId = qs('edit'), orig = null, info = null; // orig: tin đang sửa; info: hồ sơ/nhân viên/ca bị khóa
+    var submit = $('postSubmit'), submitText = editId ? 'Lưu thay đổi' : 'Đăng tin tuyển';
     var val = function (id) { return $(id).value.trim(); };
     var num = function (id) { var v = val(id); return v === '' ? null : Number(v); };
+    var lockedShift = function (id) { return !!(id != null && id !== '' && info && info.locked_shifts.indexOf(String(id)) >= 0); };
+    var lockedDay = function (d) { return !!(info && info.locked_days.indexOf(d) >= 0); };
 
-    function hourOptions(sel) {
-      var o = '';
-      for (var h = 0; h <= 24; h++) o += '<option value="' + h + '"' + (h === sel ? ' selected' : '') + '>' + hh(h) + '</option>';
+    // Giờ theo bước 15 phút, 00:00 → 24:00
+    function hourOptions(sel, blank) {
+      var o = blank ? '<option value="">Chọn giờ</option>' : '';
+      for (var q = 0; q <= 96; q++) {
+        var h = q / 4;
+        o += '<option value="' + h + '"' + (sel != null && sel !== '' && Number(sel) === h ? ' selected' : '') + '>' + hh(h) + '</option>';
+      }
       return o;
     }
-    function addShift(name, s, e) {
-      var n = shifts.children.length + 1;
+    $('n_open').innerHTML = hourOptions(null, true);
+    $('n_close').innerHTML = hourOptions(null, true);
+
+    // id: chỉ có khi sửa tin (ca cũ); ca đã có người đăng ký lịch thì khóa giờ và nút xóa
+    function addShift(name, s, e, id) {
+      var n = shifts.children.length + 1, locked = lockedShift(id);
       var row = document.createElement('div');
-      row.className = 'row'; row.style.gap = '8px'; row.setAttribute('data-shift', '');
+      row.className = 'row'; row.style.gap = '8px'; row.setAttribute('data-shift', id == null ? '' : String(id));
       row.innerHTML = '<input type="text" placeholder="Tên ca" aria-label="Tên ca ' + n + '" value="' + esc(name || '') + '" style="flex:1 1 140px;width:auto">' +
-        '<select aria-label="Ca ' + n + ' bắt đầu" style="flex:0 0 90px;width:auto">' + hourOptions(s == null ? 8 : s) + '</select><span>–</span>' +
-        '<select aria-label="Ca ' + n + ' kết thúc" style="flex:0 0 90px;width:auto">' + hourOptions(e == null ? 12 : e) + '</select>' +
-        '<button type="button" class="btn btn-sm" data-rm aria-label="Xóa ca ' + n + '">Xóa</button>';
+        '<select aria-label="Ca ' + n + ' bắt đầu" style="flex:0 0 96px;width:auto"' + (locked ? ' disabled' : '') + '>' + hourOptions(s == null ? 8 : s) + '</select><span>–</span>' +
+        '<select aria-label="Ca ' + n + ' kết thúc" style="flex:0 0 96px;width:auto"' + (locked ? ' disabled' : '') + '>' + hourOptions(e == null ? 12 : e) + '</select>' +
+        '<button type="button" class="btn btn-sm" data-rm aria-label="Xóa ca ' + n + '"' + (locked ? ' disabled' : '') + '>Xóa</button>' +
+        (locked ? '<span class="badge warn">Đã có người đăng ký lịch – chỉ đổi được tên ca</span>' : '');
       shifts.appendChild(row);
     }
-    addShift('Ca sáng', 8, 12);
     $('addShift').addEventListener('click', function () { addShift('', 12, 17); preview(); });
-    shifts.addEventListener('click', function (e) { var b = e.target.closest('[data-rm]'); if (b) { b.parentNode.remove(); preview(); } });
+    shifts.addEventListener('click', function (e) { var b = e.target.closest('[data-rm]'); if (b && !b.disabled) { b.parentNode.remove(); preview(); } });
 
     form.querySelectorAll('[data-chip]').forEach(function (b) {
       b.addEventListener('click', function () {
@@ -368,7 +383,13 @@
       });
     });
     form.querySelectorAll('[data-day]').forEach(function (b) {
-      b.addEventListener('click', function () { b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true')); preview(); });
+      b.addEventListener('click', function () {
+        var on = b.getAttribute('aria-pressed') === 'true';
+        if (on && lockedDay(Number(b.getAttribute('data-day')))) {
+          return msg(err, 'Không bỏ được ngày ' + b.textContent + ' vì đã có nhân viên đăng ký lịch tuần này hoặc tuần sau.');
+        }
+        b.setAttribute('aria-pressed', String(!on)); preview();
+      });
     });
 
     function lines(id, kind) {
@@ -385,8 +406,8 @@
         work_days: Array.prototype.filter.call(form.querySelectorAll('[data-day]'), function (b) { return b.getAttribute('aria-pressed') === 'true'; })
           .map(function (b) { return Number(b.getAttribute('data-day')); }),
         shifts: Array.prototype.map.call(shifts.querySelectorAll('[data-shift]'), function (r) {
-          var sel = r.querySelectorAll('select');
-          return { name: r.querySelector('input').value.trim(), start_hour: Number(sel[0].value), end_hour: Number(sel[1].value) };
+          var sel = r.querySelectorAll('select'), id = r.getAttribute('data-shift');
+          return { id: id || undefined, name: r.querySelector('input').value.trim(), start_hour: Number(sel[0].value), end_hour: Number(sel[1].value) };
         }),
         open_hour: num('n_open'), close_hour: num('n_close'), headcount: num('n_head'), pending_limit: num('n_pend'),
         min_week_hours: num('n_minw'), max_week_hours: num('n_maxw'), max_day_hours: num('n_maxd'),
@@ -409,12 +430,13 @@
       $('n_salary').disabled = this.value === 'negotiable';
     });
 
-    // ----- Điền form từ dữ liệu (bản nháp hoặc tin cũ) -----
-    function setVal(id, v) { $(id).value = v == null ? '' : v; }
+    // ----- Điền form từ dữ liệu (bản nháp, tin cũ làm mẫu, hoặc tin đang sửa) -----
+    // keepIds: chỉ khi sửa tin – giữ id ca để server biết ca nào là ca cũ
+    function setVal(id, v) { $(id).value = v == null ? '' : String(v); }
     function itemsText(d, kind) {
       return (d.items || []).filter(function (i) { return i.kind === kind; }).map(function (i) { return i.content; }).join('\n');
     }
-    function apply(d) {
+    function apply(d, keepIds) {
       setVal('n_title', d.title); setVal('n_summary', d.summary); setVal('n_addr', d.address); setVal('n_form', d.work_form);
       setVal('n_salary', d.salary_amount);
       setVal('n_salary_unit', d.salary_unit || 'negotiable');
@@ -422,12 +444,18 @@
       $('n_noexp').checked = !!d.no_experience; $('n_intern').checked = !!d.accepts_intern;
       mode = d.mode === 'online' ? 'online' : 'offline';
       form.querySelectorAll('[data-chip]').forEach(function (x) { x.setAttribute('aria-pressed', String(x.getAttribute('data-v') === mode)); });
+      var wd = (d.work_days || []).map(Number);
       form.querySelectorAll('[data-day]').forEach(function (b) {
-        b.setAttribute('aria-pressed', String((d.work_days || []).indexOf(Number(b.getAttribute('data-day'))) >= 0));
+        var day = Number(b.getAttribute('data-day'));
+        b.setAttribute('aria-pressed', String(wd.indexOf(day) >= 0));
+        if (lockedDay(day)) b.title = 'Đã có nhân viên đăng ký lịch ngày này';
       });
       shifts.innerHTML = '';
-      (d.shifts && d.shifts.length ? d.shifts : []).forEach(function (s) { addShift(s.name, s.start_hour, s.end_hour); });
-      [['n_open', 'open_hour'], ['n_close', 'close_hour'], ['n_head', 'headcount'], ['n_pend', 'pending_limit'],
+      (d.shifts && d.shifts.length ? d.shifts : []).forEach(function (s) {
+        addShift(s.name, s.start_hour == null ? null : Number(s.start_hour), s.end_hour == null ? null : Number(s.end_hour), keepIds ? s.id : null);
+      });
+      [['n_open', 'open_hour'], ['n_close', 'close_hour']].forEach(function (p) { setVal(p[0], d[p[1]] == null ? null : Number(d[p[1]])); });
+      [['n_head', 'headcount'], ['n_pend', 'pending_limit'],
         ['n_minw', 'min_week_hours'], ['n_maxw', 'max_week_hours'], ['n_maxd', 'max_day_hours'],
         ['n_minp', 'min_per_shift'], ['n_maxp', 'max_per_shift'], ['n_deadline', 'deadline'], ['n_start', 'start_date'],
         ['n_mgr', 'contact_name'], ['n_mgp', 'contact_phone']].forEach(function (p) { setVal(p[0], d[p[1]]); });
@@ -435,53 +463,56 @@
       preview();
     }
 
-    // ----- Bản nháp: tự lưu trong trình duyệt, mất khi đăng thành công hoặc bấm xóa -----
-    var DRAFT = 'cr_post_draft', draftNote = $('draftnote');
+    // ----- Bản nháp: tự lưu trong trình duyệt, mất khi đăng thành công hoặc bấm xóa (không dùng khi sửa tin) -----
+    var DRAFT = 'cr_post_draft', draftNote = $('draftnote'), timer;
     function store(fn) { try { return fn(localStorage); } catch (x) { return null; } }
     function saveDraft() {
-      var ok = store(function (ls) { ls.setItem(DRAFT, JSON.stringify(read())); return true; });
+      var ok = store(function (ls) { var d = read(); d.shifts.forEach(function (s) { delete s.id; }); ls.setItem(DRAFT, JSON.stringify(d)); return true; });
       if (ok) draftNote.textContent = 'Đã lưu bản nháp trong trình duyệt này.';
     }
-    var timer;
     function queueDraft() { clearTimeout(timer); timer = setTimeout(saveDraft, 400); }
-    form.addEventListener('input', queueDraft);
-    form.addEventListener('change', queueDraft);
-    shifts.addEventListener('click', queueDraft);
-    form.addEventListener('click', function (e) { if (e.target.closest('[data-chip],[data-day],#addShift')) queueDraft(); });
 
-    var saved = store(function (ls) { return ls.getItem(DRAFT); });
-    if (saved) {
-      try { apply(JSON.parse(saved)); draftNote.textContent = 'Đã khôi phục bản nháp lần trước.'; } catch (x) { store(function (ls) { ls.removeItem(DRAFT); }); }
+    if (!editId) {
+      form.addEventListener('input', queueDraft);
+      form.addEventListener('change', queueDraft);
+      shifts.addEventListener('click', queueDraft);
+      form.addEventListener('click', function (e) { if (e.target.closest('[data-chip],[data-day],#addShift')) queueDraft(); });
+
+      addShift('Ca sáng', 8, 12);
+      var saved = store(function (ls) { return ls.getItem(DRAFT); });
+      if (saved) {
+        try { apply(JSON.parse(saved)); draftNote.textContent = 'Đã khôi phục bản nháp lần trước.'; } catch (x) { store(function (ls) { ls.removeItem(DRAFT); }); }
+      }
+      $('clearDraft').addEventListener('click', function () {
+        clearTimeout(timer);
+        store(function (ls) { ls.removeItem(DRAFT); });
+        form.reset(); apply({ shifts: [{ name: 'Ca sáng', start_hour: 8, end_hour: 12 }] });
+        draftNote.textContent = 'Đã xóa bản nháp.';
+      });
+
+      // ----- Lấy từ tin cũ làm mẫu -----
+      var tpl = $('n_tpl');
+      A.call('GET', '/api/me/shop/positions').then(function (rows) {
+        if (!rows.length) { $('tplfield').hidden = true; return; }
+        tpl.innerHTML = '<option value="">— Chọn tin cũ —</option>' + rows.map(function (r) {
+          return '<option value="' + esc(r.id) + '">' + esc(r.title) + '</option>';
+        }).join('');
+      }).catch(function () { $('tplfield').hidden = true; });
+      tpl.addEventListener('change', function () {
+        if (!tpl.value) return;
+        var id = tpl.value;
+        draftNote.textContent = 'Đang tải tin mẫu…';
+        Promise.all([
+          A.call('GET', '/api/positions/' + id),
+          A.call('GET', '/api/positions/' + id + '/contact').catch(function () { return {}; })
+        ]).then(function (r) {
+          var d = Object.assign({}, r[0], r[1] || {});
+          delete d.deadline; delete d.start_date; // hạn và ngày bắt đầu của tin cũ đã quá hạn
+          apply(d); saveDraft();
+          draftNote.textContent = 'Đã điền từ tin “' + (r[0].title || '') + '”. Hãy chỉnh lại rồi đăng, nhớ chọn hạn ứng tuyển và ngày bắt đầu mới.';
+        }).catch(function (er) { draftNote.textContent = 'Không tải được tin mẫu: ' + er.message; });
+      });
     }
-    $('clearDraft').addEventListener('click', function () {
-      clearTimeout(timer);
-      store(function (ls) { ls.removeItem(DRAFT); });
-      form.reset(); apply({ shifts: [{ name: 'Ca sáng', start_hour: 8, end_hour: 12 }] });
-      draftNote.textContent = 'Đã xóa bản nháp.';
-    });
-
-    // ----- Lấy từ tin cũ làm mẫu -----
-    var tpl = $('n_tpl');
-    A.call('GET', '/api/me/shop/positions').then(function (rows) {
-      if (!rows.length) { $('tplfield').hidden = true; return; }
-      tpl.innerHTML = '<option value="">— Chọn tin cũ —</option>' + rows.map(function (r) {
-        return '<option value="' + esc(r.id) + '">' + esc(r.title) + '</option>';
-      }).join('');
-    }).catch(function () { $('tplfield').hidden = true; });
-    tpl.addEventListener('change', function () {
-      if (!tpl.value) return;
-      var id = tpl.value;
-      draftNote.textContent = 'Đang tải tin mẫu…';
-      Promise.all([
-        A.call('GET', '/api/positions/' + id),
-        A.call('GET', '/api/positions/' + id + '/contact').catch(function () { return {}; })
-      ]).then(function (r) {
-        var d = Object.assign({}, r[0], r[1] || {});
-        delete d.deadline; delete d.start_date; // hạn và ngày bắt đầu của tin cũ đã quá hạn
-        apply(d); saveDraft();
-        draftNote.textContent = 'Đã điền từ tin “' + (r[0].title || '') + '”. Hãy chỉnh lại rồi đăng, nhớ chọn hạn ứng tuyển và ngày bắt đầu mới.';
-      }).catch(function (er) { draftNote.textContent = 'Không tải được tin mẫu: ' + er.message; });
-    });
 
     var shopName = '';
     A.call('GET', '/api/me').then(function (me) {
@@ -500,26 +531,28 @@
       if (d.salary_unit !== 'negotiable' && (!Number.isInteger(d.salary_amount) || d.salary_amount <= 0 || d.salary_amount > 2147483647)) return 'Mức lương phải là số nguyên dương, không vượt 2.147.483.647';
       if (!d.work_days.length) return 'Chọn ít nhất một ngày làm việc';
       if (!d.shifts.length) return 'Thêm ít nhất một ca làm việc';
+      if (d.open_hour == null || d.close_hour == null) return 'Vui lòng chọn giờ mở cửa và giờ đóng cửa';
+      if (d.close_hour <= d.open_hour) return 'Giờ đóng cửa phải sau giờ mở cửa';
       for (var i = 0; i < d.shifts.length; i++) {
         var s = d.shifts[i];
         if (!s.name) return 'Ca ' + (i + 1) + ': vui lòng nhập tên ca';
         if (s.end_hour <= s.start_hour) return 'Ca ' + (i + 1) + ': giờ kết thúc phải sau giờ bắt đầu';
-        if (d.open_hour != null && s.start_hour < d.open_hour) return 'Ca ' + (i + 1) + ' bắt đầu trước giờ mở cửa';
-        if (d.close_hour != null && s.end_hour > d.close_hour) return 'Ca ' + (i + 1) + ' kết thúc sau giờ đóng cửa';
+        if (s.start_hour < d.open_hour) return 'Ca ' + (i + 1) + ' bắt đầu trước giờ mở cửa (' + hh(d.open_hour) + ')';
+        if (s.end_hour > d.close_hour) return 'Ca ' + (i + 1) + ' kết thúc sau giờ đóng cửa (' + hh(d.close_hour) + ')';
       }
-      if (d.open_hour == null || d.close_hour == null) return 'Vui lòng nhập giờ mở cửa và giờ đóng cửa';
-      if (d.close_hour <= d.open_hour) return 'Giờ đóng cửa phải sau giờ mở cửa';
       if (d.min_week_hours == null || d.max_week_hours == null) return 'Vui lòng nhập giờ tối thiểu và tối đa mỗi tuần';
       if (d.max_day_hours == null) return 'Vui lòng nhập số giờ tối đa mỗi ngày';
       if (d.max_day_hours < 1 || d.max_day_hours > d.close_hour - d.open_hour) return 'Giờ tối đa mỗi ngày phải từ 1 đến ' + (d.close_hour - d.open_hour) + ' (số giờ mở cửa)';
       var longest = Math.max.apply(null, d.shifts.map(function (s) { return s.end_hour - s.start_hour; }));
       if (longest > d.max_day_hours) return 'Có ca dài ' + longest + ' giờ, vượt số giờ tối đa mỗi ngày (' + d.max_day_hours + ')';
       if (d.headcount != null && d.headcount < 1) return 'Số người cần tuyển phải từ 1 trở lên';
+      if (info && (d.headcount || 1) < info.filled) return 'Số người cần tuyển không được thấp hơn số người đã nhận (' + info.filled + ')';
       if (d.max_per_shift == null || d.max_per_shift < 1) return 'Số người tối đa mỗi ca phải từ 1 trở lên';
       if (!d.items.some(function (i) { return i.kind === 'task'; })) return 'Vui lòng nhập nhiệm vụ chính';
-      if (d.min_week_hours != null && d.max_week_hours != null && d.min_week_hours > d.max_week_hours) return 'Giờ tối thiểu/tuần không được lớn hơn tối đa';
-      if (d.min_per_shift != null && d.max_per_shift != null && d.min_per_shift > d.max_per_shift) return 'Số người tối thiểu/ca không được lớn hơn tối đa';
+      if (d.min_week_hours > d.max_week_hours) return 'Giờ tối thiểu/tuần không được lớn hơn tối đa';
+      if (d.min_per_shift != null && d.min_per_shift > d.max_per_shift) return 'Số người tối thiểu/ca không được lớn hơn tối đa';
       if (!d.deadline) return 'Vui lòng chọn hạn ứng tuyển';
+      if (d.deadline < todayISO() && !(orig && d.deadline === orig.deadline)) return 'Hạn ứng tuyển không được ở trong quá khứ';
       if (!d.start_date) return 'Vui lòng chọn ngày bắt đầu làm';
       if (d.start_date < d.deadline) return 'Ngày bắt đầu làm không được trước hạn ứng tuyển';
       if (!d.contact_name) return 'Vui lòng nhập người liên hệ phỏng vấn';
@@ -527,20 +560,93 @@
       return '';
     }
 
-    var err = $('posterr');
+    // Nhóm nhạy cảm đã đổi so với tin gốc (chỉ khi sửa)
+    function sensitiveChanges(d) {
+      if (!orig) return [];
+      var n = function (v) { return v == null || v === '' ? null : Number(v); };
+      var sig = function (list) { return (list || []).map(function (s) { return (s.id || 'new') + '@' + n(s.start_hour) + '-' + n(s.end_hour); }).sort().join('|'); };
+      var out = [];
+      if (n(d.salary_amount) !== n(orig.salary_amount) || (d.salary_unit || 'negotiable') !== (orig.salary_unit || 'negotiable')) out.push('mức lương');
+      if (d.work_days.slice().sort().join() !== (orig.work_days || []).map(Number).sort().join()) out.push('ngày làm');
+      if (n(d.open_hour) !== n(orig.open_hour) || n(d.close_hour) !== n(orig.close_hour)) out.push('giờ mở/đóng cửa');
+      if (sig(d.shifts) !== sig(orig.shifts)) out.push('ca làm');
+      return out;
+    }
+
+    // Xác nhận nhẹ trước khi lưu: tóm tắt lương, số người, hạn nộp, SĐT (+ cảnh báo nếu đổi nhóm nhạy cảm)
+    function confirmSave(d, warn, done) {
+      var rows = [['Lương', salary(d)], ['Số người cần tuyển', (d.headcount || 1) + ' người'], ['Hạn ứng tuyển', dateVN(d.deadline)], ['SĐT liên hệ', d.contact_phone]];
+      var html = '<dl class="facts">' + rows.map(function (r) { return '<dt>' + esc(r[0]) + '</dt><dd class="b">' + esc(r[1]) + '</dd>'; }).join('') + '</dl>' +
+        (warn.length ? '<p class="msg warn">Bạn đang đổi ' + esc(warn.join(', ')) + ' trong khi tin đã có ' + info.pending + ' hồ sơ chờ và ' + info.filled +
+          ' người đã nhận. Họ sẽ thấy thông tin mới.</p>' : '') +
+        '<button type="button" class="btn btn-primary" id="dlgOk" style="margin-top:4px">' + (editId ? 'Lưu thay đổi' : 'Đăng tin') + '</button>' +
+        '<button type="button" class="btn" data-close>Quay lại sửa</button>';
+      window.crDialog(editId ? 'Kiểm tra lại trước khi lưu' : 'Kiểm tra lại trước khi đăng',
+        'Ứng viên sẽ thấy các thông tin này đầu tiên. Hãy chắc chắn chúng đúng.', html);
+      $('dlgOk').addEventListener('click', function () { $('dlgOk').closest('.overlay').hidden = true; done(); });
+    }
+
+    function busy(on) { submit.disabled = on; submit.textContent = on ? 'Đang lưu…' : submitText; }
+
     form.addEventListener('submit', function (e) {
       e.preventDefault();
+      if (editId && !orig) return;
       var d = read(), problem = check(d);
       if (problem) return msg(err, problem);
+      err.hidden = true;
       d.headcount = d.headcount || 1;
       if (d.pending_limit == null) d.pending_limit = 10;
       if (d.min_per_shift == null) d.min_per_shift = 1;
       d.max_shift_hours = Math.max.apply(null, d.shifts.map(function (s) { return s.end_hour - s.start_hour; }));
-      Object.keys(d).forEach(function (k) { if (d[k] === null || d[k] === '') delete d[k]; });
-      var btn = form.querySelector('button[type=submit]'); btn.disabled = true; btn.textContent = 'Đang đăng…';
-      A.call('POST', '/api/positions', d).then(function () { clearTimeout(timer); store(function (ls) { ls.removeItem(DRAFT); }); location.href = 'positions.html'; })
-        .catch(function (er) { btn.disabled = false; btn.textContent = 'Đăng tin tuyển'; msg(err, er.message); });
+      // Khi sửa: cho phép xóa trắng lương (= thỏa thuận), mô tả ngắn, cách làm việc
+      var clearable = editId ? ['salary_amount', 'summary', 'work_form'] : [];
+      Object.keys(d).forEach(function (k) {
+        if (d[k] === '') d[k] = null;
+        if (d[k] === null && clearable.indexOf(k) < 0) delete d[k];
+      });
+      var warn = info && info.has_people ? sensitiveChanges(d) : [];
+      if (warn.length) d.confirm_sensitive = true;
+      confirmSave(d, warn, function () {
+        busy(true);
+        A.call(editId ? 'PUT' : 'POST', editId ? '/api/positions/' + encodeURIComponent(editId) : '/api/positions', d)
+          .then(function () {
+            if (!editId) { clearTimeout(timer); store(function (ls) { ls.removeItem(DRAFT); }); }
+            location.href = 'positions.html';
+          })
+          .catch(function (er) {
+            busy(false); msg(err, er.message);
+            // có người vừa ứng tuyển / đăng ký lịch trong lúc sửa: tải lại tình trạng để lần lưu sau hỏi đúng
+            if (editId && er.status === 409) A.call('GET', '/api/positions/' + encodeURIComponent(editId) + '/edit-info').then(function (x) { info = x; showInfo(); }).catch(function () {});
+          });
+      });
     });
+
+    function showInfo() {
+      var box = $('editwarn');
+      if (!info || !info.has_people) { box.hidden = true; return; }
+      $('n_head').min = String(Math.max(1, info.filled));
+      msg(box, 'Tin này đã có ' + info.pending + ' hồ sơ chờ, ' + info.filled + ' người đã nhận' + (info.employees ? ' (' + info.employees + ' nhân viên đang làm)' : '') +
+        '. Đổi lương, ngày làm, ca hoặc giờ mở/đóng cửa sẽ ảnh hưởng tới họ – bạn sẽ được hỏi xác nhận trước khi lưu.' +
+        (info.locked_shifts.length ? ' Ca và ngày đã có người đăng ký lịch không xóa hay đổi giờ được.' : ''), 'warn');
+    }
+
+    if (editId) {
+      document.title = 'Sửa tin tuyển · CaRảnh';
+      $('postHead').textContent = 'Sửa tin tuyển';
+      $('postLead').textContent = 'Sửa tin không tự đóng hay mở lại tin. Số người cần tuyển không được thấp hơn số người đã nhận.';
+      $('tplbox').hidden = true; // không dùng mẫu / bản nháp khi sửa
+      busy(true); submit.textContent = 'Đang tải…';
+      var id = encodeURIComponent(editId);
+      Promise.all([
+        A.call('GET', '/api/positions/' + id),
+        A.call('GET', '/api/positions/' + id + '/contact').catch(function () { return null; }),
+        A.call('GET', '/api/positions/' + id + '/edit-info')
+      ]).then(function (r) {
+        orig = r[0]; info = r[2];
+        apply(Object.assign({}, orig, r[1] || {}), true);
+        showInfo(); busy(false);
+      }).catch(function (e) { submit.textContent = submitText; msg(err, 'Không tải được tin để sửa: ' + e.message); });
+    }
     preview();
   }
 
