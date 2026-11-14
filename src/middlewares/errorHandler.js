@@ -14,10 +14,11 @@ function errorHandler(err, req, res, next) {
   let message = err.message;
   if (err.code === '23514') { status = 400; message = 'Dữ liệu không hợp lệ: ' + (message.match(/constraint "([^"]+)"/)?.[1] || 'vi phạm ràng buộc'); }
   if (err.code === '23502') { status = 400; message = 'Thiếu thông tin bắt buộc' + (message.match(/column "([^"]+)"/) ? ': ' + message.match(/column "([^"]+)"/)[1] : ''); }
+  if (err.code === 'PGRST202') { status = 500; message = 'Hệ thống chưa được cập nhật cơ sở dữ liệu (thiếu hàm ' + (message.match(/public\.(\w+)/)?.[1] || '') + '). Vui lòng báo quản trị viên chạy file SQL trong thư mục supabase/.'; }
   if (err.code === '22P02') { status = 400; message = 'Dữ liệu sai định dạng'; }
 
   if (status === 500) console.error(err);
-  res.status(status).json({ success: false, message: message || 'Lỗi server' });
+  res.status(status).json({ success: false, message: message || 'Lỗi server', ...(err.extra || {}) });
 }
 
 module.exports = { notFound, errorHandler };
