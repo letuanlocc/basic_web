@@ -27,14 +27,17 @@
   // ---- Lưới ca: hàng = ngày, cột = ca. opts.edit: ô bấm được; sel: tập "shift:weekday" đang chọn ----
   // Ca (c) trùng giờ với ca nhân viên đang giữ ở việc khác (busy lấy từ /api/employments/:id/busy)
   function busyWith(c, busy) {
-    return (busy || []).filter(function (b) { // chủ quán: server chỉ trả { shift_id, weekday } (không lộ việc khác); nhân viên: có đủ chi tiết
-      if (b.shift_id != null) return String(b.shift_id) === String(c.shift_id) && b.weekday === c.weekday;
+    var hit = (busy || []).filter(function (b) {
+      // chủ quán: server chỉ trả { shift_id, weekday, blocked } (không lộ việc khác)
+      if (b.blocked !== undefined) return String(b.shift_id) === String(c.shift_id) && b.weekday === c.weekday;
+      // nhân viên: có đủ giờ; own = ca chính mình tô bận, còn lại là ca ở việc khác
       return b.weekday === c.weekday && c.start_hour < b.end_hour && c.end_hour > b.start_hour;
-    })[0];
+    });
+    return hit.filter(function (b) { return b.blocked || b.own; })[0] || hit[0]; // báo bận ưu tiên hơn ca trùng
   }
-  function busyText(b) { if (b.shift_id != null) return ''; return b.shop_name + ' – ' + b.position_title + ' (' + b.shift_name + ' ' + hh(b.start_hour) + '–' + hh(b.end_hour) + ')'; }
+  function busyText(b) { if (b.blocked !== undefined || b.own) return ''; return b.shop_name + ' – ' + b.position_title + ' (' + b.shift_name + ' ' + hh(b.start_hour) + '–' + hh(b.end_hour) + ')'; }
 
-  function grid(cells, sel, edit, force, busy) { // force: chủ quán chỉnh lịch, được chọn cả ca đã đủ người / ca trùng việc khác
+  function grid(cells, sel, edit, force, busy, mode) { // force: chủ quán chỉnh lịch, được chọn cả ca đã đủ người / ca trùng việc khác
     var shifts = [], seen = {}, rows = {};
     cells.forEach(function (c) {
       if (!seen[c.shift_id]) { seen[c.shift_id] = 1; shifts.push(c); }
@@ -51,19 +54,27 @@
         if (!c) return '<span></span>';
         var key = s.shift_id + ':' + wd, mine = edit ? !!sel[key] : c.mine;
         var cap = c.max_per_shift == null ? Infinity : Number(c.max_per_shift);
-        var full = !mine && c.people >= cap;
         var other = edit ? busyWith(c, busy) : null;
-        var cls = 'cell' + (other ? ' busy' : mine ? ' mine' : full ? ' full' : c.understaffed ? ' need' : '');
-        var state = other ? (force ? 'Nhân viên bận' : 'Bận việc khác') : mine ? 'Đã chọn' : full ? 'Đã đủ người' : c.understaffed ? 'Đang thiếu người' : '';
-        if (other && mine) state = 'Đã chọn · nhân viên bận';
+        var cls, state, dis;
+        if (mode === 'busy') { // nhân viên tô ca bận: ô tô chéo = bận
+          if (c.mine) { cls = 'cell mine'; state = 'Đã đăng ký làm'; dis = true; }
+          else if (mine) { cls = 'cell busy'; state = 'Bạn báo bận'; dis = c.is_past; }
+          else if (other) { cls = 'cell busy'; state = other.own ? 'Bạn báo bận ở việc khác' : 'Bận việc khác'; dis = true; }
+          else { cls = 'cell'; state = ''; dis = c.is_past; }
+        } else {
+          var full = !mine && c.people >= cap;
+          cls = 'cell' + (other ? ' busy' : mine ? ' mine' : full ? ' full' : c.understaffed ? ' need' : '');
+          state = other ? (other.blocked ? 'Nhân viên báo bận' : other.own ? 'Bạn báo bận' : force ? 'Nhân viên bận' : 'Bận việc khác') : mine ? 'Đã chọn' : full ? 'Đã đủ người' : c.understaffed ? 'Đang thiếu người' : '';
+          if (other && mine && !other.blocked) state = 'Đã chọn · nhân viên bận';
+          dis = c.is_past || (full && !mine && !force) || (other && (other.blocked || other.own || (!force && !mine)));
+        }
         var inner = '<span class="top"><span>' + c.people + (c.max_per_shift != null ? '/' + c.max_per_shift : '') + ' người</span></span>' +
           (state ? '<span class="ppl">' + state + '</span>' : '') +
           (other && busyText(other) ? '<span class="ppl">' + esc(busyText(other)) + '</span>' : '') +
           (!edit && c.names.length ? '<span class="ppl">' + esc(c.names.join(', ')) + '</span>' : '');
         if (!edit) return '<div class="' + cls + '">' + inner + '</div>';
-        var dis = c.is_past || (full && !mine && !force) || (other && !force && !mine);
         return '<button type="button" class="' + cls + '" data-key="' + key + '" aria-pressed="' + mine + '"' + (dis ? ' disabled' : '') +
-          ' aria-label="' + esc(s.shift_name + ', ' + DAY[wd] + ' ' + dm(c.work_date) + (other ? ', ' + state : '')) + '">' + inner + '</button>';
+          ' aria-label="' + esc(s.shift_name + ', ' + DAY[wd] + ' ' + dm(c.work_date) + (state ? ', ' + state : '')) + '">' + inner + '</button>';
       }).join('') + '</div>';
     }).join('');
     return '<div class="sched-wrap"><div class="sched" style="--n:' + shifts.length + '">' + head + body + '</div></div>';
@@ -82,7 +93,7 @@
 
   // ================= Ứng viên: đăng ký ca =================
   function initSeeker() {
-    var jobs = [], sel = {}, cells = [], busy = [];
+    var jobs = [], sel = {}, cells = [], busy = [], busySel = {}, mode = 'shift'; // mode: 'shift' đăng ký ca | 'busy' tô ca bận; busySel: ô bận của việc đang xem
 
     function current() { return jobs[posSel.selectedIndex]; }
     function count() { return Object.keys(sel).length; }
@@ -117,19 +128,40 @@
       return null;
     }
 
+    // Ô bận đã lưu của việc đang xem → busySel; phần còn lại (việc khác) là ô bị khóa
+    function loadBusy() {
+      busySel = {};
+      var mineShift = {};
+      cells.forEach(function (c) { mineShift[c.shift_id] = 1; });
+      busy.forEach(function (b) { if (b.own && mineShift[b.shift_id]) busySel[b.shift_id + ':' + b.weekday] = 1; });
+    }
+    function busyElsewhere() {
+      var mineShift = {};
+      cells.forEach(function (c) { mineShift[c.shift_id] = 1; });
+      return busy.filter(function (b) { return !(b.own && mineShift[b.shift_id]); });
+    }
+
     function paint() {
-      var j = current(), p = j.position;
+      var j = current(), p = j.position, isBusy = mode === 'busy';
       var hours = 0;
       cells.forEach(function (c) { if (sel[c.shift_id + ':' + c.weekday]) hours += c.end_hour - c.start_hour; });
       var notice = hoursNotice(hours, p, count() > 0);
       var limit = (p.min_week_hours != null || p.max_week_hours != null)
         ? 'Quy định: ' + (p.min_week_hours || 0) + ' – ' + (p.max_week_hours || '…') + ' giờ/tuần. ' : '';
       var note = p.schedule_note ? '<p class="msg info"><strong>Ghi chú từ chủ quán:</strong> <span class="pre-line">' + esc(p.schedule_note) + '</span></p>' : '';
-      box.innerHTML = note + '<p class="msg info">' + esc(limit) + 'Mỗi ca có số người tối đa do chủ quán quy định; ai lưu trước được giữ chỗ trước. Bạn đang chọn <strong>' + count() + ' ca · ' + hours + ' giờ</strong>. Ca đã qua không đổi được.</p>' +
-        (notice ? '<p class="msg ' + notice.kind + '" role="status">' + esc(notice.text) + '</p>' : '') +
-        grid(cells, sel, true, false, busy) +
+      var switcher = '<div class="tabs pill" role="tablist" aria-label="Chế độ chọn">' +
+        '<button type="button" role="tab" data-mode="shift" aria-selected="' + !isBusy + '">Đăng ký ca làm</button>' +
+        '<button type="button" role="tab" data-mode="busy" aria-selected="' + isBusy + '">Báo bận</button></div>';
+      var info = isBusy
+        ? '<p class="msg info">Bấm vào ca bạn <strong>không làm được</strong> (ô tô chéo). Ca đó bị khóa ở mọi việc của bạn nếu trùng giờ, và chủ quán chỉ thấy "bận", không thấy lý do. Bạn đang báo bận <strong>' + Object.keys(busySel).length + ' ca</strong>. Ca đã đăng ký làm cần bỏ trước ở chế độ "Đăng ký ca làm".</p>'
+        : '<p class="msg info">' + esc(limit) + 'Mỗi ca có số người tối đa do chủ quán quy định; ai lưu trước được giữ chỗ trước. Bạn đang chọn <strong>' + count() + ' ca · ' + hours + ' giờ</strong>. Ca đã qua không đổi được.</p>';
+      box.innerHTML = switcher + (isBusy ? '' : note) + info +
+        (!isBusy && notice ? '<p class="msg ' + notice.kind + '" role="status">' + esc(notice.text) + '</p>' : '') +
+        (isBusy ? grid(cells, busySel, true, false, busyElsewhere(), 'busy') : grid(cells, sel, true, false, busy)) +
         '<p class="msg" id="smsg" role="status" hidden></p>' +
-        '<div class="row" style="justify-content:flex-end"><button type="button" class="btn btn-primary btn-lg" id="ssave"' + (notice && notice.kind === 'err' ? ' disabled' : '') + '>Lưu lịch làm</button></div>';
+        '<div class="row" style="justify-content:flex-end">' + (isBusy
+          ? '<button type="button" class="btn btn-primary btn-lg" id="busysave">Lưu ca bận</button>'
+          : '<button type="button" class="btn btn-primary btn-lg" id="ssave"' + (notice && notice.kind === 'err' ? ' disabled' : '') + '>Lưu lịch làm</button>') + '</div>';
     }
 
     function load(notice) {
@@ -140,7 +172,7 @@
         A.call('GET', '/api/employments/' + j.id + '/busy?week_start=' + weekStart()).catch(function () { return []; })
       ]).then(function (res) {
         var rows = res[0]; busy = res[1] || [];
-        cells = rows; sel = {};
+        cells = rows; sel = {}; mode = 'shift'; loadBusy();
         rows.forEach(function (c) { if (c.mine) sel[c.shift_id + ':' + c.weekday] = 1; });
         if (!rows.length) { box.innerHTML = empty('Vị trí này chưa có ca làm', 'Hãy liên hệ chủ quán để thêm ca.'); return; }
         paint();
@@ -154,11 +186,32 @@
     }
 
     box.addEventListener('click', function (e) {
+      var modeBtn = e.target.closest('[data-mode]');
+      if (modeBtn) { mode = modeBtn.getAttribute('data-mode'); var t0 = window.scrollY; paint(); window.scrollTo(0, t0); return; }
       var cell = e.target.closest('[data-key]');
       if (cell) {
-        var k = cell.getAttribute('data-key');
-        if (sel[k]) delete sel[k]; else sel[k] = 1;
+        var k = cell.getAttribute('data-key'), target = mode === 'busy' ? busySel : sel;
+        if (target[k]) delete target[k]; else target[k] = 1;
         var top = window.scrollY; paint(); window.scrollTo(0, top);
+        return;
+      }
+      var busySave = e.target.closest('#busysave');
+      if (busySave) {
+        var bm = document.getElementById('smsg');
+        var bbody = cells.filter(function (c) { return busySel[c.shift_id + ':' + c.weekday]; })
+          .map(function (c) { return { shift_id: c.shift_id, weekday: c.weekday }; });
+        busySave.disabled = true; busySave.textContent = 'Đang lưu…';
+        A.call('PUT', '/api/employments/' + current().id + '/busy', { week_start: weekStart(), cells: bbody }).then(function () {
+          return A.call('GET', '/api/employments/' + current().id + '/busy?week_start=' + weekStart()).then(function (b) {
+            busy = b || []; loadBusy();
+            var top = window.scrollY; paint(); window.scrollTo(0, top);
+            var m = document.getElementById('smsg');
+            m.hidden = false; m.className = 'msg'; m.textContent = 'Đã lưu ca bận. Chủ quán sẽ không xếp bạn vào những ca này.';
+          });
+        }).catch(function (er) {
+          busySave.disabled = false; busySave.textContent = 'Lưu ca bận';
+          bm.hidden = false; bm.className = 'msg err'; bm.textContent = er.message;
+        });
         return;
       }
       var save = e.target.closest('#ssave');

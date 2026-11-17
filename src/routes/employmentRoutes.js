@@ -10,6 +10,10 @@ const ok = (res, data) => res.json({ success: true, data });
 // Việc tôi đang làm
 router.get('/mine', requireRole('seeker'), asyncHandler(async (req, res) => ok(res, await req.m.employments.listMine(req.user.id))));
 
+// Nhân viên tô ca bận của một việc. body: { week_start, cells: [{ shift_id, weekday }] }
+router.put('/:id/busy', requireRole('seeker'), validate('week_start', 'cells'), asyncHandler(async (req, res) =>
+  ok(res, await req.m.employments.setBusySlots(req.params.id, req.body.week_start, req.body.cells))));
+
 // Lưu lịch một tuần. body: { week_start: 'YYYY-MM-DD' (thứ Hai), cells: [{ shift_id, weekday }] }
 router.put('/:id/schedule', requireRole('seeker'), validate('week_start', 'cells'), asyncHandler(async (req, res) =>
   ok(res, await req.m.employments.saveSchedule(req.params.id, req.body.week_start, req.body.cells))));
