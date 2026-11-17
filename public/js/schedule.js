@@ -197,7 +197,7 @@
       posSel.innerHTML = rows.map(function (r) { return '<option>' + esc(r.position.title + ' · ' + (r.position.shop && r.position.shop.name)) + '</option>'; }).join('');
       posBox.hidden = rows.length < 2;
       var selectedPosition = new URLSearchParams(location.search).get('position');
-      var selectedIndex = rows.findIndex(function (r) { return r.position.id === selectedPosition; });
+      var selectedIndex = rows.findIndex(function (r) { return String(r.position.id) === selectedPosition; });
       if (selectedIndex >= 0) posSel.selectedIndex = selectedIndex;
       load();
     }).catch(function (e) { box.innerHTML = fail(e); });
