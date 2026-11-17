@@ -51,8 +51,13 @@ class Employment {
   }
 
   /** Chủ quán: thay toàn bộ ca của một nhân viên trong tuần (được vượt giới hạn người/giờ). */
-  async manageSchedule(employmentId, weekStart, cells) {
-    return unwrap(await this.db.rpc('manage_schedule', { p_employment_id: employmentId, p_week_start: weekStart, p_cells: cells }));
+  async manageSchedule(employmentId, weekStart, cells, force = false) {
+    return unwrap(await this.db.rpc('manage_schedule', { p_employment_id: employmentId, p_week_start: weekStart, p_cells: cells, p_force: !!force }));
+  }
+
+  /** Ca nhân viên đang giữ ở việc khác trong tuần (nhân viên đó hoặc chủ quán gọi). */
+  async getBusy(employmentId, weekStart) {
+    return unwrap(await this.db.rpc('employment_busy', { p_employment_id: employmentId, p_week_start: weekStart }));
   }
 
   /** Lưới lịch cả tuần của một vị trí (chủ quán hoặc nhân viên của vị trí đó). */
