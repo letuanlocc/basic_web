@@ -25,7 +25,16 @@
   }
 
   // ---- Lưới ca: hàng = ngày, cột = ca. opts.edit: ô bấm được; sel: tập "shift:weekday" đang chọn ----
-  function grid(cells, sel, edit, force) { // force: chủ quán chỉnh lịch, được chọn cả ca đã đủ người
+  // Ca (c) trùng giờ với ca nhân viên đang giữ ở việc khác (busy lấy từ /api/employments/:id/busy)
+  function busyWith(c, busy) {
+    return (busy || []).filter(function (b) { // chủ quán: server chỉ trả { shift_id, weekday } (không lộ việc khác); nhân viên: có đủ chi tiết
+      if (b.shift_id != null) return String(b.shift_id) === String(c.shift_id) && b.weekday === c.weekday;
+      return b.weekday === c.weekday && c.start_hour < b.end_hour && c.end_hour > b.start_hour;
+    })[0];
+  }
+  function busyText(b) { if (b.shift_id != null) return ''; return b.shop_name + ' – ' + b.position_title + ' (' + b.shift_name + ' ' + hh(b.start_hour) + '–' + hh(b.end_hour) + ')'; }
+
+  function grid(cells, sel, edit, force, busy) { // force: chủ quán chỉnh lịch, được chọn cả ca đã đủ người / ca trùng việc khác
     var shifts = [], seen = {}, rows = {};
     cells.forEach(function (c) {
       if (!seen[c.shift_id]) { seen[c.shift_id] = 1; shifts.push(c); }
@@ -43,15 +52,18 @@
         var key = s.shift_id + ':' + wd, mine = edit ? !!sel[key] : c.mine;
         var cap = c.max_per_shift == null ? Infinity : Number(c.max_per_shift);
         var full = !mine && c.people >= cap;
-        var cls = 'cell' + (mine ? ' mine' : full ? ' full' : c.understaffed ? ' need' : '');
-        var state = mine ? 'Đã chọn' : full ? 'Đã đủ người' : c.understaffed ? 'Đang thiếu người' : '';
+        var other = edit ? busyWith(c, busy) : null;
+        var cls = 'cell' + (other ? ' busy' : mine ? ' mine' : full ? ' full' : c.understaffed ? ' need' : '');
+        var state = other ? (force ? 'Nhân viên bận' : 'Bận việc khác') : mine ? 'Đã chọn' : full ? 'Đã đủ người' : c.understaffed ? 'Đang thiếu người' : '';
+        if (other && mine) state = 'Đã chọn · nhân viên bận';
         var inner = '<span class="top"><span>' + c.people + (c.max_per_shift != null ? '/' + c.max_per_shift : '') + ' người</span></span>' +
           (state ? '<span class="ppl">' + state + '</span>' : '') +
+          (other && busyText(other) ? '<span class="ppl">' + esc(busyText(other)) + '</span>' : '') +
           (!edit && c.names.length ? '<span class="ppl">' + esc(c.names.join(', ')) + '</span>' : '');
         if (!edit) return '<div class="' + cls + '">' + inner + '</div>';
-        var dis = c.is_past || (full && !mine && !force);
+        var dis = c.is_past || (full && !mine && !force) || (other && !force && !mine);
         return '<button type="button" class="' + cls + '" data-key="' + key + '" aria-pressed="' + mine + '"' + (dis ? ' disabled' : '') +
-          ' aria-label="' + esc(s.shift_name + ', ' + DAY[wd] + ' ' + dm(c.work_date)) + '">' + inner + '</button>';
+          ' aria-label="' + esc(s.shift_name + ', ' + DAY[wd] + ' ' + dm(c.work_date) + (other ? ', ' + state : '')) + '">' + inner + '</button>';
       }).join('') + '</div>';
     }).join('');
     return '<div class="sched-wrap"><div class="sched" style="--n:' + shifts.length + '">' + head + body + '</div></div>';
@@ -70,7 +82,7 @@
 
   // ================= Ứng viên: đăng ký ca =================
   function initSeeker() {
-    var jobs = [], sel = {}, cells = [];
+    var jobs = [], sel = {}, cells = [], busy = [];
 
     function current() { return jobs[posSel.selectedIndex]; }
     function count() { return Object.keys(sel).length; }
@@ -115,7 +127,7 @@
       var note = p.schedule_note ? '<p class="msg info"><strong>Ghi chú từ chủ quán:</strong> <span class="pre-line">' + esc(p.schedule_note) + '</span></p>' : '';
       box.innerHTML = note + '<p class="msg info">' + esc(limit) + 'Mỗi ca có số người tối đa do chủ quán quy định; ai lưu trước được giữ chỗ trước. Bạn đang chọn <strong>' + count() + ' ca · ' + hours + ' giờ</strong>. Ca đã qua không đổi được.</p>' +
         (notice ? '<p class="msg ' + notice.kind + '" role="status">' + esc(notice.text) + '</p>' : '') +
-        grid(cells, sel, true) +
+        grid(cells, sel, true, false, busy) +
         '<p class="msg" id="smsg" role="status" hidden></p>' +
         '<div class="row" style="justify-content:flex-end"><button type="button" class="btn btn-primary btn-lg" id="ssave"' + (notice && notice.kind === 'err' ? ' disabled' : '') + '>Lưu lịch làm</button></div>';
     }
@@ -123,7 +135,11 @@
     function load(notice) {
       var j = current();
       box.innerHTML = '<p class="muted">Đang tải…</p>';
-      A.call('GET', '/api/positions/' + j.position.id + '/schedule?week_start=' + weekStart()).then(function (rows) {
+      Promise.all([
+        A.call('GET', '/api/positions/' + j.position.id + '/schedule?week_start=' + weekStart()),
+        A.call('GET', '/api/employments/' + j.id + '/busy?week_start=' + weekStart()).catch(function () { return []; })
+      ]).then(function (res) {
+        var rows = res[0]; busy = res[1] || [];
         cells = rows; sel = {};
         rows.forEach(function (c) { if (c.mine) sel[c.shift_id + ':' + c.weekday] = 1; });
         if (!rows.length) { box.innerHTML = empty('Vị trí này chưa có ca làm', 'Hãy liên hệ chủ quán để thêm ca.'); return; }
@@ -209,7 +225,7 @@
       rulemsg = document.getElementById('rulemsg'), rulesave = document.getElementById('rulesave'),
       refresh = document.getElementById('refreshSchedule');
 
-    var editing = null, sel = {}, data = null, flash = ''; // editing = { id, name }: nhân viên đang được chỉnh lịch
+    var editing = null, sel = {}, data = null, flash = '', busy = []; // editing = { id, name }: nhân viên đang được chỉnh lịch
 
     function current() { return positions[posSel.selectedIndex]; }
     function selHours() {
@@ -234,7 +250,7 @@
       } else if (editing) {
         schedule = '<section class="panel"><h2>Chỉnh lịch của ' + esc(editing.name) + '</h2>' +
           '<p class="msg info">Bạn có thể chọn cả ca đã đủ người; ca đã qua không đổi được. Đang chọn <strong>' + Object.keys(sel).length + ' ca · ' + selHours() + ' giờ</strong>.</p>' +
-          grid(cells, sel, true, true) + '<p class="msg" id="emsg" role="status" hidden></p>' +
+          grid(cells, sel, true, true, busy) + '<p class="msg" id="emsg" role="status" hidden></p>' +
           '<div class="row" style="justify-content:flex-end"><button type="button" class="btn" id="ecancel">Hủy</button><button type="button" class="btn btn-primary" id="esave">Lưu lịch</button></div></section>';
       } else {
         var booked = cells.filter(function (c) { return c.people > 0; }).length;
@@ -256,8 +272,10 @@
         A.call('GET', '/api/positions/' + p.id + '/schedule?week_start=' + ws),
         A.call('GET', '/api/positions/' + p.id + '/employees'),
         A.call('GET', '/api/positions/' + p.id),
-        editing ? A.call('GET', '/api/employments/' + editing.id + '/schedule?week_start=' + ws) : null
+        editing ? A.call('GET', '/api/employments/' + editing.id + '/schedule?week_start=' + ws) : null,
+        editing ? A.call('GET', '/api/employments/' + editing.id + '/busy?week_start=' + ws).catch(function () { return []; }) : null
       ]).then(function (r) {
+        busy = r[4] || [];
         if (!quiet) { rule.value = r[2].schedule_note || ''; rulemsg.hidden = true; }
         data = { cells: r[0], staff: r[1] };
         sel = {};
@@ -282,19 +300,31 @@
       var ed = e.target.closest('[data-edit]');
       if (ed) { editing = { id: ed.getAttribute('data-edit'), name: ed.getAttribute('data-name') }; load(); return; }
       if (e.target.closest('#ecancel')) { editing = null; sel = {}; render(); return; }
-      var save = e.target.closest('#esave');
+      var save = e.target.closest('#esave, #eforce');
       if (save) {
-        var out = document.getElementById('emsg'), who = editing;
+        var out = document.getElementById('emsg'), who = editing, force = save.id === 'eforce';
         var body = data.cells.filter(function (c) { return sel[c.shift_id + ':' + c.weekday]; })
           .map(function (c) { return { shift_id: c.shift_id, weekday: c.weekday }; });
         save.disabled = true; save.textContent = 'Đang lưu…';
-        A.call('PUT', '/api/employments/' + who.id + '/manage-schedule', { week_start: weekStart(), cells: body }).then(function (r) {
+        A.call('PUT', '/api/employments/' + who.id + '/manage-schedule', { week_start: weekStart(), cells: body, force: force }).then(function (r) {
           editing = null;
           flash = '<p class="msg" role="status">Đã lưu lịch của ' + esc(who.name) + (r && r.total_hours != null ? '. Tổng ' + r.total_hours + ' giờ trong tuần.' : '.') + '</p>';
           load();
         }).catch(function (er) {
-          save.disabled = false; save.textContent = 'Lưu lịch';
-          out.hidden = false; out.className = 'msg err'; out.textContent = er.message;
+          save.disabled = false; save.textContent = force ? 'Vẫn lưu lịch' : 'Lưu lịch';
+          out.hidden = false;
+          if (/^Trùng lịch việc khác/.test(er.message)) {
+            // Cảnh báo, không chặn: chủ quán có thể chọn vẫn lưu
+            out.className = 'msg warn';
+            out.textContent = er.message.replace(/^Trùng lịch việc khác: /, 'Nhân viên đang bận vào: ') + '. Bỏ chọn các ca này, hoặc bấm "Vẫn lưu lịch" nếu bạn đã thỏa thuận với nhân viên.';
+            if (!document.getElementById('eforce')) {
+              var fb = document.createElement('button');
+              fb.type = 'button'; fb.className = 'btn'; fb.id = 'eforce'; fb.textContent = 'Vẫn lưu lịch';
+              document.getElementById('esave').parentNode.insertBefore(fb, document.getElementById('esave'));
+            }
+          } else {
+            out.className = 'msg err'; out.textContent = er.message;
+          }
         });
         return;
       }

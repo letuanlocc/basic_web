@@ -20,7 +20,13 @@ router.get('/:id/schedule', requireRole('employer'), asyncHandler(async (req, re
   ok(res, await req.m.employments.getCells(req.params.id, req.query.week_start));
 }));
 router.put('/:id/manage-schedule', requireRole('employer'), validate('week_start', 'cells'), asyncHandler(async (req, res) =>
-  ok(res, await req.m.employments.manageSchedule(req.params.id, req.body.week_start, req.body.cells))));
+  ok(res, await req.m.employments.manageSchedule(req.params.id, req.body.week_start, req.body.cells, req.body.force === true))));
+
+// Ca nhân viên đang giữ ở việc khác trong tuần (để tô ô "Bận việc khác"): GET ?week_start=...
+router.get('/:id/busy', asyncHandler(async (req, res) => {
+  if (!req.query.week_start) throw httpError(400, 'Thiếu week_start (thứ Hai, YYYY-MM-DD)');
+  ok(res, await req.m.employments.getBusy(req.params.id, req.query.week_start));
+}));
 
 // Chủ quán xóa nhân viên khỏi danh sách
 router.delete('/:id', requireRole('employer'), asyncHandler(async (req, res) => ok(res, await req.m.employments.remove(req.params.id))));

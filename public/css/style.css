@@ -212,6 +212,7 @@ textarea { resize: vertical; }
 .cell .top { display: flex; justify-content: space-between; font-weight: 600; }
 .cell.mine { background: var(--primary); border-color: var(--primary); color: #fff; }
 .cell.full { background: repeating-linear-gradient(45deg, var(--bg-2), var(--bg-2) 6px, #fff 6px, #fff 12px); color: var(--text-3); }
+.cell.busy { background: repeating-linear-gradient(45deg, var(--warn-bg), var(--warn-bg) 6px, #fff 6px, #fff 12px); border: 1px dashed #F5D9A8; color: var(--warn); }
 .cell.need { background: var(--warn-bg); border-color: #F5D9A8; color: var(--warn); }
 .cell .ppl { font-size: 12px; opacity: .9; }
 .legend { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; font-size: 13px; color: var(--text-2); }
