@@ -55,6 +55,11 @@ class Employment {
     return unwrap(await this.db.rpc('manage_schedule', { p_employment_id: employmentId, p_week_start: weekStart, p_cells: cells, p_force: !!force }));
   }
 
+  /** Nhân viên báo bận theo ca: thay toàn bộ ca bận của một việc trong một tuần. cells = [{ shift_id, weekday }]. */
+  async setBusySlots(employmentId, weekStart, cells) {
+    return unwrap(await this.db.rpc('set_my_busy_slots', { p_employment_id: employmentId, p_week_start: weekStart, p_cells: cells }));
+  }
+
   /** Ca nhân viên đang giữ ở việc khác trong tuần (nhân viên đó hoặc chủ quán gọi). */
   async getBusy(employmentId, weekStart) {
     return unwrap(await this.db.rpc('employment_busy', { p_employment_id: employmentId, p_week_start: weekStart }));
