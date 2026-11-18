@@ -14,7 +14,9 @@ const app = express();
 // Chạy sau proxy/hosting (Render, Railway…) thì đặt TRUST_PROXY=1 để nhận đúng IP người dùng
 if (process.env.TRUST_PROXY) app.set('trust proxy', Number(process.env.TRUST_PROXY) || process.env.TRUST_PROXY);
 // CSP tắt vì giao diện dùng style/onclick nội tuyến và font Google; các header bảo mật khác vẫn bật
-app.use(helmet({ contentSecurityPolicy: false }));
+// COOP same-origin và Origin-Agent-Cluster làm Chrome đổi tiến trình khi điều hướng, khiến Lighthouse/DevTools mất mốc
+// navigationStart (lỗi NO_NAVSTART, không đo được Performance). Trang không dùng popup liên origin nên tắt hai header này.
+app.use(helmet({ contentSecurityPolicy: false, crossOriginOpenerPolicy: false, originAgentCluster: false }));
 // Giao diện chạy cùng origin nên mặc định không mở CORS; cần thì đặt CORS_ORIGIN=https://a.com,https://b.com
 app.use(cors({ origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : false }));
 // Callback nhận OAuth code trong query string, không ghi URL này vào access log.
