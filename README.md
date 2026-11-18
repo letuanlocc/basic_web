@@ -207,7 +207,7 @@ erDiagram
 | | Performance | Accessibility | Best Practices | SEO |
 |---|---|---|---|---|
 | Trước tối ưu | 34 | 98 | 96 | 90 |
-| Sau tối ưu | **[CẦN BỔ SUNG]** | **[CẦN BỔ SUNG]** | **[CẦN BỔ SUNG]** | **[CẦN BỔ SUNG]** |
+| Sau tối ưu | **56** | 98 | 96 | **100** |
 
   Ảnh báo cáo: **[CẦN BỔ SUNG]** `docs/screenshots/lighthouse-before.png`, `docs/screenshots/lighthouse-after.png`.
 
