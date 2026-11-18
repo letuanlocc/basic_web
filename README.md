@@ -37,7 +37,21 @@ npm run dev               # mở http://localhost:3000
 2. Mở **SQL Editor** (role `postgres`) và chạy các script trong [supabase/](supabase/), thứ tự: các file trong `supabase/migrations/` theo tên (ngày), sau đó `save-schedule-exclusive.sql`, `manage-schedule.sql`, `schedule-conflicts.sql`.
 3. Sơ đồ bảng xem mục [4](#4-sơ-đồ-cơ-sở-dữ-liệu-erd).
 
-> Dữ liệu mẫu (seeder) dùng cho demo nằm ở nhánh `feature/seed-data` (PR #3). **[CẦN BỔ SUNG: ghi rõ file seed và cách chạy]**
+### Dữ liệu mẫu (seeder)
+Script tạo dữ liệu demo nằm ở [scripts/seed-demo.js](scripts/seed-demo.js), hướng dẫn đầy đủ ở [docs/seed-data.md](docs/seed-data.md). Bộ mẫu gồm 6 tài khoản (2 người tìm việc, 4 chủ quán, email `...@caranh-demo.test`), 4 quán, 5 vị trí, 10 ca, đơn ứng tuyển, lời mời, tin đã lưu và một nhân viên có lịch. Mọi tên đều bắt đầu bằng `[DEMO]`.
+
+```bash
+# 1. Thêm vào .env một mật khẩu tự chọn (từ 12 ký tự) cho 6 tài khoản demo:
+#    DEMO_SEED_PASSWORD=...
+node scripts/seed-demo.js            # xem trước, không kết nối database
+node scripts/seed-demo.js --apply    # thêm dữ liệu vào database
+node scripts/seed-demo.js --check    # kiểm tra lại (chỉ đọc)
+```
+
+- Script chỉ **bổ sung**, không xóa hay ghi đè dữ liệu có sẵn, và chạy lại được nhiều lần.
+- `--apply` ghi vào database đang cấu hình trong `.env`; script kiểm tra đúng project Supabase trước khi chạy.
+- Câu truy vấn kiểm tra độc lập: [supabase/check-demo.sql](supabase/check-demo.sql). Ảnh cửa hàng mẫu: `public/demo/shops/`.
+- Test offline cho script: `node --test scripts/seed-demo.test.js`.
 
 ### Biến môi trường
 
@@ -116,19 +130,35 @@ Kế hoạch, phân công và quản lý GitHub: [docs/project-plan.md](docs/pro
 - Duyệt hồ sơ ứng viên, mời ứng viên, tìm ứng viên theo kỹ năng, khu vực, khung giờ rảnh.
 - Xem và chỉnh lịch làm của từng nhân viên; xóa nhân viên khỏi danh sách.
 
-**Ảnh chụp màn hình** (đặt ảnh vào `docs/screenshots/`)
+**Ảnh chụp màn hình**
 
-| Màn hình | Ảnh |
-|---|---|
-| Trang chủ, danh sách việc | **[CẦN BỔ SUNG]** `docs/screenshots/home.png` |
-| Chi tiết công việc | **[CẦN BỔ SUNG]** `docs/screenshots/job-detail.png` |
-| Đăng ký lịch làm theo tuần | **[CẦN BỔ SUNG]** `docs/screenshots/schedule.png` |
-| Google Calendar sau khi đồng bộ | **[CẦN BỔ SUNG]** `docs/screenshots/google-calendar.png` |
-| Đăng tin tuyển (chủ quán) | **[CẦN BỔ SUNG]** `docs/screenshots/new-post.png` |
-| Tìm ứng viên | **[CẦN BỔ SUNG]** `docs/screenshots/candidates.png` |
-| Giao diện điện thoại | **[CẦN BỔ SUNG]** `docs/screenshots/mobile.png` |
+**Trang chủ, danh sách việc**
 
-Sau khi có ảnh, chèn bằng `![Tên](docs/screenshots/home.png)`.
+![Trang chủ, danh sách việc](docs/screenshots/home.png)
+
+**Chi tiết công việc**
+
+![Chi tiết công việc](docs/screenshots/job-detail.png)
+
+**Đăng ký lịch làm theo tuần**
+
+![Đăng ký lịch làm theo tuần](docs/screenshots/schedule.png)
+
+**Đăng tin tuyển (chủ quán)**
+
+![Đăng tin tuyển (chủ quán)](docs/screenshots/new-post.png)
+
+**Tìm ứng viên**
+
+![Tìm ứng viên](docs/screenshots/candidates.png)
+
+**Kết nối Google Calendar** (trang Đăng ký lịch làm)
+
+![Kết nối Google Calendar](docs/screenshots/google-calendar.png)
+
+**Giao diện điện thoại** (thanh điều hướng dưới, bố cục một cột)
+
+<img src="docs/screenshots/mobile.png" alt="Giao diện điện thoại" width="320" />
 
 ---
 
