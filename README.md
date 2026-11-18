@@ -207,10 +207,13 @@ erDiagram
 
 | | Performance | Accessibility | Best Practices | SEO |
 |---|---|---|---|---|
-| Trước tối ưu | 34 | 98 | 96 | 90 |
-| Sau tối ưu | **56** | 98 | 96 | **100** |
+| Trước tối ưu, đo bằng DevTools trên máy cá nhân | 34 | 98 | 96 | 90 |
+| Sau tối ưu, đo bằng DevTools trên máy cá nhân | **56** | 98 | 100 | 100 |
+| Sau tối ưu, đo độc lập bằng Lighthouse CLI 12.8 (không đo bản trước) | **98** | 98 | 100 | 100 |
 
-  Ảnh báo cáo: **[CẦN BỔ SUNG]** `docs/screenshots/lighthouse-before.png`, `docs/screenshots/lighthouse-after.png`.
+  Chỉ số chi tiết (Lighthouse CLI, desktop, production): FCP 0,6 s, LCP 1,1 s, TBT 0 ms, CLS 0,007, Speed Index 0,6 s. Báo cáo đầy đủ: [docs/lighthouse/production-after-desktop.html](docs/lighthouse/production-after-desktop.html) (tải về rồi mở bằng trình duyệt).
+
+  Hai dòng DevTools đo cùng cách nên so sánh trực tiếp được (Performance 34 → 56, Best Practices 96 → 100, SEO 90 → 100). Dòng Lighthouse CLI là phép đo độc lập (3 lần liên tiếp đều 97 đến 98), không có bản "trước" để so. Chênh lệch giữa DevTools và CLI có thể do Lighthouse DevTools chạy ngay trên máy cá nhân nên chịu ảnh hưởng của CPU và tiện ích đang mở; nhóm chưa kiểm chứng điều này. Ảnh chụp báo cáo DevTools: **[CẦN BỔ SUNG]** `docs/screenshots/lighthouse-before.png`, `docs/screenshots/lighthouse-after.png`.
 
 **Theo dõi và ghi log**
 - **Sentry** (server: `src/instrument.js`; trình duyệt: nạp từ `public/js/main.js`): bắt lỗi 5xx và lỗi JavaScript. Bật bằng `SENTRY_DSN` và `SENTRY_BROWSER_DSN`. Không gửi IP, cookie hay nội dung request (`sendDefaultPii: false`). Đặt `SENTRY_TEST=1` rồi gọi `GET /api/debug-error` để tạo lỗi thử nghiệm khi demo.
