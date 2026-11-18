@@ -1,8 +1,10 @@
+const Sentry = require('./instrument'); // phải đứng đầu để Sentry bắt được mọi lỗi
 const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const compression = require('compression');
 
 const routes = require('./routes');
 const { notFound, errorHandler } = require('./middlewares/errorHandler');
@@ -18,13 +20,18 @@ app.use(cors({ origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split('
 // Callback nhận OAuth code trong query string, không ghi URL này vào access log.
 app.use(morgan('dev', { skip: (req) => /^\/api\/google\/callback\/?$/i.test(req.originalUrl.split('?')[0]) }));
 // Ảnh (nơi làm việc, ảnh thẻ) gửi lên dạng data URL đã nén ở trình duyệt nên cần giới hạn lớn hơn mặc định 100kb
+// Nén gzip/br cho HTML, CSS, JS, JSON (Lighthouse: Enable text compression)
+app.use(compression());
 app.use(express.json({ limit: '3mb' }));
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, '..', 'public')));
+// File tĩnh không đổi tên theo phiên bản, nên chỉ cache ngắn (5 phút) để sửa xong không bị kẹt bản cũ.
+app.use(express.static(path.join(__dirname, '..', 'public'), { maxAge: '5m' }));
 
 app.use('/api', routes);
 
 app.use(notFound);
+// Gửi lỗi 5xx lên Sentry (không làm gì nếu chưa đặt SENTRY_DSN); đặt trước errorHandler.
+Sentry.setupExpressErrorHandler(app);
 app.use(errorHandler);
 
 module.exports = app;

@@ -150,4 +150,32 @@
   });
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', build); else build();
+
+  // ---- Theo dõi & ghi log phía trình duyệt: Google Analytics + Sentry ----
+  // ID/DSN lấy từ /api/config (đặt GA_MEASUREMENT_ID, SENTRY_BROWSER_DSN trên server); chưa đặt thì bỏ qua.
+  // Chỉ nạp sau khi trang tải xong để không làm chậm lần hiển thị đầu (điểm Lighthouse).
+  function loadScript(src, done) {
+    var s = document.createElement('script');
+    s.async = true; s.src = src; s.crossOrigin = 'anonymous';
+    if (done) s.onload = done;
+    document.head.appendChild(s);
+  }
+  function startMonitoring() {
+    fetch('/api/config').then(function (r) { return r.json(); }).then(function (res) {
+      var c = res && res.data; if (!c) return;
+      if (c.gaId) {
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = function () { window.dataLayer.push(arguments); };
+        window.gtag('js', new Date());
+        window.gtag('config', c.gaId, { anonymize_ip: true });
+        loadScript('https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(c.gaId));
+      }
+      if (c.sentryDsn) {
+        loadScript('https://browser.sentry-cdn.com/8.35.0/bundle.min.js', function () {
+          if (window.Sentry) window.Sentry.init({ dsn: c.sentryDsn, environment: c.environment, sendDefaultPii: false, tracesSampleRate: 0.1 });
+        });
+      }
+    }).catch(function () { /* không có cấu hình thì thôi, không ảnh hưởng trang */ });
+  }
+  if (document.readyState === 'complete') startMonitoring(); else window.addEventListener('load', startMonitoring);
 })();
