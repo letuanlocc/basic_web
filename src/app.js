@@ -25,7 +25,13 @@ app.use(compression());
 app.use(express.json({ limit: '3mb' }));
 app.use(express.urlencoded({ extended: true }));
 // File tĩnh không đổi tên theo phiên bản, nên chỉ cache ngắn (5 phút) để sửa xong không bị kẹt bản cũ.
-app.use(express.static(path.join(__dirname, '..', 'public'), { maxAge: '5m' }));
+app.use(express.static(path.join(__dirname, '..', 'public'), {
+  maxAge: '5m',
+  // HTML: trình duyệt luôn hỏi lại, CDN giữ 5 phút (Vercel xóa cache khi deploy bản mới)
+  setHeaders(res, file) {
+    if (file.endsWith('.html')) res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=300, stale-while-revalidate=600');
+  },
+}));
 
 app.use('/api', routes);
 
