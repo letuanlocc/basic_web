@@ -2,129 +2,189 @@
 
 CaRảnh kết nối **chủ quán** (đăng tin tuyển, xếp ca) với **người tìm việc** (ứng tuyển, đăng ký ca làm, đồng bộ lịch sang Google Calendar).
 
-- **Backend:** Node.js + Express, dữ liệu và đăng nhập trên Supabase (Postgres + Auth).
-- **Giao diện:** HTML/CSS/JS thuần trong `public/`, không dùng framework.
-- **Tìm ứng viên bằng ngôn ngữ tự nhiên (tùy chọn):** dịch vụ Python NER trong `ner-service/`.
+- **Triển khai:** https://basic-web-rho.vercel.app
+- **Mã nguồn:** https://github.com/letuanlocc/basic_web
+- **Video demo:** **[CẦN BỔ SUNG: link YouTube/MP4, tối đa 10 phút, tối thiểu 720p]**
 
-> Quy ước giao diện, token thiết kế và tiến độ tích hợp Google Calendar nằm trong [CLAUDE.md](CLAUDE.md). Đọc file đó trước khi sửa giao diện.
+## Mục lục
+1. [Cách chạy ứng dụng](#1-cách-chạy-ứng-dụng)
+2. [Tổng quan dự án và công cụ sử dụng](#2-tổng-quan-dự-án-và-công-cụ-sử-dụng)
+3. [Tính năng và ảnh chụp màn hình](#3-tính-năng-và-ảnh-chụp-màn-hình)
+4. [Sơ đồ cơ sở dữ liệu (ERD)](#4-sơ-đồ-cơ-sở-dữ-liệu-erd)
+5. [Tối ưu hiệu năng, theo dõi và ghi log](#5-tối-ưu-hiệu-năng-theo-dõi-và-ghi-log)
+6. [Thông tin bổ sung](#6-thông-tin-bổ-sung)
 
-## Tính năng chính
+---
 
-**Người tìm việc**
-- Đăng ký, đăng nhập, hoàn thiện hồ sơ, đổi hoặc quên mật khẩu.
-- Xem và lưu tin tuyển, ứng tuyển, nhận lời mời.
-- Đăng ký lịch làm theo tuần (chọn ca theo ngày), báo bận theo ca, hệ thống chặn ca đã đủ người hoặc trùng giờ với việc khác.
-- Kết nối **Google Calendar** để ca đã đăng ký tự hiện trên lịch cá nhân (một chiều: CaRảnh → Google).
+## 1. Cách chạy ứng dụng
 
-**Chủ quán**
-- Tạo quán, đăng và sửa tin tuyển (ca làm, lương, số người mỗi ca).
-- Xem hồ sơ ứng viên, mời ứng viên, tìm ứng viên theo từ khóa và khung giờ rảnh.
-- Xem và chỉnh lịch ca của từng nhân viên, xóa nhân viên khỏi danh sách.
-
-## Cấu trúc thư mục
-
-```
-server.js            Điểm khởi động (đọc .env, mở cổng)
-src/
-  app.js             Cấu hình Express (helmet, cors, rate limit, static)
-  config/            Khởi tạo client Supabase (anon / theo người dùng / admin)
-  routes/            Các nhóm API: auth, me, positions, shifts, applications,
-                     seekers, invitations, employments, google
-  models/            Truy cập dữ liệu Supabase
-  services/          Logic nghiệp vụ: sửa tin tuyển, Google Calendar, đồng bộ lịch
-  middlewares/       Xác thực, phân quyền, validate, rate limit, xử lý lỗi
-  utils/             Quy tắc vị trí, tìm ứng viên, NER, ảnh…
-public/              Giao diện tĩnh (mỗi màn hình là một file .html) + css/ + js/
-supabase/            Script SQL (hàm RPC, migration) chạy trong Supabase SQL Editor
-ner-service/         Dịch vụ Python NER cho thanh tìm kiếm (tùy chọn)
-tests/               Test (node:test)
-docs/                Tài liệu tính năng
-```
-
-## Yêu cầu
-
-- Node.js 18 trở lên
-- Một project Supabase
-- (Tùy chọn) Tài khoản Google Cloud nếu dùng Google Calendar
-- (Tùy chọn) Python 3 nếu chạy `ner-service`
-
-## Chạy trên máy
+**Yêu cầu:** Node.js 18 trở lên, một project Supabase (PostgreSQL). Tùy chọn: tài khoản Google Cloud (Google Calendar), Sentry, Google Analytics, Python 3 (dịch vụ NER).
 
 ```bash
 git clone https://github.com/letuanlocc/basic_web.git
 cd basic_web
 npm install
-cp .env.example .env      # rồi điền giá trị thật
-npm run dev               # http://localhost:3000
+cp .env.example .env      # rồi điền giá trị thật (xem bảng dưới)
+npm run dev               # mở http://localhost:3000
 ```
 
-Nếu báo `EADDRINUSE` nghĩa là cổng 3000 đang bị chiếm.
+- Nếu báo `EADDRINUSE` thì cổng 3000 đang bị chiếm.
+- Kiểm tra server: `GET /api/health` trả `{ "success": true, "status": "ok" }`.
+- Chạy test: `npm test`.
 
-Kiểm tra server sống: `GET /api/health` trả `{ "success": true, "status": "ok" }`.
+### Chuẩn bị cơ sở dữ liệu
+1. Tạo project trên [Supabase](https://supabase.com).
+2. Mở **SQL Editor** (role `postgres`) và chạy các script trong [supabase/](supabase/), thứ tự: các file trong `supabase/migrations/` theo tên (ngày), sau đó `save-schedule-exclusive.sql`, `manage-schedule.sql`, `schedule-conflicts.sql`.
+3. Sơ đồ bảng xem mục [4](#4-sơ-đồ-cơ-sở-dữ-liệu-erd).
+
+> Dữ liệu mẫu (seeder) dùng cho demo nằm ở nhánh `feature/seed-data` (PR #3). **[CẦN BỔ SUNG: ghi rõ file seed và cách chạy]**
 
 ### Biến môi trường
 
 | Biến | Bắt buộc | Ý nghĩa |
 |---|---|---|
-| `PORT` | Không | Cổng chạy server (mặc định 3000) |
+| `PORT` | Không | Cổng server (mặc định 3000) |
 | `SUPABASE_URL` | Có | URL project Supabase |
-| `SUPABASE_PUBLISHABLE_KEY` | Có | Khóa công khai (publishable) |
+| `SUPABASE_PUBLISHABLE_KEY` | Có | Khóa công khai |
 | `SUPABASE_SECRET_KEY` | Có | Khóa bí mật, **chỉ dùng ở server** |
 | `SUPABASE_JWKS_URL` | Có | URL JWKS để xác minh token |
-| `GOOGLE_CLIENT_ID` | Khi dùng Google Calendar | OAuth Client ID |
-| `GOOGLE_CLIENT_SECRET` | Khi dùng Google Calendar | OAuth Client secret, **không commit** |
-| `GOOGLE_REDIRECT_URI` | Khi dùng Google Calendar | `https://<domain>/api/google/callback` (local: `http://localhost:3000/api/google/callback`) |
-| `TRUST_PROXY` | Khi chạy sau proxy (Vercel…) | Đặt `1` để nhận đúng IP và giao thức HTTPS |
-| `CORS_ORIGIN` | Không | Danh sách origin được phép, phân tách bằng dấu phẩy (mặc định tắt CORS) |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` | Khi dùng Google Calendar | OAuth Client; redirect URI dạng `https://<domain>/api/google/callback` |
+| `SENTRY_DSN` | Không | Sentry cho lỗi server |
+| `SENTRY_BROWSER_DSN` | Không | Sentry cho lỗi trình duyệt |
+| `SENTRY_ENVIRONMENT` | Không | Tên môi trường hiển thị trên Sentry |
+| `GA_MEASUREMENT_ID` | Không | Google Analytics 4, dạng `G-XXXXXXXXXX` |
+| `TRUST_PROXY` | Khi chạy sau proxy (Vercel…) | Đặt `1` |
+| `CORS_ORIGIN` | Không | Danh sách origin được phép, phân tách bằng dấu phẩy |
 | `NER_SERVICE_URL` | Không | Địa chỉ dịch vụ NER; bỏ trống thì tìm ứng viên theo từ khóa thường |
 
-Không bao giờ commit `.env`. File đã nằm trong `.gitignore`.
+Không bao giờ commit `.env` (đã nằm trong `.gitignore`).
 
-## Cơ sở dữ liệu
+---
 
-Các script SQL nằm trong `supabase/`. Chạy trong **Supabase SQL Editor** (role `postgres`) **trước khi** chạy code tương ứng:
+## 2. Tổng quan dự án và công cụ sử dụng
 
-- `supabase/migrations/` – migration theo ngày (đổi kiểu giờ có phút, bảng Google Calendar…).
-- `supabase/save-schedule-exclusive.sql`, `manage-schedule.sql`, `schedule-conflicts.sql` – hàm RPC lưu lịch, chủ quán chỉnh lịch, kiểm tra trùng ca.
+**Bài toán:** việc làm part-time thường theo ca và đổi liên tục. CaRảnh giúp chủ quán xếp ca theo số người cần mỗi ca, giúp người tìm việc chọn ca rảnh, tránh trùng giờ giữa nhiều việc, và đưa lịch làm vào Google Calendar.
 
-Hai bảng `google_connections` và `calendar_events` đã bật RLS và khóa quyền anon/authenticated: chỉ server (khóa `SUPABASE_SECRET_KEY`) đọc, ghi được, nên refresh token không lộ ra trình duyệt.
+| Lớp | Công cụ |
+|---|---|
+| Giao diện | HTML, CSS tự viết theo design system (token trong `:root`), JavaScript thuần |
+| Backend | Node.js, Express, `helmet`, `cors`, `express-rate-limit`, `compression` |
+| Cơ sở dữ liệu | PostgreSQL trên Supabase (RLS, hàm RPC bằng PL/pgSQL), Supabase Auth |
+| Tích hợp | Google Calendar API (`googleapis`, OAuth 2.0 + PKCE) |
+| AI (tùy chọn) | PhoBERT NER (FastAPI, Python) cho thanh tìm ứng viên |
+| Theo dõi và log | Sentry, Google Analytics 4, `morgan` |
+| Kiểm thử | `node:test` |
+| Triển khai | Vercel |
+| Quản lý mã nguồn | Git, GitHub (nhánh feature, Pull Request) |
+| Thiết kế | Prototype giao diện (xem [docs/project-plan.md](docs/project-plan.md)) |
 
-## Tích hợp Google Calendar
-
-Một chiều: khi nhân viên lưu lịch làm, các ca xuất hiện trên Google Calendar đúng ngày và khung giờ (múi giờ `Asia/Ho_Chi_Minh`).
-
-1. **Google Cloud Console:** tạo project, bật *Google Calendar API*, cấu hình OAuth consent screen (thêm email thử vào *Test users* khi app ở chế độ Testing), tạo *OAuth client* loại Web application.
-2. Thêm `…/api/google/callback` vào **Authorized redirect URIs** cho từng domain (local và production). Phải khớp từng ký tự, không dùng wildcard.
-3. Scope chỉ cần `https://www.googleapis.com/auth/calendar.events`.
-4. Điền ba biến `GOOGLE_*` và chạy migration `20261117_google_calendar.sql`.
-5. Trên trang *Lịch làm*, bấm **Kết nối Google Calendar**.
-
-Lưu ý khi chạy thật:
-- App ở chế độ Testing: chỉ email trong *Test users* kết nối được, và refresh token hết hạn sau 7 ngày. Lên production cần Google xác minh.
-- Việc đồng bộ chạy nền sau khi trả response; trên Vercel dùng `waitUntil` (`@vercel/functions`) để không bị cắt.
-- Ứng dụng Google Calendar trên điện thoại có thể cập nhật chậm hơn web, kéo để làm mới.
-
-Chi tiết thiết kế và các tình huống lỗi xem mục *Tích hợp Google Calendar* trong [CLAUDE.md](CLAUDE.md).
-
-## Dịch vụ NER (tùy chọn)
-
-`ner-service/` là dịch vụ FastAPI bọc model PhoBERT NER, giúp thanh tìm ứng viên hiểu từ khóa (kỹ năng, thời gian, địa điểm). Cần tải checkpoint và VnCoreNLP theo hướng dẫn trong [ner-service/README.md](ner-service/README.md), sau đó đặt `NER_SERVICE_URL` trỏ tới dịch vụ.
-
-## Kiểm thử
-
-```bash
-node --test tests/
+**Cấu trúc thư mục**
+```
+server.js            Điểm khởi động
+src/
+  app.js             Cấu hình Express
+  instrument.js      Khởi tạo Sentry
+  config/            Client Supabase (anon / theo người dùng / admin)
+  routes/            API: auth, me, positions, shifts, applications, seekers,
+                     invitations, employments, google, config
+  models/            Truy cập dữ liệu Supabase
+  services/          Nghiệp vụ: sửa tin tuyển, Google Calendar, đồng bộ lịch
+  middlewares/       Xác thực, phân quyền, validate, rate limit, xử lý lỗi
+  utils/             Quy tắc vị trí, tìm ứng viên, NER, ảnh
+public/              Giao diện tĩnh (20 trang .html) + css/ + js/
+supabase/            Script SQL (migration, hàm RPC)
+ner-service/         Dịch vụ Python NER (tùy chọn)
+tests/               Test tự động
+docs/                Tài liệu: ERD, kế hoạch dự án, mẫu self-report
 ```
 
-## Triển khai (Vercel)
+Kế hoạch, phân công và quản lý GitHub: [docs/project-plan.md](docs/project-plan.md).
 
-1. Kết nối repo với Vercel.
-2. Khai báo biến môi trường ở **Settings → Environment Variables** (cả `TRUST_PROXY=1` và ba biến `GOOGLE_*` với `GOOGLE_REDIRECT_URI` là domain Vercel).
-3. Thêm domain Vercel vào Authorized redirect URIs của Google.
-4. **Redeploy** sau mỗi lần đổi biến môi trường, vì biến chỉ áp dụng cho deployment mới.
-5. Nên đặt vùng chạy của function gần vùng Supabase (Settings → Functions → Region) để giảm độ trễ.
+---
 
-## Quy trình làm việc
+## 3. Tính năng và ảnh chụp màn hình
 
-- Nhánh chính: `main`; nhánh phát triển: `develop`; làm tính năng ở `feature/...` rồi mở PR vào `develop`.
-- Giao diện mới phải theo token và quy ước trong [CLAUDE.md](CLAUDE.md): một màu chủ đạo, mỗi màn chỉ một nút chính, văn bản tiếng Việt.
+**Người tìm việc**
+- Đăng ký, đăng nhập, quên và đổi mật khẩu; kiểm tra trùng email và số điện thoại khi đăng ký.
+- Hoàn thiện hồ sơ (ảnh, kinh nghiệm, khu vực, giờ rảnh).
+- Xem, lọc, lưu tin tuyển; ứng tuyển; nhận và trả lời lời mời.
+- **Đăng ký lịch làm theo tuần** (chọn ca theo ngày); hệ thống chặn ca đã đủ người và ca trùng giờ với việc khác; báo bận theo ca.
+- **Đồng bộ Google Calendar** (một chiều): ca đã lưu hiện trên lịch Google đúng ngày và giờ.
+
+**Chủ quán**
+- Hồ sơ quán; đăng và sửa tin tuyển (ca làm, lương, số người mỗi ca, hạn nhận hồ sơ).
+- Duyệt hồ sơ ứng viên, mời ứng viên, tìm ứng viên theo kỹ năng, khu vực, khung giờ rảnh.
+- Xem và chỉnh lịch làm của từng nhân viên; xóa nhân viên khỏi danh sách.
+
+**Ảnh chụp màn hình** (đặt ảnh vào `docs/screenshots/`)
+
+| Màn hình | Ảnh |
+|---|---|
+| Trang chủ, danh sách việc | **[CẦN BỔ SUNG]** `docs/screenshots/home.png` |
+| Chi tiết công việc | **[CẦN BỔ SUNG]** `docs/screenshots/job-detail.png` |
+| Đăng ký lịch làm theo tuần | **[CẦN BỔ SUNG]** `docs/screenshots/schedule.png` |
+| Google Calendar sau khi đồng bộ | **[CẦN BỔ SUNG]** `docs/screenshots/google-calendar.png` |
+| Đăng tin tuyển (chủ quán) | **[CẦN BỔ SUNG]** `docs/screenshots/new-post.png` |
+| Tìm ứng viên | **[CẦN BỔ SUNG]** `docs/screenshots/candidates.png` |
+| Giao diện điện thoại | **[CẦN BỔ SUNG]** `docs/screenshots/mobile.png` |
+
+Sau khi có ảnh, chèn bằng `![Tên](docs/screenshots/home.png)`.
+
+---
+
+## 4. Sơ đồ cơ sở dữ liệu (ERD)
+
+16 bảng và 1 view trên PostgreSQL. Sơ đồ đầy đủ (kèm kiểu dữ liệu từng cột) ở [docs/database-erd.md](docs/database-erd.md). Dạng rút gọn:
+
+```mermaid
+erDiagram
+    users ||--o| seeker_profiles : ""
+    users ||--o{ shops : "sở hữu"
+    users ||--o| google_connections : ""
+    shops ||--o{ positions : "đăng tin"
+    shops ||--o{ shop_photos : ""
+    positions ||--o{ shifts : ""
+    positions ||--o{ position_items : ""
+    positions ||--o{ applications : ""
+    positions ||--o{ invitations : ""
+    positions ||--o{ saved_jobs : ""
+    positions ||--o{ employments : ""
+    seeker_profiles ||--o{ applications : "ứng tuyển"
+    seeker_profiles ||--o{ invitations : ""
+    seeker_profiles ||--o{ saved_jobs : ""
+    seeker_profiles ||--o{ seeker_availability : ""
+    seeker_profiles ||--o{ employments : ""
+    seeker_profiles ||--o{ seeker_busy_slots : ""
+    applications ||--o| employments : ""
+    employments ||--o{ shift_assignments : ""
+    shifts ||--o{ shift_assignments : ""
+    employments ||--o{ calendar_events : ""
+```
+
+---
+
+## 5. Tối ưu hiệu năng, theo dõi và ghi log
+
+**Hiệu năng (Lighthouse)**
+- Nén gzip/br cho HTML, CSS, JS, JSON (`compression`): CSS giảm từ 26,8 KB xuống 5,7 KB khi truyền.
+- Cache file tĩnh 5 phút; `Cache-Control` cho `/api/config`.
+- Font Be Vietnam Pro nạp bằng `<link>` kèm `preconnect` thay cho `@import` trong CSS (bỏ chuỗi tải chặn hiển thị).
+- Mỗi trang có `meta description` riêng, `theme-color`, `viewport`, `lang="vi"`.
+- Script theo dõi (Analytics, Sentry) chỉ nạp **sau khi trang tải xong**, không ảnh hưởng lần hiển thị đầu.
+- Kết quả Lighthouse đo trên máy (trang `jobs.html`, desktop): **Accessibility 98, SEO 100**. **[CẦN BỔ SUNG: điểm Performance và Best Practices đo bằng Chrome DevTools → Lighthouse, kèm ảnh trước và sau]**
+
+**Theo dõi và ghi log**
+- **Sentry** (server: `src/instrument.js`; trình duyệt: nạp từ `public/js/main.js`): bắt lỗi 5xx và lỗi JavaScript. Bật bằng `SENTRY_DSN` và `SENTRY_BROWSER_DSN`. Không gửi IP, cookie hay nội dung request (`sendDefaultPii: false`). Đặt `SENTRY_TEST=1` rồi gọi `GET /api/debug-error` để tạo lỗi thử nghiệm khi demo.
+- **Google Analytics 4:** bật bằng `GA_MEASUREMENT_ID`, ẩn IP (`anonymize_ip`).
+- **Log truy cập:** `morgan` ghi từng request (không ghi URL callback OAuth vì chứa mã xác thực). Lỗi 500 ghi bằng `console.error`, xem trong **Vercel → Logs**.
+
+---
+
+## 6. Thông tin bổ sung
+
+- **Không dùng Tailwind CSS.** Giao diện dùng CSS tự viết theo bộ token thiết kế (màu, font, bo góc, khoảng cách) trong `public/css/style.css`. **[CẦN XÁC NHẬN với giảng viên rằng cách này được chấp nhận]**
+- **CSDL:** dùng PostgreSQL (Supabase), không dùng MySQL. Đề bài cho phép MySQL hoặc PostgreSQL.
+- **Google Calendar** ở chế độ Testing: chỉ email nằm trong *Test users* mới kết nối được, và token hết hạn sau 7 ngày. Lên production cần Google xác minh ứng dụng.
+- **Bảo mật:** khóa bí mật chỉ ở server; bảng chứa token Google bật RLS và khóa quyền anon/authenticated; mọi thao tác ghi đi qua token người dùng.
+- Quy ước giao diện và tiến độ tích hợp Google Calendar chi tiết: [CLAUDE.md](CLAUDE.md). Dịch vụ NER: [ner-service/README.md](ner-service/README.md).
+- **Quy trình:** `main` (ổn định) ← `develop` (tích hợp) ← `feature/...`, mỗi tính năng một nhánh và một Pull Request.

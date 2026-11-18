@@ -1,5 +1,5 @@
 /* CaRảnh – design system: xanh ngọc #0E6F64, thang xám, viền 1px, bo 8/12 */
-@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap');
+/* Font Be Vietnam Pro được nạp bằng thẻ <link> trong <head> từng trang (nhanh hơn @import). */
 
 :root {
   --primary: #0E6F64; --primary-dark: #0B5A51; --primary-soft: #E6F2F0; --primary-line: #CFE7E3;

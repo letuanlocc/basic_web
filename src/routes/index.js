@@ -2,6 +2,10 @@ const router = require('express').Router();
 
 router.get('/health', (req, res) => res.json({ success: true, status: 'ok' }));
 
+router.use('/config', require('./configRoutes'));
+// Chỉ bật khi đặt SENTRY_TEST=1: ném lỗi cố ý để kiểm tra Sentry (dùng khi quay video demo).
+if (process.env.SENTRY_TEST === '1') router.get('/debug-error', () => { throw new Error('Lỗi thử nghiệm Sentry từ /api/debug-error'); });
+
 router.use('/auth', require('./authRoutes'));
 router.use('/me', require('./meRoutes'));
 router.use('/positions', require('./positionRoutes'));
