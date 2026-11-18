@@ -90,7 +90,7 @@ Không bao giờ commit `.env` (đã nằm trong `.gitignore`).
 | Kiểm thử | `node:test` |
 | Triển khai | Vercel |
 | Quản lý mã nguồn | Git, GitHub (nhánh feature, Pull Request) |
-| Thiết kế | Prototype giao diện (xem [docs/project-plan.md](docs/project-plan.md)) |
+| Thiết kế | Prototype giao diện (nguồn thiết kế ghi trong [CLAUDE.md](CLAUDE.md)) |
 
 **Cấu trúc thư mục**
 ```
@@ -109,10 +109,9 @@ public/              Giao diện tĩnh (20 trang .html) + css/ + js/
 supabase/            Script SQL (migration, hàm RPC)
 ner-service/         Dịch vụ Python NER (tùy chọn)
 tests/               Test tự động
-docs/                Tài liệu: ERD, kế hoạch dự án, mẫu self-report
+docs/                Tài liệu: ERD, hướng dẫn dữ liệu mẫu, ảnh chụp màn hình, mẫu self-report
 ```
 
-Kế hoạch, phân công và quản lý GitHub: [docs/project-plan.md](docs/project-plan.md).
 
 ---
 
@@ -197,11 +196,19 @@ erDiagram
 
 **Hiệu năng (Lighthouse)**
 - Nén gzip/br cho HTML, CSS, JS, JSON (`compression`): CSS giảm từ 26,8 KB xuống 5,7 KB khi truyền.
-- Cache file tĩnh 5 phút; `Cache-Control` cho `/api/config`.
+- **Cache ở CDN:** `GET /api/positions` cho khách chưa đăng nhập được cache 30 giây (`s-maxage=30, stale-while-revalidate=120`), HTML cache 5 phút; Vercel tự xóa cache khi deploy bản mới. Yêu cầu có đăng nhập thì không cache chung.
+- **Rút ngắn chuỗi tải trang chủ:** script dùng `defer`, và `<link rel="preload" as="fetch">` gọi sớm danh sách việc song song với việc tải JS, thay vì chờ JS chạy xong mới gọi API.
 - Font Be Vietnam Pro nạp bằng `<link>` kèm `preconnect` thay cho `@import` trong CSS (bỏ chuỗi tải chặn hiển thị).
 - Mỗi trang có `meta description` riêng, `theme-color`, `viewport`, `lang="vi"`.
 - Script theo dõi (Analytics, Sentry) chỉ nạp **sau khi trang tải xong**, không ảnh hưởng lần hiển thị đầu.
-- Kết quả Lighthouse đo trên máy (trang `jobs.html`, desktop): **Accessibility 98, SEO 100**. **[CẦN BỔ SUNG: điểm Performance và Best Practices đo bằng Chrome DevTools → Lighthouse, kèm ảnh trước và sau]**
+- **Kết quả Lighthouse** (trang chủ, desktop, bản trên Vercel):
+
+| | Performance | Accessibility | Best Practices | SEO |
+|---|---|---|---|---|
+| Trước tối ưu | 34 | 98 | 96 | 90 |
+| Sau tối ưu | **[CẦN BỔ SUNG]** | **[CẦN BỔ SUNG]** | **[CẦN BỔ SUNG]** | **[CẦN BỔ SUNG]** |
+
+  Ảnh báo cáo: **[CẦN BỔ SUNG]** `docs/screenshots/lighthouse-before.png`, `docs/screenshots/lighthouse-after.png`.
 
 **Theo dõi và ghi log**
 - **Sentry** (server: `src/instrument.js`; trình duyệt: nạp từ `public/js/main.js`): bắt lỗi 5xx và lỗi JavaScript. Bật bằng `SENTRY_DSN` và `SENTRY_BROWSER_DSN`. Không gửi IP, cookie hay nội dung request (`sendDefaultPii: false`). Đặt `SENTRY_TEST=1` rồi gọi `GET /api/debug-error` để tạo lỗi thử nghiệm khi demo.
