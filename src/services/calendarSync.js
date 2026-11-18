@@ -1,5 +1,6 @@
 const { createHash, randomBytes } = require('node:crypto');
 const { setTimeout: wait } = require('node:timers/promises');
+const { waitUntil } = require('@vercel/functions');
 const { admin } = require('../config/supabase');
 const { unwrap } = require('../utils/db');
 const { today, monday, fmtHour } = require('../utils/positionRules');
@@ -26,8 +27,12 @@ function report(error) {
   console.warn('Google Calendar: không hoàn tất công việc đồng bộ', error.code || error.name);
 }
 
+// Trên Vercel (serverless) hàm bị đóng băng ngay khi trả response, nên việc chạy nền phải đăng ký
+// với waitUntil để nền tảng giữ hàm sống đến khi xong. Chạy local thì waitUntil không làm gì.
 function inBackground(work) {
-  if (Google.available) Promise.resolve().then(work).catch(report);
+  if (!Google.available) return;
+  const task = Promise.resolve().then(work).catch(report);
+  try { waitUntil(task); } catch { /* không có ngữ cảnh Vercel */ }
 }
 
 function enqueue(userId, managerOnly, work) {
