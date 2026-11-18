@@ -96,7 +96,8 @@ async function exchangeCode(code, codeVerifier) {
 function calendarClient(refreshToken) {
   const auth = oauthClient();
   auth.setCredentials({ refresh_token: refreshToken });
-  return google.calendar({ version: 'v3', auth, timeout: REQUEST_TIMEOUT, retry: false });
+  const { events } = google.calendar({ version: 'v3', auth, timeout: REQUEST_TIMEOUT, retry: false });
+  return { events, verifyAccess: () => auth.getAccessToken() };
 }
 
 async function getConnection(userId) {
