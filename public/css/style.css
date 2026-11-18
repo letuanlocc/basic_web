@@ -20,6 +20,10 @@ button { font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparen
 button:not(:disabled):not([aria-disabled="true"]):hover { filter: brightness(.95); transform: translateY(-1px); }
 button:not(:disabled):active { transform: scale(.96); filter: brightness(.9); }
 button[aria-disabled="true"] { cursor: not-allowed; }
+/* Thuộc tính hidden phải luôn thắng display của component (.empty, .msg…), nếu không khối "Chưa có dữ liệu" hiện cả khi đã có dữ liệu. */
+[hidden] { display: none !important; }
+/* Danh sách việc chưa tải xong: chừa chỗ một hàng thẻ để chân trang không bị đẩy xuống khi dữ liệu về (giảm CLS). */
+#list:empty { min-height: 280px; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 
 /* motion */
@@ -38,6 +42,13 @@ main.stack { max-width: 1160px; width: 100%; margin: 0 auto; padding: 28px 20px 
 main.stack-lg { max-width: 1200px; width: 100%; margin: 0 auto; padding: 24px 24px 64px; display: flex; flex-direction: column; gap: 28px; }
 
 /* header */
+/* Chừa sẵn chỗ cho header (do main.js dựng sau lần vẽ đầu) để nội dung không bị đẩy xuống: giảm CLS. Chiều cao đo trên giao diện thật. */
+[data-layout]:empty { min-height: 68px; }
+[data-layout="plain"]:empty, [data-layout="overview"]:empty { min-height: 72px; }
+@media (max-width: 719px) {
+  [data-layout="guest"]:empty, [data-layout="seeker"]:empty, [data-layout="employer"]:empty { min-height: 110px; }
+  [data-layout="overview"]:empty { min-height: 114px; }
+}
 .cr-header { background: #fff; border-bottom: 1px solid var(--line); }
 @media (min-width: 900px) { .cr-header { position: sticky; top: 0; z-index: 40; box-shadow: 0 1px 0 rgba(16,24,40,.02), 0 6px 18px rgba(16,24,40,.04); } }
 .cr-header .bar { max-width: 1160px; margin: 0 auto; padding: 12px 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
