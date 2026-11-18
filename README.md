@@ -198,6 +198,7 @@ erDiagram
 - Nén gzip/br cho HTML, CSS, JS, JSON (`compression`): CSS giảm từ 26,8 KB xuống 5,7 KB khi truyền.
 - **Cache ở CDN:** `GET /api/positions` cho khách chưa đăng nhập được cache 30 giây (`s-maxage=30, stale-while-revalidate=120`), HTML cache 5 phút; Vercel tự xóa cache khi deploy bản mới. Yêu cầu có đăng nhập thì không cache chung.
 - **Rút ngắn chuỗi tải trang chủ:** script dùng `defer`, và `<link rel="preload" as="fetch">` gọi sớm danh sách việc song song với việc tải JS, thay vì chờ JS chạy xong mới gọi API.
+- **Giảm khởi động nguội (cold start) trên Vercel:** `googleapis` (240 MB) và Sentry chỉ được nạp khi thật sự dùng, nên server khởi động trong khoảng 0,6 giây thay vì 2,4 giây. Function được ghim ở vùng `hnd1` (Tokyo), cùng vùng với Supabase, qua `vercel.json`.
 - Font Be Vietnam Pro nạp bằng `<link>` kèm `preconnect` thay cho `@import` trong CSS (bỏ chuỗi tải chặn hiển thị).
 - Mỗi trang có `meta description` riêng, `theme-color`, `viewport`, `lang="vi"`.
 - Script theo dõi (Analytics, Sentry) chỉ nạp **sau khi trang tải xong**, không ảnh hưởng lần hiển thị đầu.
