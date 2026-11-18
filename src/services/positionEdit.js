@@ -8,6 +8,7 @@
 const { httpError, pick } = require('../utils/db');
 const R = require('../utils/positionRules');
 const { FIELDS } = require('../models/Position');
+const Calendar = require('./calendarSync');
 
 const DAY = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
 const LIGHT = ['schedule_note', 'contact_name', 'contact_phone'];
@@ -130,6 +131,9 @@ async function editPosition(req, id, input) {
     if (Object.keys(final).length) await req.m.positions.update(id, final);
   }
   if (Array.isArray(items)) await req.m.positions.replaceItems(id, items);
+  if ('title' in patch || plan?.removed.length || plan?.retimed.length || plan?.renamed.length) {
+    Calendar.queuePosition(id);
+  }
   return req.m.positions.detail(id);
 }
 
