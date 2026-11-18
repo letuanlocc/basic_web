@@ -91,8 +91,132 @@
     });
   }
 
+  function initGoogleCalendar() {
+    var status = document.getElementById('google-calendar-status');
+    var connect = document.getElementById('google-calendar-connect');
+    var disconnect = document.getElementById('google-calendar-disconnect');
+    var preference = document.getElementById('google-calendar-preference');
+    var autoSync = document.getElementById('google-calendar-manager');
+    var message = document.getElementById('google-calendar-message');
+    var current, changing = false, timer, request = 0, watchUntil = 0;
+
+    function announce(text) {
+      message.hidden = !text;
+      message.textContent = text || '';
+    }
+
+    function show(label, tone) {
+      if (status.textContent !== label) status.textContent = label;
+      status.className = 'badge' + (tone ? ' ' + tone : '');
+    }
+
+    function render() {
+      var available = current && current.available;
+      var connected = available && current.status === 'active';
+      var revoked = available && current.status === 'revoked';
+      connect.hidden = !available || connected;
+      disconnect.hidden = !connected && !revoked;
+      preference.hidden = !connected;
+      connect.disabled = disconnect.disabled = autoSync.disabled = changing;
+      connect.textContent = revoked ? 'Kết nối lại' : 'Kết nối Google Calendar';
+      autoSync.checked = Boolean(current && current.auto_sync_manager_changes);
+
+      if (!current) show('Đang tải…');
+      else if (!available) show('Chưa được cấu hình');
+      else if (revoked) show('Cần kết nối lại', 'err');
+      else if (!connected) show('Chưa kết nối');
+      else if (current.sync_status === 'syncing') show('Đang đồng bộ', 'warn');
+      else if (current.sync_status === 'error') show('Đồng bộ lỗi', 'err');
+      else show('Đã kết nối', 'ok');
+    }
+
+    function scheduleRefresh() {
+      clearTimeout(timer);
+      if (changing || document.hidden) return;
+      if (!current || (current.available && current.status === 'active')) {
+        var quick = (current && current.sync_status === 'syncing') || Date.now() < watchUntil;
+        timer = setTimeout(refresh, quick ? 1400 : 15000);
+      }
+    }
+
+    function refresh() {
+      clearTimeout(timer);
+      if (changing || document.hidden) return;
+      var id = ++request;
+      A.call('GET', '/api/google/status').then(function (data) {
+        if (id !== request) return;
+        current = data;
+        render();
+        scheduleRefresh();
+      }).catch(function () {
+        if (id !== request) return;
+        if (!current) show('Không tải được trạng thái', 'err');
+        scheduleRefresh();
+      });
+    }
+
+    function change(action, done) {
+      ++request; clearTimeout(timer);
+      changing = true;
+      if (current && current.status === 'active') autoSync.disabled = true;
+      connect.disabled = disconnect.disabled = true;
+      announce('');
+      action().then(function (data) {
+        if (done) done(data);
+        else if (data) current = data;
+      }).catch(function (error) {
+        announce(error.message);
+      }).finally(function () {
+        changing = false;
+        render();
+        scheduleRefresh();
+      });
+    }
+
+    connect.addEventListener('click', function () {
+      change(function () { return A.call('GET', '/api/google/connect'); }, function (data) {
+        window.location.assign(data.url);
+      });
+    });
+
+    disconnect.addEventListener('click', function () {
+      change(function () { return A.call('DELETE', '/api/google/disconnect'); }, function (data) {
+        current = data;
+        changing = false;
+        render();
+        connect.focus();
+      });
+    });
+
+    autoSync.addEventListener('change', function () {
+      var enabled = autoSync.checked;
+      change(function () { return A.call('PUT', '/api/google/settings', { auto_sync_manager_changes: enabled }); });
+    });
+
+    var landing = new URL(window.location.href);
+    var result = landing.searchParams.get('google');
+    if (result) {
+      var feedback = {
+        cancelled: 'Bạn đã hủy cấp quyền Google Calendar.',
+        expired: 'Phiên kết nối Google đã hết hạn. Hãy thử kết nối lại.',
+        error: 'Kết nối Google Calendar không thành công. Hãy kiểm tra tài khoản Google rồi thử lại.',
+      };
+      if (Object.hasOwn(feedback, result)) announce(feedback[result]);
+      landing.searchParams.delete('google');
+      history.replaceState(history.state, '', landing.pathname + landing.search + landing.hash);
+    }
+
+    document.addEventListener('visibilitychange', refresh);
+    refresh();
+    return function () {
+      watchUntil = Date.now() + 6000;
+      refresh();
+    };
+  }
+
   // ================= Ứng viên: đăng ký ca =================
   function initSeeker() {
+    var onScheduleSaved = initGoogleCalendar();
     var jobs = [], sel = {}, cells = [], busy = [], busySel = {}, mode = 'shift'; // mode: 'shift' đăng ký ca | 'busy' tô ca bận; busySel: ô bận của việc đang xem
 
     function current() { return jobs[posSel.selectedIndex]; }
@@ -228,6 +352,7 @@
         .map(function (c) { return { shift_id: c.shift_id, weekday: c.weekday }; });
       save.disabled = true; save.textContent = 'Đang lưu…';
       A.call('PUT', '/api/employments/' + current().id + '/schedule', { week_start: weekStart(), cells: body }).then(function (r) {
+        onScheduleSaved();
         var warn = r && r.below_min_week;
         var savedHours = r && r.total_hours != null ? r.total_hours : totalHours;
         var savedNotice = hoursNotice(savedHours, position, count() > 0 || warn);

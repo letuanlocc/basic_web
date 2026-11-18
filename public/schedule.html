@@ -13,6 +13,25 @@
 <main class="stack">
   <nav class="crumbs" aria-label="Breadcrumb"><a href="jobs.html">Trang chủ</a> → <a href="my-jobs.html">Xem công việc</a> → <span>Đăng ký lịch làm</span></nav>
   <h1 style="margin:0;font-size:26px">Đăng ký lịch làm</h1>
+  <section class="card" id="google-calendar" aria-labelledby="google-calendar-title">
+    <div class="row between">
+      <div class="row">
+        <strong id="google-calendar-title">Google Calendar</strong>
+        <span class="badge" id="google-calendar-status" role="status" aria-atomic="true">Đang tải…</span>
+      </div>
+      <div class="row">
+        <button type="button" class="btn" id="google-calendar-connect" hidden>Kết nối Google Calendar</button>
+        <button type="button" class="btn" id="google-calendar-disconnect" hidden>Ngắt kết nối</button>
+      </div>
+    </div>
+    <div id="google-calendar-preference" hidden>
+      <label class="row">
+        <input type="checkbox" id="google-calendar-manager" />
+        Tự cập nhật khi chủ quán thay đổi lịch
+      </label>
+    </div>
+    <p class="msg err" id="google-calendar-message" role="alert" hidden></p>
+  </section>
   <div class="row between"><div class="tabs pill" role="tablist"><button type="button" role="tab" aria-selected="true" data-week="0">Tuần này</button><button type="button" role="tab" aria-selected="false" data-week="1">Tuần sau</button></div><div class="field" id="posbox" hidden><label for="pos">Vị trí đang làm</label><select id="pos"></select></div></div>
   <div id="sbody"><p class="muted">Đang tải…</p></div>
 </main>

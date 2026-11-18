@@ -15,7 +15,8 @@ if (process.env.TRUST_PROXY) app.set('trust proxy', Number(process.env.TRUST_PRO
 app.use(helmet({ contentSecurityPolicy: false }));
 // Giao diện chạy cùng origin nên mặc định không mở CORS; cần thì đặt CORS_ORIGIN=https://a.com,https://b.com
 app.use(cors({ origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : false }));
-app.use(morgan('dev'));
+// Callback nhận OAuth code trong query string, không ghi URL này vào access log.
+app.use(morgan('dev', { skip: (req) => /^\/api\/google\/callback\/?$/i.test(req.path) }));
 // Ảnh (nơi làm việc, ảnh thẻ) gửi lên dạng data URL đã nén ở trình duyệt nên cần giới hạn lớn hơn mặc định 100kb
 app.use(express.json({ limit: '3mb' }));
 app.use(express.urlencoded({ extended: true }));

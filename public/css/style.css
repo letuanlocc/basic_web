@@ -88,6 +88,7 @@ main.stack-lg { max-width: 1200px; width: 100%; margin: 0 auto; padding: 24px 24
 .badge.err { background: var(--err-bg); color: var(--err); }
 .badge.b { font-weight: 600; font-size: 13px; padding: 4px 10px; }
 .badges { display: flex; flex-wrap: wrap; gap: 6px; }
+#google-calendar [hidden] { display: none; }
 .pages { display: flex; justify-content: center; gap: 6px; }
 .pages button { width: 40px; height: 40px; border-radius: var(--r); border: 1px solid var(--line-2); background: #fff; font-weight: 600; }
 .pages button[aria-current="page"] { background: var(--primary); border-color: var(--primary); color: #fff; }
