@@ -199,6 +199,7 @@ erDiagram
 - **Cache ở CDN:** `GET /api/positions` cho khách chưa đăng nhập được cache 30 giây (`s-maxage=30, stale-while-revalidate=120`), HTML cache 5 phút; Vercel tự xóa cache khi deploy bản mới. Yêu cầu có đăng nhập thì không cache chung.
 - **Rút ngắn chuỗi tải trang chủ:** script dùng `defer`, và `<link rel="preload" as="fetch">` gọi sớm danh sách việc song song với việc tải JS, thay vì chờ JS chạy xong mới gọi API.
 - **Giảm khởi động nguội (cold start) trên Vercel:** `googleapis` (240 MB) và Sentry chỉ được nạp khi thật sự dùng, nên server khởi động trong khoảng 0,6 giây thay vì 2,4 giây. Function được ghim ở vùng `hnd1` (Tokyo), cùng vùng với Supabase, qua `vercel.json`.
+- **Giảm nhảy bố cục (CLS):** chừa sẵn chỗ cho header (do JS dựng) và danh sách việc; thuộc tính `hidden` luôn thắng `display` của component. Tắt header `Cross-Origin-Opener-Policy` và `Origin-Agent-Cluster` của helmet vì chúng làm Lighthouse báo lỗi `NO_NAVSTART` (không đo được Performance). Đo trên local sau khi sửa: Performance 97 đến 98, Best Practices 100, SEO 100, CLS 0,084.
 - Font Be Vietnam Pro nạp bằng `<link>` kèm `preconnect` thay cho `@import` trong CSS (bỏ chuỗi tải chặn hiển thị).
 - Mỗi trang có `meta description` riêng, `theme-color`, `viewport`, `lang="vi"`.
 - Script theo dõi (Analytics, Sentry) chỉ nạp **sau khi trang tải xong**, không ảnh hưởng lần hiển thị đầu.
