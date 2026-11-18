@@ -1,5 +1,7 @@
 const { createHmac, randomBytes, timingSafeEqual } = require('node:crypto');
-const { google } = require('googleapis');
+// googleapis rất nặng (~2,5 giây để nạp): chỉ nạp khi thật sự gọi Google, để các API khác không phải trả giá lúc khởi động nguội.
+let googleApis;
+const google = () => googleApis || (googleApis = require('googleapis').google);
 const { admin } = require('../config/supabase');
 const { httpError, unwrap } = require('../utils/db');
 
@@ -30,7 +32,7 @@ function requireConfig() {
 }
 
 function oauthClient() {
-  return new google.auth.OAuth2(
+  return new (google().auth.OAuth2)(
     { clientId: GOOGLE_CLIENT_ID, clientSecret: GOOGLE_CLIENT_SECRET, redirectUri: GOOGLE_REDIRECT_URI,
       transporterOptions: { timeout: REQUEST_TIMEOUT } }
   );
@@ -96,7 +98,7 @@ async function exchangeCode(code, codeVerifier) {
 function calendarClient(refreshToken) {
   const auth = oauthClient();
   auth.setCredentials({ refresh_token: refreshToken });
-  const { events } = google.calendar({ version: 'v3', auth, timeout: REQUEST_TIMEOUT, retry: false });
+  const { events } = google().calendar({ version: 'v3', auth, timeout: REQUEST_TIMEOUT, retry: false });
   return { events, verifyAccess: () => auth.getAccessToken() };
 }
 

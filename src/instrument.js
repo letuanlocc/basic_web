@@ -1,9 +1,9 @@
 // Khởi tạo Sentry TRƯỚC mọi module khác (require đầu tiên ở src/app.js).
-// Không đặt SENTRY_DSN thì Sentry tắt hoàn toàn, app chạy như bình thường.
+// Không đặt SENTRY_DSN thì không nạp thư viện Sentry (nhanh hơn lúc khởi động) và app chạy như bình thường.
 require('dotenv').config();
-const Sentry = require('@sentry/node');
 
 if (process.env.SENTRY_DSN) {
+  const Sentry = require('@sentry/node');
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
     environment: process.env.SENTRY_ENVIRONMENT || process.env.VERCEL_ENV || process.env.NODE_ENV || 'development',
@@ -12,6 +12,7 @@ if (process.env.SENTRY_DSN) {
     // Không gửi IP, cookie, header, body của người dùng.
     sendDefaultPii: false,
   });
+  module.exports = Sentry;
+} else {
+  module.exports = { setupExpressErrorHandler() {} };
 }
-
-module.exports = Sentry;
