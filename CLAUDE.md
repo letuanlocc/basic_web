@@ -41,21 +41,22 @@ Khai báo layout ở đầu trang rồi `main.js` tự thay thế:
 - Chạy thử: `npm run dev` rồi mở http://localhost:3000 (nếu `EADDRINUSE` thì cổng 3000 đang bị chiếm).
 
 ## Tích hợp Google Calendar (đang làm dở)
-Mục tiêu: khi nhân viên lưu lịch làm (`schedule.html`), các ca đã đăng ký xuất hiện trên Google Calendar của họ đúng ngày, đúng khung giờ. **Một chiều** (CaRảnh → Google), không đọc lại lịch Google.
+Khi nhân viên lưu lịch làm (`schedule.html`), các ca đã đăng ký được đồng bộ một chiều từ CaRảnh sang Google Calendar.
 
 ### Tiến độ (cập nhật mục này khi làm xong từng bước)
 - [x] **Bước 0 – Google Cloud**: đã tạo project, bật Calendar API, OAuth consent screen (External, **Testing**), OAuth Client (Web). Biến `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` có trong `.env.example`; mỗi người tự điền `.env` (secret xin người giữ project, **không dán vào chat/commit**).
 - [x] **Bước 1 – Database**: đã chạy `supabase/migrations/20261117_google_calendar.sql` trong Supabase SQL Editor (bảng `google_connections`, `calendar_events` đã có). Môi trường khác (máy/DB của thành viên khác) phải tự chạy file này.
-- [ ] **Bước 2 – Kết nối Google (backend)**: `npm i googleapis`; viết `src/services/googleCalendar.js` (OAuth client, dựng URL xin quyền, đổi code lấy token, refresh); thêm `src/routes/googleRoutes.js` đăng ký trong `src/routes/index.js`: `GET /api/google/connect`, `GET /api/google/callback`, `GET /api/google/status`, `PUT /api/google/settings` (công tắc auto sync), `DELETE /api/google/disconnect`.
-- [ ] **Bước 3 – Service đồng bộ**: `syncWeek(employmentId, weekStart)` (xem "Thiết kế sync").
-- [ ] **Bước 4 – Gắn vào các đường ghi lịch** (xem "Điểm phải gọi sync").
-- [ ] **Bước 5 – Giao diện** `schedule.html`/`js/schedule.js`.
+- [x] **Bước 2 – Kết nối Google** dùng `googleapis` trong `src/services/googleCalendar.js`. `src/routes/googleRoutes.js` xử lý kết nối, callback, trạng thái, cài đặt và ngắt kết nối.
+- [x] **Bước 3 – Service đồng bộ** triển khai `syncWeek(employmentId, weekStart)` trong `src/services/calendarSync.js`.
+- [x] **Bước 4 – Gắn đồng bộ vào các đường ghi lịch**.
+- [x] **Bước 5 – Giao diện** cập nhật `schedule.html` và `js/schedule.js`.
 - [ ] **Bước 6 – Kiểm thử** (xem danh sách cuối mục).
 
 ### Quyết định đã chốt
 - Một chiều, scope chỉ `https://www.googleapis.com/auth/calendar.events` (không dùng `.../auth/calendar` vì quá rộng). Danh sách scope trong console Google khó tìm: gõ `calendar.events` vào ô Filter hoặc dùng "Manually add scopes".
 - Xin quyền với `access_type=offline` + `prompt=consent` để chắc chắn nhận **refresh token**. Token lưu **phía server** trong `google_connections`, không bao giờ trả về trình duyệt, không để ở `localStorage`.
-- Công tắc nhân viên `auto_sync_manager_changes` (mặc định bật): khi chủ quán chỉnh lịch, server vẫn cập nhật calendar của nhân viên bằng refresh token đã lưu. Tắt thì chỉ sync khi chính nhân viên lưu. *(Đề xuất của người làm, nếu team muốn đổi hướng thì sửa mục này.)*
+- Công tắc `auto_sync_manager_changes` mặc định bật cho kết nối mới. Công tắc áp dụng khi chủ quán chỉnh lịch hoặc sửa ca. Khi chủ quán xóa nhân viên khỏi danh sách, CaRảnh đồng bộ việc hủy các ca từ hôm nay của công việc đó nếu kết nối còn hoạt động.
+- Khi kết nối hoặc kết nối lại, đồng bộ các ca từ hôm nay theo giờ Việt Nam. Khi ngắt kết nối, xóa refresh token tại CaRảnh và giữ các sự kiện đã tạo trên Google.
 - Sync không được làm hỏng việc lưu lịch: DB là nguồn đúng; Google lỗi thì ghi `sync_status='error'` + `last_error`, không ném lỗi ra cho người dùng.
 
 ### Cấu trúc dữ liệu (`supabase/migrations/20261117_google_calendar.sql`)
@@ -77,7 +78,7 @@ Mục tiêu: khi nhân viên lưu lịch làm (`schedule.html`), các ca đã đ
 ### Điểm phải gọi sync (mọi đường làm đổi lịch của nhân viên)
 - `PUT /api/employments/:id/schedule` (nhân viên lưu) – `src/routes/employmentRoutes.js`.
 - `PUT /api/employments/:id/manage-schedule` (chủ quán chỉnh) – chỉ khi `auto_sync_manager_changes` bật.
-- `DELETE /api/employments/:id` (chủ quán xóa nhân viên) → xóa các event còn lại.
+- `DELETE /api/employments/:id` (chủ quán xóa nhân viên) → xóa các event của công việc đó từ hôm nay.
 - Sửa/lưu trữ ca khi chủ quán sửa tin: `src/services/positionEdit.js` (`editPosition`, đổi giờ ca, `shifts.archive`), vì làm đổi giờ của ô đã đăng ký.
 - Nên gom về **một hàm sync dùng chung** gọi sau mọi đường ghi, đừng rải logic ở từng route.
 
@@ -87,15 +88,17 @@ Mục tiêu: khi nhân viên lưu lịch làm (`schedule.html`), các ca đã đ
 - Dùng luồng redirect (không popup) cho OAuth.
 
 ### Cấu hình & lưu ý chạy thử
-- Redirect URI phải khớp **từng ký tự** với Google Console: `http://localhost:3000/api/google/callback` (production thêm URI domain thật). Sai → `redirect_uri_mismatch`.
+- Dùng `npm ci` để cài phiên bản theo lockfile. Điền ba biến Google và các biến Supabase trong `.env` theo `.env.example`. Mở web tại cùng origin với callback, ví dụ `http://localhost:3000`. Khai báo chính xác `http://localhost:3000/api/google/callback` trong Google Console.
 - App ở chế độ **Testing**: chỉ email trong **Test users** đăng nhập được, refresh token hết hạn sau 7 ngày. Thêm email thành viên team vào Test users. Lên production cần Google xác minh OAuth consent screen (cần privacy policy, domain).
 - Nếu lộ client secret: Google Console → Credentials → **Reset secret**, rồi cập nhật `.env` của mọi người.
-- Endpoint callback OAuth có thể bị `middlewares/rateLimit.js` ảnh hưởng, kiểm tra khi làm Bước 2.
+- Tác vụ đồng bộ chạy nền trong tiến trình Node. Khi server khởi động lại, lần lưu lịch tiếp theo đồng bộ lại tuần đó. Kết nối lại Google sẽ đồng bộ lại các ca từ hôm nay.
 
 ### Kiểm thử (Bước 6)
 - Lưu lịch hai lần liên tiếp → không nhân đôi event.
 - Bỏ một ô rồi lưu → event bị xóa. Đổi giờ ca → event cập nhật.
 - Ca có giờ lẻ (8:30) và ca kết thúc 24:00 → giờ đúng trên Google.
+- Bộ đồng bộ xử lý ca kết thúc sau nửa đêm nếu dữ liệu có sẵn. Quy tắc tạo/sửa ca hiện tại yêu cầu giờ kết thúc lớn hơn giờ bắt đầu trong cùng ngày.
 - Thu hồi quyền trong tài khoản Google rồi lưu lịch → lịch vẫn lưu được, giao diện báo cần kết nối lại.
 - Chủ quán chỉnh lịch: công tắc bật → Google nhân viên đổi; tắt → không đổi.
 - Xóa nhân viên khỏi việc → event biến mất.
+- Kết nối lần đầu với tài khoản đã có lịch → đồng bộ ca từ hôm nay. Ngắt kết nối → giữ sự kiện cũ và dừng đẩy các thay đổi mới lên Google.

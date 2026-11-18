@@ -14,6 +14,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "express-rate-limit": "^8.7.4",
+    "googleapis": "^190.0.0",
     "helmet": "^8.3.0",
     "morgan": "^1.10.0"
   }

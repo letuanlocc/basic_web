@@ -10,5 +10,6 @@ router.use('/applications', require('./applicationRoutes'));
 router.use('/seekers', require('./seekerRoutes'));
 router.use('/invitations', require('./invitationRoutes'));
 router.use('/employments', require('./employmentRoutes'));
+router.use('/google', require('./googleRoutes'));
 
 module.exports = router;
