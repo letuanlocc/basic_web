@@ -9,6 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" />
+  <!-- Gọi sớm danh sách việc, song song với việc tải JS (URL phải giống hệt lời gọi đầu tiên trong js/jobs.js) -->
+  <link rel="preload" as="fetch" href="/api/positions?limit=12&offset=0&sort=new" crossorigin="anonymous" />
   <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body data-page="list">
@@ -34,9 +36,9 @@
 </main>
 <footer class="foot"><div class="wrap"><span>© CaRảnh · Bản quyền thuộc nhóm phát triển</span><a href="overview.html">Tìm hiểu các chức năng</a></div></footer>
 </div>
-<script src="/js/main.js"></script>
-<script src="/js/auth.js"></script>
-<script src="/js/salary.js"></script>
-<script src="/js/jobs.js"></script>
+<script src="/js/main.js" defer></script>
+<script src="/js/auth.js" defer></script>
+<script src="/js/salary.js" defer></script>
+<script src="/js/jobs.js" defer></script>
 </body>
 </html>

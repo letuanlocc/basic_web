@@ -11,7 +11,13 @@ const ok = (res, data, status = 200) => res.status(status).json({ success: true,
 
 // ---- Công khai ----
 // GET /api/positions?q=&mode=online|offline&sort=new|salary&limit=6&offset=0
-router.get('/', optionalAuth, asyncHandler(async (req, res) => ok(res, await req.m.positions.search(req.query))));
+// Chưa đăng nhập: cho CDN (Vercel) cache 30 giây rồi trả bản cũ trong lúc làm mới ngầm -> trang chủ không phải chờ Supabase mỗi lần.
+// Đã đăng nhập: không cache chung (kết quả có thể theo người dùng). Vary để CDN tách hai loại.
+router.get('/', optionalAuth, asyncHandler(async (req, res) => {
+  res.set('Vary', 'Authorization');
+  res.set('Cache-Control', req.headers.authorization ? 'private, no-store' : 'public, max-age=0, s-maxage=30, stale-while-revalidate=120');
+  ok(res, await req.m.positions.search(req.query));
+}));
 
 // GET /api/positions/parse?q=... → { keyword, entities: [{text, label}], source } (NER cho thanh tìm kiếm)
 router.get('/parse', asyncHandler(async (req, res) => ok(res, await analyze(req.query.q))));
