@@ -40,7 +40,7 @@ Khai báo layout ở đầu trang rồi `main.js` tự thay thế:
 - Văn bản giao diện bằng tiếng Việt; thông báo lỗi đặt ngay tại chỗ người dùng thao tác, không tự ẩn.
 - Chạy thử: `npm run dev` rồi mở http://localhost:3000 (nếu `EADDRINUSE` thì cổng 3000 đang bị chiếm).
 
-## Tích hợp Google Calendar (đang làm dở)
+## Tích hợp Google Calendar
 Khi nhân viên lưu lịch làm (`schedule.html`), các ca đã đăng ký được đồng bộ một chiều từ CaRảnh sang Google Calendar.
 
 ### Tiến độ (cập nhật mục này khi làm xong từng bước)
@@ -50,7 +50,7 @@ Khi nhân viên lưu lịch làm (`schedule.html`), các ca đã đăng ký đư
 - [x] **Bước 3 – Service đồng bộ** triển khai `syncWeek(employmentId, weekStart)` trong `src/services/calendarSync.js`.
 - [x] **Bước 4 – Gắn đồng bộ vào các đường ghi lịch**.
 - [x] **Bước 5 – Giao diện** cập nhật `schedule.html` và `js/schedule.js`.
-- [ ] **Bước 6 – Kiểm thử** (xem danh sách cuối mục).
+- [x] **Bước 6 – Kiểm thử tự động và chạy với Supabase nhóm**. Google Calendar được mô phỏng cho các ca này. Cần Google Test user để xác minh OAuth và sự kiện trên Google thật.
 
 ### Quyết định đã chốt
 - Một chiều, scope chỉ `https://www.googleapis.com/auth/calendar.events` (không dùng `.../auth/calendar` vì quá rộng). Danh sách scope trong console Google khó tìm: gõ `calendar.events` vào ô Filter hoặc dùng "Manually add scopes".
@@ -94,11 +94,7 @@ Khi nhân viên lưu lịch làm (`schedule.html`), các ca đã đăng ký đư
 - Tác vụ đồng bộ chạy nền trong tiến trình Node. Khi server khởi động lại, lần lưu lịch tiếp theo đồng bộ lại tuần đó. Kết nối lại Google sẽ đồng bộ lại các ca từ hôm nay.
 
 ### Kiểm thử (Bước 6)
-- Lưu lịch hai lần liên tiếp → không nhân đôi event.
-- Bỏ một ô rồi lưu → event bị xóa. Đổi giờ ca → event cập nhật.
-- Ca có giờ lẻ (8:30) và ca kết thúc 24:00 → giờ đúng trên Google.
-- Bộ đồng bộ xử lý ca kết thúc sau nửa đêm nếu dữ liệu có sẵn. Quy tắc tạo/sửa ca hiện tại yêu cầu giờ kết thúc lớn hơn giờ bắt đầu trong cùng ngày.
-- Thu hồi quyền trong tài khoản Google rồi lưu lịch → lịch vẫn lưu được, giao diện báo cần kết nối lại.
-- Chủ quán chỉnh lịch: công tắc bật → Google nhân viên đổi; tắt → không đổi.
-- Xóa nhân viên khỏi việc → event biến mất.
-- Kết nối lần đầu với tài khoản đã có lịch → đồng bộ ca từ hôm nay. Ngắt kết nối → giữ sự kiện cũ và dừng đẩy các thay đổi mới lên Google.
+- Chạy `node --test`. Bộ test kiểm tra yêu cầu OAuth, PKCE và state, log callback, lưu lặp không sinh trùng sự kiện, thêm/bỏ ca, giờ 08:30, 24:00 và ca qua đêm, lỗi `429` và `invalid_grant`, công tắc cập nhật từ chủ quán, kết nối và ngắt kết nối, cập nhật và khôi phục sự kiện đã bị xóa trên Google mô phỏng.
+- Đã chạy trên Supabase nhóm với dữ liệu thử riêng và Google mô phỏng. Đã xác minh quyền truy cập hai bảng đồng bộ, lưu lặp giữ ID sự kiện, giờ 08:30 và 24:00, bỏ ô, đổi tên ca, công tắc cập nhật từ chủ quán, lưu lịch sau `invalid_grant` (kể cả khi lịch không đổi) và xóa nhân viên. Đã dọn dữ liệu thử sau khi chạy.
+- Ca qua đêm được kiểm tra bằng dữ liệu mô phỏng. Quy tắc tạo/sửa ca của CaRảnh yêu cầu giờ kết thúc lớn hơn giờ bắt đầu trong cùng ngày.
+- Khi có tài khoản Google trong danh sách Test users, kiểm tra cấp quyền OAuth, xem sự kiện trong Google Calendar và thử thu hồi quyền Google thật rồi lưu lịch lại.

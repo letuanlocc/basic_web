@@ -37,7 +37,11 @@ function enqueue(userId, managerOnly, work) {
       const connection = await Google.getConnection(userId);
       if (connection?.status !== 'active' || (managerOnly && !connection.auto_sync_manager_changes)) return;
       try {
-        const failed = await work(Google.calendarClient(connection.refresh_token));
+        const calendar = Google.calendarClient(connection.refresh_token);
+        const failed = await work(calendar);
+        // Nếu lịch không có thay đổi, Calendar API chưa gửi request nào có thể phát hiện quyền bị thu hồi.
+        // Sau khi đã gọi API, OAuth client tái dùng access token vừa lấy.
+        if (!failed) await callGoogle(calendar.verifyAccess);
         await Google.updateConnection(userId, { last_error: failed ? SYNC_FAILED : null });
       } catch (error) {
         const needsReconnect = revoked(error);
