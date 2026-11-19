@@ -217,7 +217,7 @@ erDiagram
 **Theo dõi và ghi log**
 - **Sentry** (server: `src/instrument.js`; trình duyệt: nạp từ `public/js/main.js`): bắt lỗi 5xx và lỗi JavaScript. Bật bằng `SENTRY_DSN` và `SENTRY_BROWSER_DSN`. Không gửi IP, cookie hay nội dung request (`sendDefaultPii: false`). Đặt `SENTRY_TEST=1` rồi gọi `GET /api/debug-error` để tạo lỗi thử nghiệm khi demo.
 
-  Sentry (project Node.js) nhận được lỗi thử nghiệm từ `GET /api/debug-error`, gửi từ môi trường phát triển (chạy local) để kiểm tra tích hợp. **[CẦN BỔ SUNG: ảnh lỗi gửi từ production sau khi đặt `SENTRY_DSN` và `SENTRY_TEST=1` trên Vercel]**
+  Sentry (project Node.js) nhận được lỗi thử nghiệm từ `GET /api/debug-error`, gửi từ môi trường phát triển để kiểm tra tích hợp:
 
   ![Sentry ghi nhận lỗi từ server](docs/screenshots/sentry.png)
 
