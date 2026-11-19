@@ -7,7 +7,8 @@ router.use(requireAuth, requireRole('employer'));
 const ok = (res, data) => res.json({ success: true, data });
 
 // GET /api/seekers?q=&work_mode=online|offline|both&slots=morning,evening&has_experience=true&area=&min_lang=0-3&language_level=0-3&sort=updated|experience|age
-router.get('/', asyncHandler(async (req, res) => ok(res, await req.m.seekers.search(req.query))));
+// employerId đặt sau cùng để client không ghi đè được; ứng viên đã là nhân viên của quán chủ quán này bị loại khỏi danh sách.
+router.get('/', asyncHandler(async (req, res) => ok(res, await req.m.seekers.search({ ...req.query, employerId: req.user.id }))));
 
 router.get('/:id', asyncHandler(async (req, res) => {
   const data = await req.m.seekers.getPublic(req.params.id);

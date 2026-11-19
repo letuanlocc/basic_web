@@ -39,10 +39,22 @@ class SeekerProfile {
   }
 
   /**
+   * Id những người đang là nhân viên (chưa kết thúc) ở các quán của chủ quán này.
+   * Họ không còn là "ứng viên tiềm năng" của chủ quán đó; người làm ở quán khác vẫn hiện vì có thể nhận thêm việc.
+   */
+  async hiredIds(employerId) {
+    const rows = unwrap(await this.db.from('employments')
+      .select('seeker_id, positions!inner(shops!inner(owner_id))')
+      .eq('positions.shops.owner_id', employerId)
+      .is('ended_at', null));
+    return new Set(rows.map((r) => String(r.seeker_id)));
+  }
+
+  /**
    * Danh sách ứng viên cho chủ quán. Lọc: work_mode (online|offline|both), slots (rảnh ít nhất một khung),
    * has_experience (true|false), area (chứa chuỗi). sort: updated | experience | age.
    */
-  async search({ q: query = '', work_mode, slots, has_experience, area, min_lang, language_level, sort = 'updated', limit = 50 } = {}) {
+  async search({ q: query = '', work_mode, slots, has_experience, area, min_lang, language_level, sort = 'updated', limit = 50, employerId } = {}) {
     const words = searchTerms(query);
     const hasExactLanguage = language_level !== undefined && language_level !== '';
     if (hasExactLanguage && (!['string', 'number'].includes(typeof language_level) || !/^[0-3]$/.test(String(language_level)))) {
@@ -52,6 +64,7 @@ class SeekerProfile {
     const take = Math.min(Math.max(Math.floor(Number(limit)) || 50, 1), 100);
     const pageSize = 200;
     const results = [];
+    const hired = employerId ? await this.hiredIds(employerId) : new Set();
     // Lọc từ khóa/giờ rảnh trước giới hạn kết quả, không chỉ tìm trong 50 hồ sơ đầu.
     // Giữ RLS và token người dùng; không dùng service-role để tìm hồ sơ.
     for (let offset = 0; ; offset += pageSize) {
@@ -68,6 +81,7 @@ class SeekerProfile {
       q = q.order('user_id', { ascending: true }).range(offset, offset + pageSize - 1);
       const batch = unwrap(await q);
       for (const row of batch) {
+        if (hired.has(String(row.user_id))) continue;
         if (want.length && !(row.availability || []).some(a => want.includes(a.slot))) continue;
         if (!matchesCandidate(row, words)) continue;
         results.push(row);
