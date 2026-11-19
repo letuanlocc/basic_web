@@ -1,9 +1,20 @@
-const { unwrap } = require('../utils/db');
+const { unwrap, httpError } = require('../utils/db');
 
 /** Nhân viên đang làm ở một vị trí + lịch ca theo tuần. */
 class Employment {
   constructor(db) {
     this.db = db;
+  }
+
+  /**
+   * Nhân viên chỉ đăng ký/sửa lịch được khi việc còn hiệu lực. Chủ quán xóa nhân viên (ended_at) thì chặn ngay ở đây,
+   * không phụ thuộc vào bản hàm SQL đang chạy trong database.
+   */
+  async assertActive(employmentId, seekerId) {
+    const row = unwrap(
+      await this.db.from('employments').select('id').eq('id', employmentId).eq('seeker_id', seekerId).is('ended_at', null).maybeSingle()
+    );
+    if (!row) throw httpError(403, 'Bạn không còn làm ở vị trí này nên không thể đăng ký lịch làm.');
   }
 
   /** Việc tôi đang làm. */

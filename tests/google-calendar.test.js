@@ -142,6 +142,12 @@ before(async () => {
     state.schedule.set(address(EMPLOYMENT_ID, scheduleWeek), structuredClone(cells));
     return { total_hours: 7, below_min_week: false };
   }
+  // Lớp kiểm tra "việc còn hiệu lực" ở Node: dữ liệu giả của test không có bảng employments thật.
+  mock.method(Employment.prototype, 'assertActive', async (id, seekerId) => {
+    if (Number(id) !== EMPLOYMENT_ID || seekerId !== state.employment.seeker_id || state.employment.ended_at) {
+      const error = new Error('Bạn không còn làm ở vị trí này nên không thể đăng ký lịch làm.'); error.status = 403; throw error;
+    }
+  });
   mock.method(Employment.prototype, 'saveSchedule', async (...args) => save(...args));
   mock.method(Employment.prototype, 'manageSchedule', async (...args) => save(...args));
   mock.method(Employment.prototype, 'remove', async (id) => {
@@ -377,6 +383,22 @@ test('chủ quán chỉnh lịch theo công tắc, xóa nhân viên thì xóa ca
   await data(await api('/employments/' + EMPLOYMENT_ID, { method: 'DELETE', auth: 'employer' }));
   await waitForSync();
   assert.equal(state.events.size, 0);
+});
+
+test('nhân viên đã bị chủ quán xóa khỏi danh sách không đăng ký hay sửa lịch được nữa', async () => {
+  await data(await save([cell(1)]));
+  const saves = state.schedule.size;
+
+  await data(await api('/employments/' + EMPLOYMENT_ID, { method: 'DELETE', auth: 'employer' }));
+  assert.ok(state.employment.ended_at, 'việc đã kết thúc');
+
+  const afterRemoval = await save([cell(2)]);
+  assert.equal(afterRemoval.status, 403);
+  assert.match((await afterRemoval.json()).message, /không còn làm/);
+  const busy = await api('/employments/' + EMPLOYMENT_ID + '/busy', { method: 'PUT', auth: 'seeker', body: { week_start: weekStart, cells: [cell(1)] } });
+  assert.equal(busy.status, 403);
+  assert.equal(state.schedule.size, 0, 'lịch đã bị xóa khi xóa nhân viên và không có ca mới nào được lưu');
+  assert.ok(saves >= 1);
 });
 
 test('kết nối đồng bộ từ hôm nay, ngắt kết nối giữ sự kiện đã tạo', async () => {
