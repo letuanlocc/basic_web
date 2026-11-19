@@ -11,6 +11,9 @@ router.get('/mine', requireRole('seeker'), asyncHandler(async (req, res) => ok(r
 // Ứng viên hủy hồ sơ đang chờ
 router.post('/:id/withdraw', requireRole('seeker'), asyncHandler(async (req, res) => ok(res, await req.m.applications.withdraw(req.params.id))));
 
+// Ứng viên gỡ hồ sơ của việc đã bị chủ quán xóa khỏi danh sách
+router.post('/:id/dismiss', requireRole('seeker'), asyncHandler(async (req, res) => ok(res, await req.m.applications.dismissEnded(req.params.id, req.user.id))));
+
 // Chủ quán nhận/từ chối. body: { accept: true | false }
 router.post('/:id/decision', requireRole('employer'), asyncHandler(async (req, res) =>
   ok(res, await req.m.applications.decide(req.params.id, req.body.accept))));

@@ -167,7 +167,8 @@
 
       var action;
       var ended = mine && mine.status === 'accepted' && emp && emp.map(function (e) { return String(e.position.id); }).indexOf(String(p.id)) < 0;
-      if (ended) action = badge('', 'Đã nghỉ việc') + '<p class="muted small" style="margin:8px 0 0">Chủ quán đã xóa bạn khỏi danh sách nhân viên của vị trí này nên bạn không thể đăng ký lịch làm. Nếu chủ quán mời lại, lời mời sẽ có ở mục "Lời mời" trong Công việc của tôi.</p>';
+      if (ended) action = badge('', 'Đã nghỉ việc') + '<p class="muted small" style="margin:8px 0 0">Chủ quán đã xóa bạn khỏi danh sách nhân viên của vị trí này nên bạn không thể đăng ký lịch làm. Nếu chủ quán mời lại, lời mời sẽ có ở mục "Lời mời" trong Công việc của tôi.</p>' +
+        '<div class="row" style="margin-top:12px"><button type="button" class="btn" id="dismiss">Xóa khỏi danh sách</button></div>';
       else if (mine) action = badge(STATUS[mine.status][0], 'Bạn ' + (mine.status === 'accepted' ? 'đã được nhận' : 'đã ứng tuyển · đang chờ phản hồi'));
       else if (closed) action = badge('err', 'Đã đóng tuyển');
       else if (full) action = badge('warn', 'Đã đủ người');
@@ -205,6 +206,13 @@
         ap.disabled = true; ap.textContent = 'Đang gửi…';
         A.call('POST', '/api/positions/' + p.id + '/apply').then(function () { location.reload(); })
           .catch(function (e) { ap.disabled = false; ap.textContent = 'Ứng tuyển ngay'; msg(amsg, e.message); });
+      });
+      var dm = $('dismiss');
+      if (dm) dm.addEventListener('click', function () {
+        if (!confirm('Xóa việc đã nghỉ này khỏi danh sách? Bạn vẫn có thể ứng tuyển lại sau.')) return;
+        dm.disabled = true;
+        A.call('POST', '/api/applications/' + mine.id + '/dismiss').then(function () { location.reload(); })
+          .catch(function (e) { dm.disabled = false; msg(amsg, e.message); });
       });
       var sv = $('save');
       sv.addEventListener('click', function () {
@@ -250,7 +258,8 @@
             (r.reject_reason ? '<p class="desc">' + esc(r.reject_reason) + '</p>' : '') +
             (ended ? '<p class="desc">Bạn không còn trong danh sách nhân viên của vị trí này nên không thể đăng ký lịch làm.</p>' : '') +
             (r.status === 'pending' ? '<button type="button" class="btn btn-danger push" data-act="withdraw" data-id="' + esc(r.id) + '">Hủy hồ sơ</button>' :
-              r.status === 'accepted' && !ended ? '<a class="btn btn-primary push" href="schedule.html?position=' + encodeURIComponent(r.position.id) + '">Chọn lịch làm</a>' : '') + '</article>';
+              ended ? '<button type="button" class="btn push" data-act="dismiss" data-id="' + esc(r.id) + '">Xóa khỏi danh sách</button>' :
+              r.status === 'accepted' ? '<a class="btn btn-primary push" href="schedule.html?position=' + encodeURIComponent(r.position.id) + '">Chọn lịch làm</a>' : '') + '</article>';
         }
         if (tab === 'invites') {
           return '<article class="card">' + pos(r.position) + (r.message ? '<p class="desc">“' + esc(r.message) + '”</p>' : '') +
@@ -279,6 +288,7 @@
       var b = e.target.closest('[data-act]'); if (!b) return;
       var id = b.getAttribute('data-id'), act = b.getAttribute('data-act'), call;
       if (act === 'withdraw') { if (!confirm('Hủy hồ sơ ứng tuyển này?')) return; call = A.call('POST', '/api/applications/' + id + '/withdraw'); }
+      else if (act === 'dismiss') { if (!confirm('Xóa việc đã nghỉ này khỏi danh sách? Bạn vẫn có thể ứng tuyển lại sau.')) return; call = A.call('POST', '/api/applications/' + id + '/dismiss'); }
       else if (act === 'accept' || act === 'decline') call = A.call('POST', '/api/invitations/' + id + '/respond', { accept: act === 'accept' });
       else call = A.call('DELETE', '/api/me/saved/' + id);
       b.disabled = true;
