@@ -11,14 +11,15 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" />
   <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/tailwind.css" />
 </head>
 <body data-page="list">
 <div class="page">
 
 <div data-layout="seeker" data-active="home" data-public></div>
 <main class="stack">
-  <section class="panel" aria-labelledby="flt" style="flex-direction:row;flex-wrap:wrap;align-items:center;padding:14px 16px;gap:10px 16px">
-    <h2 id="flt" style="font-size:14px;font-weight:600;color:var(--text-2)">Lọc và sắp xếp</h2>
+  <section class="panel tw-flex-row tw-flex-wrap tw-items-center tw-py-3.5 tw-px-4 tw-gap-y-2.5 tw-gap-x-4" aria-labelledby="flt">
+    <h2 class="tw-text-[14px] tw-font-semibold tw-text-ink-2" id="flt">Lọc và sắp xếp</h2>
     <div class="chips scroll-x" role="group" aria-label="Lọc việc"><button type="button" class="chip " aria-pressed="true" data-filter="all">Tất cả</button>
 <button type="button" class="chip " aria-pressed="false" data-filter="online">Online</button>
 <button type="button" class="chip " aria-pressed="false" data-filter="offline">Offline</button>
@@ -28,8 +29,8 @@
   <div class="chips" id="aichips" role="group" aria-label="Bộ lọc từ AI" hidden></div>
   <p class="msg err" id="listerr" hidden></p>
     <div class="grid-cards" id="list"></div>
-    <div id="none" class="empty" role="status" hidden><strong style="font-size:16px">Chưa có việc phù hợp</strong><span class="muted small">Thử bỏ bớt bộ lọc hoặc đổi từ khóa tìm kiếm.</span></div>
-    <div class="row" style="justify-content:center"><button type="button" class="btn" id="more" hidden>Xem thêm</button></div>
+    <div id="none" class="empty" role="status" hidden><strong class="tw-text-[16px]">Chưa có việc phù hợp</strong><span class="muted small">Thử bỏ bớt bộ lọc hoặc đổi từ khóa tìm kiếm.</span></div>
+    <div class="row tw-justify-center"><button type="button" class="btn" id="more" hidden>Xem thêm</button></div>
 </main>
 <footer class="foot"><div class="wrap"><span>© CaRảnh · Bản quyền thuộc nhóm phát triển</span><a href="overview.html">Tìm hiểu các chức năng</a></div></footer>
 </div>
