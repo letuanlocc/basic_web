@@ -81,7 +81,7 @@ Không bao giờ commit `.env` (đã nằm trong `.gitignore`).
 
 | Lớp | Công cụ |
 |---|---|
-| Giao diện | HTML, CSS tự viết theo design system (token trong `:root`), JavaScript thuần |
+| Giao diện | HTML, **Tailwind CSS 3** (class tiện ích cho bố cục) kết hợp CSS component tự viết theo design system (token trong `:root`), JavaScript thuần |
 | Backend | Node.js, Express, `helmet`, `cors`, `express-rate-limit`, `compression` |
 | Cơ sở dữ liệu | PostgreSQL trên Supabase (RLS, hàm RPC bằng PL/pgSQL), Supabase Auth |
 | Tích hợp | Google Calendar API (`googleapis`, OAuth 2.0 + PKCE) |
@@ -224,7 +224,10 @@ erDiagram
 
 ## 6. Thông tin bổ sung
 
-- **Không dùng Tailwind CSS.** Giao diện dùng CSS tự viết theo bộ token thiết kế (màu, font, bo góc, khoảng cách) trong `public/css/style.css`. **[CẦN XÁC NHẬN với giảng viên rằng cách này được chấp nhận]**
+- **Tailwind CSS:** dùng cho bố cục và khoảng cách (flex, grid, gap, padding, cỡ chữ…) trên các trang `index`, `jobs`, `login`, `register`, `forgot-password`, `reset-password`, `overview`, thay cho `style="…"` nội tuyến (63 thẻ). Các component dùng chung (`.card`, `.btn`, `.chip`, `.sched`…) vẫn nằm trong `public/css/style.css`.
+  - Cấu hình: [tailwind.config.js](tailwind.config.js). Màu, bo góc, font lấy đúng từ bộ token thiết kế; khoảng cách mặc định của Tailwind (bước 4 px) khớp thang 4·8·12·16·24·32·48.
+  - Tiền tố `tw-` (ví dụ `tw-flex`, `tw-gap-4`) để không trùng tên với CSS sẵn có; tắt Preflight để không đổi giao diện hiện tại; `important` bật để class tiện ích thắng như style nội tuyến trước đây.
+  - Nguồn: [tailwind/input.css](tailwind/input.css). Build ra `public/css/tailwind.css` (đã commit, vài KB sau khi loại class không dùng): `npm run build:css` (hoặc `npm run watch:css` khi đang sửa giao diện). Thêm class tiện ích mới vào HTML thì cần build lại.
 - **CSDL:** dùng PostgreSQL (Supabase), không dùng MySQL. Đề bài cho phép MySQL hoặc PostgreSQL.
 - **Google Calendar** ở chế độ Testing: chỉ email nằm trong *Test users* mới kết nối được, và token hết hạn sau 7 ngày. Lên production cần Google xác minh ứng dụng.
 - **Bảo mật:** khóa bí mật chỉ ở server; bảng chứa token Google bật RLS và khóa quyền anon/authenticated; mọi thao tác ghi đi qua token người dùng.

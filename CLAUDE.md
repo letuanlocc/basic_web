@@ -38,7 +38,8 @@ Khai báo layout ở đầu trang rồi `main.js` tự thay thế:
 - Responsive: dưới 720px menu trên ẩn, hiện thanh điều hướng dưới (`.bottomnav`, mỗi mục cao ≥ 48px).
 - Không thêm màu, font, bo góc ngoài bộ token. Cần thành phần mới thì thêm class vào `style.css` (dùng biến `var(--…)`) và dùng lại, không viết style inline lặp lại.
 - Văn bản giao diện bằng tiếng Việt; thông báo lỗi đặt ngay tại chỗ người dùng thao tác, không tự ẩn.
-- Chạy thử: `npm run dev` rồi mở http://localhost:3000 (nếu `EADDRINUSE` thì cổng 3000 đang bị chiếm).
+- **Tailwind (class tiện ích, tiền tố `tw-`):** dùng cho bố cục/khoảng cách/chữ thay cho `style="…"` nội tuyến, ví dụ `tw-flex tw-gap-4`. Cấu hình ở `tailwind.config.js` (màu, bo góc, font = token ở trên, tắt Preflight, `important`). Sau khi thêm class mới vào HTML hoặc JS: `npm run build:css` rồi commit `public/css/tailwind.css`. Trang mới nạp thêm `<link rel="stylesheet" href="/css/tailwind.css" />` sau `style.css`. Component dùng chung vẫn là class trong `style.css`, không chuyển sang Tailwind.
+- Chạy cổng khác khi 3000 bị chiếm: `PORT=3100 npm run dev`. Chạy thử: `npm run dev` rồi mở http://localhost:3000 (nếu `EADDRINUSE` thì cổng 3000 đang bị chiếm).
 
 ## Tích hợp Google Calendar
 Khi nhân viên lưu lịch làm (`schedule.html`), các ca đã đăng ký được đồng bộ một chiều từ CaRảnh sang Google Calendar.
