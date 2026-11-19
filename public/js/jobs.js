@@ -36,6 +36,18 @@
   }
   function qs(k) { return new URLSearchParams(location.search).get(k); }
 
+  // Ảnh quán: data URL (tải từ máy), đường dẫn nội bộ (/demo/...) hoặc https. Không nhận kiểu khác (vd javascript:).
+  var PHOTO_OK = /^(data:image\/(jpeg|png|webp);base64,|\/(?!\/)|https:\/\/)/;
+  function shopPhotos(shop) {
+    var list = (shop.photos || []).filter(function (p) { return p && PHOTO_OK.test(p.url || ''); })
+      .sort(function (a, b) { return (a.sort_order || 0) - (b.sort_order || 0); });
+    if (!list.length) return '';
+    return '<div class="photos" role="group" aria-label="Ảnh nơi làm việc">' + list.map(function (p) {
+      return '<figure><img src="' + esc(p.url) + '" alt="' + esc(p.caption || ('Ảnh nơi làm việc của ' + (shop.name || 'cửa hàng'))) + '" loading="lazy" decoding="async">' +
+        (p.caption ? '<figcaption>' + esc(p.caption) + '</figcaption>' : '') + '</figure>';
+    }).join('') + '</div>';
+  }
+
   // ---------- Thẻ việc ----------
   function card(p, loggedIn, preview) {
     var link = preview ? '<span class="btn push" aria-hidden="true">Xem chi tiết</span>' : loggedIn
@@ -175,7 +187,7 @@
         '<section class="sect"><h2>Thông tin nhà tuyển dụng</h2><dl class="facts"><dt>Tên</dt><dd class="b">' + esc(shop.name || p.shop_name) + '</dd>' +
         '<dt>Địa chỉ</dt><dd>' + esc([shop.address, shop.ward, shop.city].filter(Boolean).join(', ') || '—') + '</dd>' +
         (shop.phone ? '<dt>SĐT cửa hàng</dt><dd>' + esc(shop.phone) + '</dd>' : '') +
-        (shop.fanpage_url ? '<dt>Website</dt><dd>' + esc(shop.fanpage_url) + '</dd>' : '') + '</dl>' +
+        (shop.fanpage_url ? '<dt>Website</dt><dd>' + esc(shop.fanpage_url) + '</dd>' : '') + '</dl>' + shopPhotos(shop) +
         '<div id="contact"></div></section></div>' +
         '<aside class="panel" aria-label="Ứng tuyển"><div class="b" style="font-size:22px;font-weight:700">' + esc(salary(p)) + '</div>' +
         '<dl class="facts"><dt>Hạn ứng tuyển</dt><dd>' + dateVN(p.deadline) + '</dd><dt>Đã nhận</dt><dd>' + p.filled + '/' + p.headcount + ' người</dd></dl>' +
