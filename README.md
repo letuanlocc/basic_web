@@ -112,7 +112,6 @@ tests/               Test tự động
 docs/                Tài liệu: ERD, hướng dẫn dữ liệu mẫu, ảnh chụp màn hình, mẫu self-report
 ```
 
-
 ---
 
 ## 3. Tính năng và ảnh chụp màn hình
@@ -217,6 +216,11 @@ erDiagram
 
 **Theo dõi và ghi log**
 - **Sentry** (server: `src/instrument.js`; trình duyệt: nạp từ `public/js/main.js`): bắt lỗi 5xx và lỗi JavaScript. Bật bằng `SENTRY_DSN` và `SENTRY_BROWSER_DSN`. Không gửi IP, cookie hay nội dung request (`sendDefaultPii: false`). Đặt `SENTRY_TEST=1` rồi gọi `GET /api/debug-error` để tạo lỗi thử nghiệm khi demo.
+
+  Sentry (project Node.js) ghi nhận lỗi thử nghiệm từ `GET /api/debug-error`:
+
+  ![Sentry ghi nhận lỗi từ server](docs/screenshots/sentry.png)
+
 - **Google Analytics 4:** bật bằng `GA_MEASUREMENT_ID`, ẩn IP (`anonymize_ip`). Đã bật trên production; báo cáo Realtime ghi nhận người dùng thật (lượt xem trang, `first_visit`, `session_start`, `form_start`):
 
   ![Google Analytics Realtime](docs/screenshots/google-analytics.png)
