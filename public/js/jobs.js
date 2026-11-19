@@ -277,7 +277,8 @@
         // Việc đang làm thật sự; lỗi thì để null (giữ cách hiển thị cũ, server vẫn chặn đăng ký lịch)
         A.call('GET', '/api/employments/mine').catch(function () { return null; })
       ]).then(function (r) {
-        data.apps = r[0]; data.invites = r[1]; data.saved = r[2];
+        // Hồ sơ đã hủy/đã gỡ ("withdrawn") không hiện trong danh sách nữa
+        data.apps = r[0].filter(function (a) { return a.status !== 'withdrawn'; }); data.invites = r[1]; data.saved = r[2];
         data.active = r[3] ? r[3].map(function (e) { return String(e.position.id); }) : null;
         draw();
       })
