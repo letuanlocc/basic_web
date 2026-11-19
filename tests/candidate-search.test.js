@@ -157,3 +157,20 @@ test('HR zero-level option sends an exact filter and reset removes it',()=>{
   params=new URLSearchParams(c.requests.at(-1).url.split('?')[1]);
   assert.equal(c.elements.flang.value,'');assert.equal(params.has('language_level'),false);
 });
+
+test('candidate card shows the photo inside the avatar box, falls back to the initial for missing or unsafe photos', async () => {
+  const c = controller();
+  c.requests[0].resolve([
+    person(1, 'An Có Ảnh', { avatar_url: 'data:image/png;base64,iVBORw0KGgo=' }),
+    person(2, 'Bình Không Ảnh', { avatar_url: null }),
+    person(3, 'Chi Ảnh Độc', { avatar_url: 'javascript:alert(1)' }),
+    person(4, 'Dũng Ảnh Ngoài', { avatar_url: 'https://evil.example/x.png' }),
+  ]);
+  await tick();
+  const html = c.elements.clist.innerHTML;
+  assert.match(html, /<span class="initial round" aria-hidden="true"><img src="data:image\/png;base64,iVBORw0KGgo=" alt="" decoding="async"><\/span>/);
+  assert.equal((html.match(/<img /g) || []).length, 1, 'only the uploaded data-URL photo is rendered as an image');
+  assert.match(html, /<span class="initial round" aria-hidden="true">B<\/span>/);
+  assert.match(html, /<span class="initial round" aria-hidden="true">C<\/span>/);
+  assert.match(html, /<span class="initial round" aria-hidden="true">D<\/span>/);
+});

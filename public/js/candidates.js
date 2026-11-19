@@ -20,7 +20,14 @@
   function name(c) { return (c.user && c.user.full_name) || 'Ứng viên'; }
   function age(c) { return c.birth_year ? new Date().getFullYear() - c.birth_year : null; }
   function slots(c) { return (c.availability || []).map(function (a) { return SLOT[a.slot] || a.slot; }); }
-  function initial(c) { return '<span class="initial round" aria-hidden="true">' + esc(name(c).replace(/^\[[^\]]*\]\s*/, '').trim().charAt(0).toUpperCase()) + '</span>'; }
+  // Có ảnh thẻ thì đặt ảnh vào ô, không thì hiện chữ cái đầu. Ảnh đã được server kiểm tra (data URL JPG/PNG/WEBP).
+  var AVATAR = /^data:image\/(jpeg|png|webp);base64,/;
+  function initial(c) {
+    var inner = c.avatar_url && AVATAR.test(c.avatar_url)
+      ? '<img src="' + esc(c.avatar_url) + '" alt="" decoding="async">'
+      : esc(name(c).replace(/^\[[^\]]*\]\s*/, '').trim().charAt(0).toUpperCase());
+    return '<span class="initial round" aria-hidden="true">' + inner + '</span>';
+  }
 
   // ---------- Danh sách ----------
   function card(c) {
