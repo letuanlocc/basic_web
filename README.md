@@ -217,7 +217,9 @@ erDiagram
 
 **Theo dõi và ghi log**
 - **Sentry** (server: `src/instrument.js`; trình duyệt: nạp từ `public/js/main.js`): bắt lỗi 5xx và lỗi JavaScript. Bật bằng `SENTRY_DSN` và `SENTRY_BROWSER_DSN`. Không gửi IP, cookie hay nội dung request (`sendDefaultPii: false`). Đặt `SENTRY_TEST=1` rồi gọi `GET /api/debug-error` để tạo lỗi thử nghiệm khi demo.
-- **Google Analytics 4:** bật bằng `GA_MEASUREMENT_ID`, ẩn IP (`anonymize_ip`).
+- **Google Analytics 4:** bật bằng `GA_MEASUREMENT_ID`, ẩn IP (`anonymize_ip`). Đã bật trên production; báo cáo Realtime ghi nhận người dùng thật (lượt xem trang, `first_visit`, `session_start`, `form_start`):
+
+  ![Google Analytics Realtime](docs/screenshots/google-analytics.png)
 - **Log truy cập:** `morgan` ghi từng request (không ghi URL callback OAuth vì chứa mã xác thực). Lỗi 500 ghi bằng `console.error`, xem trong **Vercel → Logs**.
 
 ---
