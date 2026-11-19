@@ -11,6 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" />
   <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/tailwind.css" />
 </head>
 <body>
 <div class="page">
@@ -18,14 +19,14 @@
 <div data-layout="plain" data-cta="register"></div>
 <main class="stack-lg">
   <nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Trang chủ</a> → <span>Đăng nhập</span></nav>
-  <div class="row" style="justify-content:center;align-items:flex-start;gap:24px">
-    <form class="form-card" data-auth="login" style="flex:1 1 360px;max-width:440px">
+  <div class="row tw-justify-center tw-items-start tw-gap-6">
+    <form class="form-card tw-flex-[1_1_360px] tw-max-w-[440px]" data-auth="login">
       <div><h1>Chào mừng quay lại</h1><p class="lead">Đăng nhập để xem chi tiết công việc, ứng tuyển và đăng ký lịch làm.</p></div>
       <div class="field"><label for="acc">Email hoặc số điện thoại</label><input id="acc" type="text" placeholder="ví dụ: ban@email.com hoặc 0912345678" autocomplete="username"></div>
-      <div class="field"><div class="row between" style="align-items:baseline"><label for="pw">Mật khẩu</label><a class="link-btn" href="forgot-password.html">Quên mật khẩu?</a></div><input id="pw" type="password" placeholder="••••••" autocomplete="current-password"></div>
+      <div class="field"><div class="row between tw-items-baseline"><label for="pw">Mật khẩu</label><a class="link-btn" href="forgot-password.html">Quên mật khẩu?</a></div><input id="pw" type="password" placeholder="••••••" autocomplete="current-password"></div>
       <label class="remember"><input type="checkbox" id="remember" checked> Ghi nhớ đăng nhập trên thiết bị này</label>
       <button type="submit" class="btn btn-primary btn-lg">Đăng nhập</button>
-      <p class="muted small" style="margin:0;text-align:center">Bạn chưa có tài khoản? <a href="register.html" style="font-weight:700">Đăng ký ngay</a></p>
+      <p class="muted small tw-m-0 tw-text-center">Bạn chưa có tài khoản? <a class="tw-font-bold" href="register.html">Đăng ký ngay</a></p>
     </form>
   </div>
 </main>
