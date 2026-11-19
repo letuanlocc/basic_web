@@ -1,0 +1,3 @@
+/* Nguồn của public/css/tailwind.css. Build: npm run build:css */
+@tailwind base;
+@tailwind utilities;
