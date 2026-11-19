@@ -146,15 +146,17 @@
     Promise.all([
       A.call('GET', '/api/positions/' + id),
       A.call('GET', '/api/applications/mine').catch(function () { return []; }),
-      A.call('GET', '/api/me/saved').catch(function () { return []; })
-    ]).then(function (r) { render(r[0], r[1], r[2]); })
+      A.call('GET', '/api/me/saved').catch(function () { return []; }),
+      // việc đang làm thật (đơn "accepted" vẫn còn sau khi bị chủ quán xóa khỏi danh sách)
+      A.call('GET', '/api/employments/mine').catch(function () { return null; })
+    ]).then(function (r) { render(r[0], r[1], r[2], r[3]); })
       .catch(function (e) { box.innerHTML = empty('Không tải được công việc', e.message); });
 
     function list(title, items) {
       if (!items.length) return '';
       return '<div><h3>' + title + '</h3><ul>' + items.map(function (i) { return '<li>' + esc(i.content) + '</li>'; }).join('') + '</ul></div>';
     }
-    function render(p, apps, saved) {
+    function render(p, apps, saved, emp) {
       var mine = apps.filter(function (a) { return a.position && a.position.id === p.id && (a.status === 'pending' || a.status === 'accepted'); })[0];
       var isSaved = saved.some(function (s) { return s.position && s.position.id === p.id; });
       var kinds = function (k) { return (p.items || []).filter(function (i) { return i.kind === k; }); };
@@ -164,7 +166,9 @@
       var notAccepting = p.accepting === false;
 
       var action;
-      if (mine) action = badge(STATUS[mine.status][0], 'Bạn ' + (mine.status === 'accepted' ? 'đã được nhận' : 'đã ứng tuyển · đang chờ phản hồi'));
+      var ended = mine && mine.status === 'accepted' && emp && emp.map(function (e) { return String(e.position.id); }).indexOf(String(p.id)) < 0;
+      if (ended) action = badge('', 'Đã nghỉ việc') + '<p class="muted small" style="margin:8px 0 0">Chủ quán đã xóa bạn khỏi danh sách nhân viên của vị trí này nên bạn không thể đăng ký lịch làm. Nếu chủ quán mời lại, lời mời sẽ có ở mục "Lời mời" trong Công việc của tôi.</p>';
+      else if (mine) action = badge(STATUS[mine.status][0], 'Bạn ' + (mine.status === 'accepted' ? 'đã được nhận' : 'đã ứng tuyển · đang chờ phản hồi'));
       else if (closed) action = badge('err', 'Đã đóng tuyển');
       else if (full) action = badge('warn', 'Đã đủ người');
       else if (notAccepting) action = badge('warn', 'Hiện chưa nhận thêm hồ sơ');
