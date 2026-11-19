@@ -239,10 +239,14 @@
       box.innerHTML = noticeHtml + '<div class="grid-cards">' + rows.map(function (r) {
         if (tab === 'apps') {
           var st = STATUS[r.status] || ['', r.status];
+          // Đơn vẫn là "accepted" sau khi chủ quán xóa nhân viên; việc đã kết thúc thì không còn đăng ký lịch được.
+          var ended = r.status === 'accepted' && data.active && data.active.indexOf(String(r.position.id)) < 0;
+          if (ended) st = ['', 'Đã nghỉ việc'];
           return '<article class="card">' + pos(r.position) + '<div class="badges">' + badge(st[0], st[1]) + (r.source === 'invited' ? badge('', 'Được mời') : '') + '</div>' +
             (r.reject_reason ? '<p class="desc">' + esc(r.reject_reason) + '</p>' : '') +
+            (ended ? '<p class="desc">Bạn không còn trong danh sách nhân viên của vị trí này nên không thể đăng ký lịch làm.</p>' : '') +
             (r.status === 'pending' ? '<button type="button" class="btn btn-danger push" data-act="withdraw" data-id="' + esc(r.id) + '">Hủy hồ sơ</button>' :
-              r.status === 'accepted' ? '<a class="btn btn-primary push" href="schedule.html?position=' + encodeURIComponent(r.position.id) + '">Chọn lịch làm</a>' : '') + '</article>';
+              r.status === 'accepted' && !ended ? '<a class="btn btn-primary push" href="schedule.html?position=' + encodeURIComponent(r.position.id) + '">Chọn lịch làm</a>' : '') + '</article>';
         }
         if (tab === 'invites') {
           return '<article class="card">' + pos(r.position) + (r.message ? '<p class="desc">“' + esc(r.message) + '”</p>' : '') +
@@ -256,8 +260,14 @@
     }
     function load() {
       return Promise.all([
-        A.call('GET', '/api/applications/mine'), A.call('GET', '/api/invitations/mine'), A.call('GET', '/api/me/saved')
-      ]).then(function (r) { data.apps = r[0]; data.invites = r[1]; data.saved = r[2]; draw(); })
+        A.call('GET', '/api/applications/mine'), A.call('GET', '/api/invitations/mine'), A.call('GET', '/api/me/saved'),
+        // Việc đang làm thật sự; lỗi thì để null (giữ cách hiển thị cũ, server vẫn chặn đăng ký lịch)
+        A.call('GET', '/api/employments/mine').catch(function () { return null; })
+      ]).then(function (r) {
+        data.apps = r[0]; data.invites = r[1]; data.saved = r[2];
+        data.active = r[3] ? r[3].map(function (e) { return String(e.position.id); }) : null;
+        draw();
+      })
         .catch(function (e) { box.innerHTML = empty('Không tải được dữ liệu', e.message); });
     }
     tabs.forEach(function (b) { b.addEventListener('click', function () { tab = b.getAttribute('data-tab'); draw(); }); });

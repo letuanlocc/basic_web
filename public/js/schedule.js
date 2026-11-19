@@ -392,6 +392,14 @@
       posBox.hidden = rows.length < 2;
       var selectedPosition = new URLSearchParams(location.search).get('position');
       var selectedIndex = rows.findIndex(function (r) { return String(r.position.id) === selectedPosition; });
+      // Liên kết trỏ tới một việc không còn hiệu lực (vd. chủ quán đã xóa khỏi danh sách nhân viên): báo rõ,
+      // không lặng lẽ hiện lịch của việc khác để người dùng tưởng vẫn đăng ký được ở việc đó.
+      if (selectedPosition && selectedIndex < 0) {
+        posBox.hidden = true;
+        box.innerHTML = empty('Bạn không còn làm ở vị trí này', 'Chủ quán đã xóa bạn khỏi danh sách nhân viên nên không thể đăng ký lịch làm ở đây.') +
+          '<div class="row" style="justify-content:center;margin-top:16px"><a class="btn" href="schedule.html">Xem lịch các việc đang làm</a></div>';
+        return;
+      }
       if (selectedIndex >= 0) posSel.selectedIndex = selectedIndex;
       load();
     }).catch(function (e) { box.innerHTML = fail(e); });
