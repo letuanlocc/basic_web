@@ -1,5 +1,6 @@
 const Sentry = require('./instrument'); // phải đứng đầu để Sentry bắt được mọi lỗi
 const path = require('path');
+const { waitUntil } = require('@vercel/functions');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -40,6 +41,11 @@ app.use('/api', routes);
 app.use(notFound);
 // Gửi lỗi 5xx lên Sentry (không làm gì nếu chưa đặt SENTRY_DSN); đặt trước errorHandler.
 Sentry.setupExpressErrorHandler(app);
+// Vercel đóng băng function ngay sau khi trả response: giữ function sống đến khi Sentry gửi xong sự kiện lỗi.
+app.use((err, req, res, next) => {
+  try { waitUntil(Sentry.flush(2000)); } catch { /* không có ngữ cảnh Vercel (chạy local) */ }
+  next(err);
+});
 app.use(errorHandler);
 
 module.exports = app;

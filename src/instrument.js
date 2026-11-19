@@ -14,5 +14,5 @@ if (process.env.SENTRY_DSN) {
   });
   module.exports = Sentry;
 } else {
-  module.exports = { setupExpressErrorHandler() {} };
+  module.exports = { setupExpressErrorHandler() {}, flush: async () => true };
 }
