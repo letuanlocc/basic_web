@@ -69,8 +69,14 @@
     var loggedIn = !!(A && A.get());
     var shown = 0;
 
-    // Từ khóa gửi lên server = từ khóa đã lọc từ thừa + tên việc + các kỹ năng AI nhận ra
-    function searchText() { return [state.q].concat(state.jobs, state.skills).join(' ').trim(); }
+    // Gửi lên server: q = cụm gõ tay/từ khóa còn lại; mỗi chip (tên việc, kỹ năng) là một điều kiện riêng t=…
+    // Server ghép các điều kiện bằng AND, nên bỏ chip nào thì chỉ bỏ điều kiện đó.
+    function terms() { return state.jobs.concat(state.skills); }
+    function searchParams() {
+      return (state.q ? '&q=' + encodeURIComponent(state.q) : '') +
+        terms().map(function (t) { return '&t=' + encodeURIComponent(t); }).join('') +
+        (state.loc ? '&loc=' + encodeURIComponent(state.loc) : '');
+    }
 
     var chipBox = $('aichips');
     function drawChips() {
@@ -98,7 +104,9 @@
       if (!text) { state.q = ''; clearAi(); return load(true); }
       pub('/api/positions/parse?q=' + encodeURIComponent(text)).then(function (r) {
         var by = function (l) { return r.entities.filter(function (e) { return e.label === l; }).map(function (e) { return e.text; }); };
-        state.q = r.keyword; state.skills = by('SKILL'); state.jobs = by('JOB'); state.times = by('TIME');
+        state.skills = by('SKILL'); state.jobs = by('JOB'); state.times = by('TIME');
+        // Chữ còn dư (vd "trình độ") không hiện thành chip nên người dùng không bỏ được: có chip thì không dùng nó để lọc.
+        state.q = state.jobs.length || state.skills.length ? '' : r.keyword;
         state.loc = by('LOC')[0] || '';
         drawChips(); load(true);
       }).catch(function () { state.q = text; clearAi(); load(true); });
@@ -107,8 +115,7 @@
     function load(reset) {
       if (reset) { state.offset = 0; shown = 0; list.innerHTML = ''; }
       var url = '/api/positions?limit=' + LIMIT + '&offset=' + state.offset + '&sort=' + state.sort +
-        (state.mode ? '&mode=' + state.mode : '') +
-        (searchText() ? '&q=' + encodeURIComponent(searchText()) : '') + (state.loc ? '&loc=' + encodeURIComponent(state.loc) : '');
+        (state.mode ? '&mode=' + state.mode : '') + searchParams();
       more.disabled = true;
       pub(url).then(function (rows) {
         err.hidden = true;
