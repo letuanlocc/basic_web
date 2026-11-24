@@ -2,6 +2,7 @@
 
 POST /ner  {"text": "cần người giỏi tiếng Anh ca tối ở Hải Châu"}
   -> {"keyword": "...", "entities": [{"text": "tiếng Anh", "label": "SKILL"}, ...]}
+  Nhãn: SKILL, TIME, LOC, JOB. keyword chỉ gồm phần còn lại (không có các thực thể).
 
 Chạy:  uvicorn app:app --port 8000   (từ trong thư mục ner-service/)
 Cần: model/best_model.pt và vncorenlp/VnCoreNLP-1.1.1.jar (+ vncorenlp/models/) — xem README.md.
@@ -75,9 +76,7 @@ def ner(body: Body):
     for text, label in tokens:
         if label == "O":
             rest.append(text)
-        elif label == "JOB":  # tên việc là phần của từ khóa, không phải bộ lọc
-            rest.append(text)
-        else:
+        else:  # SKILL / TIME / LOC / JOB đều là chip; JOB do giao diện ghép lại vào từ khóa tìm
             entities.append({"text": text, "label": label})
     keyword = " ".join(w for w in rest if w.lower() not in STOPWORDS and not PUNCT.match(w))
     return {"keyword": keyword.strip(), "entities": entities}
