@@ -20,3 +20,19 @@
 
 ## Chưa đo (cần đăng nhập)
 Tìm ứng viên (`candidates.html`) và lịch làm (`schedule.html`) cần tài khoản nên Lighthouse CLI không đo được. Cách đo: đăng nhập trên Chrome, mở trang, DevTools → Lighthouse, **bỏ chọn "Clear storage"**, chạy rồi lưu báo cáo/ảnh vào thư mục này và bổ sung hai dòng vào bảng trên.
+
+## Bản Next.js (bản chính)
+Đo ngày 26/11/2026 trên https://basic-web-verson2.vercel.app, cùng cách đo như trên. Báo cáo đầy đủ: các file `next-*-2026-11-26.html` cùng thư mục.
+
+| Trang | Thiết bị | Performance | Accessibility | Best Practices | SEO | FCP | LCP | TBT | CLS |
+|---|---|---|---|---|---|---|---|---|---|
+| Trang chủ `/` | Desktop | 96 | 98 | 100 | 100 | 0,6 s | 1,1 s | 0 ms | 0,084 |
+| Trang chủ `/` | Mobile | 84 | 98 | 100 | 100 | 2,5 s | 3,9 s | 40 ms | 0 |
+| Danh sách việc `/jobs` | Desktop | 96 | 98 | 100 | 100 | 1,0 s | 1,2 s | 0 ms | 0,013 |
+| Danh sách việc `/jobs` | Mobile | 71 | 98 | 100 | 100 | 3,1 s | 3,9 s | 440 ms | 0 |
+| Chi tiết việc `/jobs/14` | Desktop | 98 | 100 | 100 | 100 | 0,6 s | 1,1 s | 0 ms | 0,005 |
+| Chi tiết việc `/jobs/14` | Mobile | 93 | 100 | 100 | 100 | 1,7 s | 3,0 s | 70 ms | 0 |
+| Giới thiệu `/overview` | Desktop | 98 | 100 | 100 | 100 | 0,9 s | 1,0 s | 10 ms | 0,001 |
+| Giới thiệu `/overview` | Mobile | 75 | 100 | 100 | 100 | 1,7 s | 3,5 s | 620 ms | 0 |
+
+Nhận xét: desktop đều 96 đến 98. Mobile thấp ở danh sách việc (71) và giới thiệu (75) do TBT 440 và 620 ms (JavaScript của React chạy lúc tải). Hướng cải thiện: giảm JS chạy lúc tải, tách mã theo trang.
