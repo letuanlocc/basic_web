@@ -18,19 +18,20 @@ class Position {
    * Danh sách việc đang tuyển, tìm theo tên việc/quán/địa điểm/mô tả, lọc và phân trang.
    * loc (tùy chọn, từ NER): chỉ giữ tin có khu vực này trong địa chỉ/phường, không phân biệt dấu và hoa thường.
    */
-  async search({ q = null, mode = null, sort = 'new', limit = 6, offset = 0, loc = null } = {}) {
+  async search({ q = null, t = null, mode = null, sort = 'new', limit = 6, offset = 0, loc = null } = {}) {
     const today = new Date().toISOString().slice(0, 10);
     let query = this.db
       .from('position_overview')
       .select('*')
-      .eq('is_open', true);
+      .eq('is_open', true)
+      .or(`deadline.is.null,deadline.gte.${today}`);
     if (mode) query = query.eq('mode', mode);
-    if (q) {
-      const term = q.replace(/[\\%_"]/g, '\\$&');
-      const matches = `or(title.ilike."%${term}%",shop_name.ilike."%${term}%",address.ilike."%${term}%",summary.ilike."%${term}%")`;
-      query = query.or(`and(deadline.is.null,${matches}),and(deadline.gte.${today},${matches})`);
-    } else {
-      query = query.or(`deadline.is.null,deadline.gte.${today}`);
+    // q là một cụm gõ tay; t (lặp lại được) là các điều kiện riêng từ chip (tên việc, kỹ năng).
+    // Mỗi điều kiện phải khớp ở tên việc/quán/địa chỉ/mô tả; các điều kiện kết hợp bằng AND.
+    const terms = [q].concat(t || []).map((s) => String(s || '').trim()).filter(Boolean).slice(0, 6);
+    for (const raw of terms) {
+      const term = raw.replace(/[\\%_"]/g, '\\$&');
+      query = query.or(`title.ilike."%${term}%",shop_name.ilike."%${term}%",address.ilike."%${term}%",summary.ilike."%${term}%"`);
     }
     if (sort === 'salary') {
       query = query.order('salary_amount', { ascending: false, nullsFirst: false });
