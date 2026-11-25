@@ -11,8 +11,8 @@ Thông tin dưới đây rút từ lịch sử commit. **Cả nhóm cần rà l�
 | Thành viên | GitHub | Phụ trách (theo commit) |
 |---|---|---|
 | Lê Tuấn Lộc | letuanlocc | Nhóm trưởng; kiến trúc backend Express, giao diện và Tailwind, tối ưu Lighthouse, Sentry/GA4, Next.js, tài liệu |
-| Nguyễn Thanh Tân | nguyenthanhtan16306-sudo | Lịch làm theo ca, chủ quán chỉnh lịch, giới hạn giờ, sửa tin tuyển |
-| Hades | hadess-95 | Tích hợp Google Calendar, tìm ứng viên, đơn vị lương, test |
+| Nguyễn Thanh Tấn Tài | NguyenThanhTanTai, nguyenthanhtan16306-sudo | Lịch làm theo ca, chủ quán chỉnh lịch, giới hạn giờ, sửa tin tuyển |
+| Nguyễn Tuấn Tài (Hades) | hadess-95 | Tích hợp Google Calendar, tìm ứng viên, đơn vị lương, test |
 | Hoàng Bùi Anh Tài | AnhTai0307 | Đăng nhập, đăng ký, hồ sơ, kiểm tra trùng email/SĐT |
 
 ## Cột mốc (milestone)
@@ -32,3 +32,6 @@ Ngày được tính theo hạn nộp bài; chỉnh nếu giảng viên công b�
 
 ## Biên bản họp
 Điền sau mỗi buổi họp (mẫu ở [meeting-notes.md](meeting-notes.md)).
+
+## Issue theo dõi
+Việc còn lại của M5 nằm trong GitHub Issues (có nhãn, người nhận, milestone): [danh sách issue mở](https://github.com/letuanlocc/basic_web/issues). Issue #16 (sửa tin tuyển) và #29 (Google Calendar) thuộc M2 và M3.
