@@ -2,7 +2,8 @@
 
 CaRảnh kết nối **chủ quán** (đăng tin tuyển, xếp ca) với **người tìm việc** (ứng tuyển, đăng ký ca làm, đồng bộ lịch sang Google Calendar).
 
-- **Triển khai:** https://basic-web-rho.vercel.app
+- **Triển khai (bản chính, Next.js):** https://basic-web-verson2.vercel.app
+- **API Express và bản HTML cũ:** https://basic-web-rho.vercel.app (bản Next chuyển tiếp mọi `/api/*` sang đây, nên project này phải luôn chạy)
 - **Mã nguồn:** https://github.com/letuanlocc/basic_web
 - **Video demo:** **[CẦN BỔ SUNG: link YouTube/MP4, tối đa 10 phút, tối thiểu 720p]**
 
@@ -249,7 +250,7 @@ erDiagram
   - Cấu hình: [tailwind.config.js](tailwind.config.js). Màu, bo góc, font lấy đúng từ bộ token thiết kế; khoảng cách mặc định của Tailwind (bước 4 px) khớp thang 4·8·12·16·24·32·48.
   - Tiền tố `tw-` (ví dụ `tw-flex`, `tw-gap-4`) để không trùng tên với CSS sẵn có; tắt Preflight để không đổi giao diện hiện tại; `important` bật để class tiện ích thắng như style nội tuyến trước đây.
   - Nguồn: [tailwind/input.css](tailwind/input.css). Build ra `public/css/tailwind.css` (đã commit, vài KB sau khi loại class không dùng): `npm run build:css` (hoặc `npm run watch:css` khi đang sửa giao diện). Thêm class tiện ích mới vào HTML thì cần build lại.
-- **Chuyển sang Next.js:** [web/](web/) dựng lại đủ 17 trang của `public/` (React, App Router) và dùng chung API Express. Tailwind ở đây cấu hình riêng trong [web/tailwind.config.js](web/tailwind.config.js) (cùng token, cùng tiền tố `tw-`) và build tự động cùng Next, không cần `npm run build:css`. Đường dẫn không còn đuôi `.html` (ví dụ `/jobs/1`). Hạn chế hiện tại: chưa render dữ liệu phía server vì token đăng nhập nằm ở localStorage; `vercel.json` mới cấu hình cho Express nên chưa deploy được bản Next. Chi tiết: [web/README.md](web/README.md).
+- **Chuyển sang Next.js:** [web/](web/) dựng lại đủ 17 trang của `public/` (React, App Router) và dùng chung API Express. Tailwind ở đây cấu hình riêng trong [web/tailwind.config.js](web/tailwind.config.js) (cùng token, cùng tiền tố `tw-`) và build tự động cùng Next, không cần `npm run build:css`. Đường dẫn không còn đuôi `.html` (ví dụ `/jobs/1`). **Đã deploy** thành project Vercel thứ hai với Root Directory `web` và biến môi trường `API_URL` trỏ tới project Express (`next.config.mjs` đọc biến này lúc build, nên đổi `API_URL` thì phải Redeploy). Hạn chế: chưa render dữ liệu phía server vì token đăng nhập nằm ở localStorage; Google Calendar và đặt lại mật khẩu mới khai báo redirect cho domain Express cũ. Chi tiết: [web/README.md](web/README.md).
 - **CSDL:** dùng PostgreSQL (Supabase), không dùng MySQL. Đề bài cho phép MySQL hoặc PostgreSQL.
 - **Google Calendar** ở chế độ Testing: chỉ email nằm trong *Test users* mới kết nối được, và token hết hạn sau 7 ngày. Lên production cần Google xác minh ứng dụng.
 - **Bảo mật:** khóa bí mật chỉ ở server; bảng chứa token Google bật RLS và khóa quyền anon/authenticated; mọi thao tác ghi đi qua token người dùng.
