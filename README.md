@@ -254,4 +254,5 @@ erDiagram
 - **Google Calendar** ở chế độ Testing: chỉ email nằm trong *Test users* mới kết nối được, và token hết hạn sau 7 ngày. Lên production cần Google xác minh ứng dụng.
 - **Bảo mật:** khóa bí mật chỉ ở server; bảng chứa token Google bật RLS và khóa quyền anon/authenticated; mọi thao tác ghi đi qua token người dùng.
 - Quy ước giao diện và tiến độ tích hợp Google Calendar chi tiết: [CLAUDE.md](CLAUDE.md). Dịch vụ NER: [ner-service/README.md](ner-service/README.md).
+- **Hồ sơ dự án và bằng chứng:** [kế hoạch, vai trò, milestone](docs/project-plan.md) · [biên bản họp](docs/meeting-notes.md) · [wireframe](docs/wireframes.md) · [bảng test giao diện](docs/manual-test.md) · [Lighthouse nhiều trang](docs/lighthouse/README.md) · [góp ý chéo giữa các nhóm](docs/feedback/README.md).
 - **Quy trình:** `main` (ổn định) ← `develop` (tích hợp) ← `feature/...`, mỗi tính năng một nhánh và một Pull Request.
