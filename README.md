@@ -18,17 +18,27 @@ CaRảnh kết nối **chủ quán** (đăng tin tuyển, xếp ca) với **ngư
 
 ## 1. Cách chạy ứng dụng
 
-**Yêu cầu:** Node.js 18 trở lên, một project Supabase (PostgreSQL). Tùy chọn: tài khoản Google Cloud (Google Calendar), Sentry, Google Analytics, Python 3 (dịch vụ NER).
+**Yêu cầu:** Node.js 20.9 trở lên (Next.js yêu cầu; riêng API Express chạy được từ Node 18), một project Supabase (PostgreSQL). Tùy chọn: tài khoản Google Cloud (Google Calendar), Sentry, Google Analytics, Python 3 (dịch vụ NER).
 
 ```bash
 git clone https://github.com/letuanlocc/basic_web.git
 cd basic_web
 npm install
 cp .env.example .env      # rồi điền giá trị thật (xem bảng dưới)
-npm run dev               # mở http://localhost:3000
+npm run dev               # API Express + giao diện tĩnh cũ: http://localhost:3000
 ```
 
-- Nếu báo `EADDRINUSE` thì cổng 3000 đang bị chiếm.
+**Giao diện Next.js** (nhánh `feature/nextjs`, thư mục [web/](web/)): chạy thêm ở terminal thứ hai, cần API ở cổng 3000 đang chạy.
+
+```bash
+npm --prefix web install  # lần đầu
+npm run dev:web           # mở http://localhost:3001 (chuyển tiếp /api/* sang cổng 3000)
+npm run build:web         # build production
+```
+
+Đổi địa chỉ API bằng biến `API_URL` (mặc định `http://localhost:3000`). Chi tiết: [web/README.md](web/README.md).
+
+- Nếu báo `EADDRINUSE` thì cổng 3000 đang bị chiếm (đặt cổng khác: `PORT=3100 npm run dev`, kèm `API_URL=http://localhost:3100` cho giao diện Next.js).
 - Kiểm tra server: `GET /api/health` trả `{ "success": true, "status": "ok" }`.
 - Chạy test: `npm test`.
 
@@ -69,7 +79,11 @@ node scripts/seed-demo.js --check    # kiểm tra lại (chỉ đọc)
 | `GA_MEASUREMENT_ID` | Không | Google Analytics 4, dạng `G-XXXXXXXXXX` |
 | `TRUST_PROXY` | Khi chạy sau proxy (Vercel…) | Đặt `1` |
 | `CORS_ORIGIN` | Không | Danh sách origin được phép, phân tách bằng dấu phẩy |
-| `NER_SERVICE_URL` | Không | Địa chỉ dịch vụ NER; bỏ trống thì tìm ứng viên theo từ khóa thường |
+| `NER_SERVICE_URL` | Không | Địa chỉ dịch vụ NER; bỏ trống thì thanh tìm việc dùng bộ nhận diện dự phòng |
+| `NER_API_KEY` | Không | Khóa gửi kèm khi gọi dịch vụ NER (đặt cùng giá trị ở dịch vụ NER) |
+| `SENTRY_TEST` | Không | Đặt `1` để bật `GET /api/debug-error` (chỉ dùng khi kiểm tra Sentry) |
+| `DEMO_SEED_PASSWORD` | Khi chạy seeder | Mật khẩu chung (từ 12 ký tự) cho 6 tài khoản demo |
+| `API_URL` | Không (chỉ giao diện Next.js) | Địa chỉ API Express để Next.js chuyển tiếp `/api/*`, mặc định `http://localhost:3000` |
 
 Không bao giờ commit `.env` (đã nằm trong `.gitignore`).
 
@@ -81,7 +95,7 @@ Không bao giờ commit `.env` (đã nằm trong `.gitignore`).
 
 | Lớp | Công cụ |
 |---|---|
-| Giao diện | HTML, **Tailwind CSS 3** (class tiện ích cho bố cục) kết hợp CSS component tự viết theo design system (token trong `:root`), JavaScript thuần |
+| Giao diện | **Next.js 16 + React 19** (App Router, thư mục `web/`), và bản HTML/JavaScript thuần cũ trong `public/` (đang giữ song song). Cả hai dùng **Tailwind CSS 3** (class tiện ích cho bố cục) kết hợp CSS component tự viết theo design system (token trong `:root`) |
 | Backend | Node.js, Express, `helmet`, `cors`, `express-rate-limit`, `compression` |
 | Cơ sở dữ liệu | PostgreSQL trên Supabase (RLS, hàm RPC bằng PL/pgSQL), Supabase Auth |
 | Tích hợp | Google Calendar API (`googleapis`, OAuth 2.0 + PKCE) |
@@ -105,7 +119,8 @@ src/
   services/          Nghiệp vụ: sửa tin tuyển, Google Calendar, đồng bộ lịch
   middlewares/       Xác thực, phân quyền, validate, rate limit, xử lý lỗi
   utils/             Quy tắc vị trí, tìm ứng viên, NER, ảnh
-public/              Giao diện tĩnh (20 trang .html) + css/ + js/
+public/              Giao diện tĩnh cũ (20 trang .html) + css/ + js/; Express vẫn phục vụ
+web/                 Giao diện Next.js (App Router): app/ (route), components/, lib/
 supabase/            Script SQL (migration, hàm RPC)
 ner-service/         Dịch vụ Python NER (tùy chọn)
 tests/               Test tự động
@@ -234,6 +249,7 @@ erDiagram
   - Cấu hình: [tailwind.config.js](tailwind.config.js). Màu, bo góc, font lấy đúng từ bộ token thiết kế; khoảng cách mặc định của Tailwind (bước 4 px) khớp thang 4·8·12·16·24·32·48.
   - Tiền tố `tw-` (ví dụ `tw-flex`, `tw-gap-4`) để không trùng tên với CSS sẵn có; tắt Preflight để không đổi giao diện hiện tại; `important` bật để class tiện ích thắng như style nội tuyến trước đây.
   - Nguồn: [tailwind/input.css](tailwind/input.css). Build ra `public/css/tailwind.css` (đã commit, vài KB sau khi loại class không dùng): `npm run build:css` (hoặc `npm run watch:css` khi đang sửa giao diện). Thêm class tiện ích mới vào HTML thì cần build lại.
+- **Chuyển sang Next.js:** [web/](web/) dựng lại đủ 17 trang của `public/` (React, App Router) và dùng chung API Express. Tailwind ở đây cấu hình riêng trong [web/tailwind.config.js](web/tailwind.config.js) (cùng token, cùng tiền tố `tw-`) và build tự động cùng Next, không cần `npm run build:css`. Đường dẫn không còn đuôi `.html` (ví dụ `/jobs/1`). Hạn chế hiện tại: chưa render dữ liệu phía server vì token đăng nhập nằm ở localStorage; `vercel.json` mới cấu hình cho Express nên chưa deploy được bản Next. Chi tiết: [web/README.md](web/README.md).
 - **CSDL:** dùng PostgreSQL (Supabase), không dùng MySQL. Đề bài cho phép MySQL hoặc PostgreSQL.
 - **Google Calendar** ở chế độ Testing: chỉ email nằm trong *Test users* mới kết nối được, và token hết hạn sau 7 ngày. Lên production cần Google xác minh ứng dụng.
 - **Bảo mật:** khóa bí mật chỉ ở server; bảng chứa token Google bật RLS và khóa quyền anon/authenticated; mọi thao tác ghi đi qua token người dùng.
