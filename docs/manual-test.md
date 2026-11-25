@@ -9,10 +9,10 @@ Kết quả dưới đây do Claude chạy thật (riêng ca 7, 8 và phần gi�
 | 1 | Hộp thoại dùng chung | Bấm nút có `data-todo` | Hiện hộp thoại "Tính năng chưa có sẵn" | Gọi `window.crDialog(...)` trên trang Hồ sơ: hộp thoại mở, tiêu đề "Tính năng chưa có sẵn" (bản production không còn nút `data-todo` để bấm) | Đạt |
 | 2 | Hộp thoại | Nhấn Esc khi hộp thoại mở | Hộp thoại đóng | Nhấn Esc: hộp thoại đóng | Đạt |
 | 3 | Hộp thoại | Bấm vào nền tối | Hộp thoại đóng | Bấm nền tối: đóng; bấm nút Đóng: đóng | Đạt |
-| 4 | Đăng ký | Gửi form trống | Báo lỗi tại chỗ, không tự ẩn | Hiện một thông báo chung "Vui lòng điền đủ các ô bắt buộc", không chỉ ra từng ô | Đạt một phần |
+| 4 | Đăng ký | Gửi form trống | Báo lỗi tại chỗ, không tự ẩn | Sau issue #69, Claude chạy bản local (localhost:3001, Chrome headless), chưa chạy trên bản triển khai: cả 5 ô (họ tên, SĐT, email, mật khẩu, nhập lại mật khẩu) viền đỏ, lỗi ngay dưới ô, con trỏ vào ô Họ và tên; sau 6 giây lỗi vẫn còn; không gửi yêu cầu đăng ký. Thử thêm: SĐT "0905 12", email "abc", mật khẩu "123" → chỉ 3 ô đó báo lỗi, con trỏ vào SĐT; chỉ sai nhập lại → "Mật khẩu nhập lại không khớp", con trỏ vào ô đó. 375px không cuộn ngang | Đạt (local) |
 | 5 | Đăng ký | Số điện thoại "0905 12" | Báo lỗi số điện thoại | "Số điện thoại phải gồm 10 chữ số, bắt đầu bằng 0" | Đạt |
 | 6 | Đăng ký | Mật khẩu "123" | Báo lỗi mật khẩu | "Mật khẩu tối thiểu 8 ký tự, gồm cả chữ và số" | Đạt |
-| 7 | Đăng ký | Email hoặc SĐT đã tồn tại | Báo trùng | Lộc tự test: đăng ký bằng email đã dùng, hiện "Email này đã được sử dụng" ngay trên form. Ảnh: `screenshots/test/dang-ky-trung-email.png` | Đạt |
+| 7 | Đăng ký | Email hoặc SĐT đã tồn tại | Báo trùng ngay dưới ô Email hoặc ô SĐT, ô đó viền đỏ và được focus | Trước issue #69, Lộc tự test trên bản triển khai: email đã dùng hiện "Email này đã được sử dụng" ở khung chung trên nút. Ảnh: `screenshots/test/dang-ky-trung-email.png`. Sau issue #69, Claude chạy bản local (localhost:3001) với phản hồi server giả lập, không tạo tài khoản: trùng email → lỗi dưới ô Email, con trỏ vào ô Email; trùng SĐT → "Số điện thoại này đã được đăng ký" dưới ô SĐT; lỗi không thuộc ô nào (quá tải gửi mail, thao tác quá nhanh, lỗi 500) vẫn ở khung chung. Cần test lại trên bản triển khai bằng email và SĐT đã có thật | Đạt (local) |
 | 8 | Đăng nhập | Sai mật khẩu | Báo lỗi tại form | Lộc tự test: sai mật khẩu, hiện "Email/số điện thoại hoặc mật khẩu không đúng" ngay trên form. Ảnh: `screenshots/test/dang-nhap-sai-mat-khau.png` | Đạt |
 | 9 | Đăng nhập | Đúng thông tin | Chuyển tới trang theo vai trò | Thành viên nhóm tự đăng nhập; vào được `my-jobs.html` với tên người dùng ở header | Đạt |
 | 10 | Hồ sơ | Xóa trường bắt buộc rồi lưu | Báo lỗi, không lưu | Xóa họ tên: "Vui lòng nhập họ và tên"; SĐT "123": "Số điện thoại phải gồm 10 chữ số, bắt đầu bằng 0". Không có yêu cầu ghi nào được gửi (đã chặn fetch khi test) | Đạt |
@@ -27,7 +27,7 @@ Kết quả dưới đây do Claude chạy thật (riêng ca 7, 8 và phần gi�
 | 19 | Bàn phím | Tab qua form đăng nhập | Thứ tự hợp lý, thấy viền focus | Trang đăng nhập (chưa đăng nhập, Chrome headless): Tab đi theo thứ tự logo → Đăng ký → Trang chủ → Email → Quên mật khẩu → Mật khẩu → Hiện → Ghi nhớ; mỗi mục có viền focus (outline xanh hoặc bóng đổ) | Đạt |
 
 ## Phát hiện cần sửa
-- Form đăng ký chỉ có một thông báo lỗi chung ở đầu form, chưa báo từng ô (ca 4). Quy ước của dự án là đặt lỗi ngay tại ô người dùng thao tác.
+- ~~Form đăng ký chỉ có một thông báo lỗi chung ở đầu form, chưa báo từng ô (ca 4).~~ Đã sửa trong issue #69 (lỗi đặt dưới từng ô); cần chạy lại ca 4 trên bản triển khai.
 - Cửa sổ trình duyệt điều khiển không đổi được viewport, nên responsive đo bằng Chrome headless (Puppeteer) trên các trang công khai.
 
 Ghi chú: test tự động hiện có (`npm test`) chỉ kiểm phía server; bảng này là bằng chứng cho phần giao diện.
