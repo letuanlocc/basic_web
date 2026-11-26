@@ -6,14 +6,13 @@ Nền tảng việc làm part-time: chủ quán đăng tin tuyển và xếp ca;
 **Sản phẩm bàn giao:** web triển khai trên Vercel, mã nguồn GitHub, README (ERD, ảnh chụp, báo cáo tối ưu), video demo ≤ 10 phút.
 
 ## Vai trò và trách nhiệm
-Thông tin dưới đây rút từ lịch sử commit. **Cả nhóm cần rà lại và sửa cột "Vai trò" cho đúng trước khi nộp.**
 
 | Thành viên | GitHub | Phụ trách (theo commit) |
 |---|---|---|
 | Lê Tuấn Lộc | letuanlocc | Nhóm trưởng; kiến trúc backend Express, giao diện và Tailwind, tối ưu Lighthouse, Sentry/GA4, Next.js, tài liệu |
 | Nguyễn Thanh Tấn Tài | NguyenThanhTanTai, nguyenthanhtan16306-sudo | Lịch làm theo ca, chủ quán chỉnh lịch, giới hạn giờ, sửa tin tuyển |
-| Nguyễn Tuấn Tài (Hades) | hadess-95 | Tích hợp Google Calendar, tìm ứng viên, đơn vị lương, test |
-| Hoàng Bùi Anh Tài | AnhTai0307 | Đăng nhập, đăng ký, hồ sơ, kiểm tra trùng email/SĐT |
+| Nguyễn Tuấn Tài (Hades) | hadess-95 | Tích hợp Google Calendar, tìm ứng viên, đơn vị lương, test, sinh dữ liệu trong supabase | 
+| Hoàng Bùi Anh Tài | AnhTai0307 | Đăng nhập, đăng ký, hồ sơ, kiểm tra trùng email/SĐT, kiểm tra lỗi đăng kí/ đăng nhập, fix giao diện |
 
 ## Cột mốc (milestone)
 Ngày được tính theo hạn nộp bài; chỉnh nếu giảng viên công bố ngày khác.
