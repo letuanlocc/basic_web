@@ -112,7 +112,6 @@ export default function RegisterPage() {
             {busy ? 'Đang tạo tài khoản…' : role === 'employer' ? 'Tiếp tục · Thông tin cửa hàng' : 'Tiếp tục · Hồ sơ người tìm việc'}
           </button>
           <p className="muted small tw-m-0 tw-text-center">Đã có tài khoản? <Link className="tw-font-bold" href="/login">Đăng nhập</Link></p>
-          <p className="tiny muted tw-m-0 tw-text-center">Xem trước bước 2: <Link href="/setup-seeker">hồ sơ người tìm việc</Link> · <Link href="/setup-employer">thông tin cửa hàng</Link></p>
         </form>
       </main>
     </Page>
