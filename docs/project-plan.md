@@ -10,7 +10,8 @@ Nền tảng việc làm part-time: chủ quán đăng tin tuyển và xếp ca;
 | Thành viên | GitHub | Phụ trách (theo commit) |
 |---|---|---|
 | Lê Tuấn Lộc | letuanlocc | Nhóm trưởng; kiến trúc backend Express, giao diện và Tailwind, tối ưu Lighthouse, Sentry/GA4, Next.js, tài liệu |
-| Nguyễn Thanh Tấn Tài | NguyenThanhTanTai, nguyenthanhtan16306-sudo | Lịch làm theo ca, chủ quán chỉnh lịch, giới hạn giờ, sửa tin tuyển |
+| Nguyễn Thanh Tấn Tài | NguyenThanhTanTai | Tin tuyển và hồ sơ cửa hàng | Sửa tin tuyển (giờ có phút, tải ảnh từ máy), kiểm tra hồ sơ cửa hàng trước khi đăng tin; góp ý UI/UX cho nhóm Remi |
+| Nguyễn Thanh Tân | nguyenthanhtan16306-sudo | Lịch làm theo ca | Đăng ký ca, giới hạn giờ theo ngày/tuần, chủ quán chỉnh lịch nhân viên, ghi chú quy định của chủ quán ở trang lịch, test và sửa lỗi tìm việc; video demo |
 | Nguyễn Tuấn Tài (Hades) | hadess-95 | Tích hợp Google Calendar, tìm ứng viên, đơn vị lương, test, sinh dữ liệu trong supabase | 
 | Hoàng Bùi Anh Tài | AnhTai0307 | Đăng nhập, đăng ký, hồ sơ, kiểm tra trùng email/SĐT, kiểm tra lỗi đăng kí/ đăng nhập, fix giao diện |
 
