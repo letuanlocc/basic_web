@@ -2,6 +2,9 @@
 const UNITS = { hour: 'giờ', shift: 'ca', day: 'ngày', month: 'tháng' };
 const number = new Intl.NumberFormat('vi-VN');
 
+// Số tin mỗi lần tải danh sách việc (máy chủ đọc trang đầu, JobList tải tiếp ở trình duyệt)
+export const JOB_PAGE = 12;
+
 export function formatSalary(position) {
   const p = position || {};
   if (p.salary_unit === 'negotiable' || p.salary_amount == null || p.salary_amount === '') return 'Thỏa thuận';
