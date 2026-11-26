@@ -14,7 +14,7 @@ import { BottomNav, Header } from './Header';
 export function Footer({ wide }) {
   if (wide) {
     return (
-      <footer className="foot"><div className="wrap-lg tw-pt-6 tw-pb-6 tw-flex tw-flex-wrap tw-justify-between tw-gap-3 tw-text-ink-3 tw-text-[14px]"><span>© CaRảnh · Bản quyền thuộc nhóm phát triển</span><span>Prototype – dữ liệu mẫu</span></div></footer>
+      <footer className="foot"><div className="wrap-lg tw-pt-6 tw-pb-6 tw-flex tw-flex-wrap tw-justify-between tw-gap-3 tw-text-ink-3 tw-text-[14px]"><span>© CaRảnh · Bản quyền thuộc nhóm phát triển</span></div></footer>
     );
   }
   return (
