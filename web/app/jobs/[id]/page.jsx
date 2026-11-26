@@ -2,9 +2,10 @@
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
+import { useDialog } from '@/components/Dialog';
 import Page from '@/components/Page';
 import { Badge, Empty, Notice, ShopPhotos } from '@/components/ui';
-import { Auth } from '@/lib/auth';
+import { Auth, pub } from '@/lib/auth';
 import { STATUS, dateVN, formatSalary, hh, workDays } from '@/lib/format';
 
 function Items({ title, items }) {
@@ -19,9 +20,12 @@ export default function JobDetailPage() {
   const [msg, setMsg] = useState(null);
   const [busy, setBusy] = useState('');
   const [contact, setContact] = useState(null);
+  const dlg = useDialog();
 
   const load = useCallback(async () => {
     try {
+      // Khách xem được tin tuyển; ứng tuyển, lưu việc, SĐT liên hệ vẫn cần đăng nhập
+      if (!Auth.get()) { setData({ p: await pub('/api/positions/' + id), apps: [], saved: [], emp: null, guest: true }); return; }
       const [p, apps, saved, emp] = await Promise.all([
         Auth.call('GET', '/api/positions/' + id),
         Auth.call('GET', '/api/applications/mine').catch(() => []),
@@ -42,6 +46,10 @@ export default function JobDetailPage() {
   }, [mine && mine.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function run(name, fn) {
+    if (data && data.guest) {
+      dlg.needLogin('Đăng nhập để tiếp tục', 'Bạn cần có tài khoản để ứng tuyển, lưu việc và đăng ký lịch làm.');
+      return;
+    }
     setBusy(name); setMsg(null);
     try { await fn(); } catch (e) { setMsg({ text: e.message }); }
     setBusy('');
@@ -129,7 +137,7 @@ export default function JobDetailPage() {
   }
 
   return (
-    <Page layout="seeker" active="home">
+    <Page layout="seeker" active="home" isPublic>
       <main className="stack">
         <nav className="crumbs" aria-label="Breadcrumb"><Link href="/jobs">Trang chủ</Link> → <span>Chi tiết công việc</span></nav>
         <div>{body}</div>
