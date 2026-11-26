@@ -1,6 +1,7 @@
 # Biên bản họp nhóm
 
 ## Buổi 1 – Duyệt bản prototype đầu tiên và phân vai (28/10/2026)
+- **Hình thức:** họp online qua Messenger.
 - **Tham dự:** cả nhóm (4 thành viên).
 - **Nội dung:**
   - Xem bản prototype đầu tiên của CaRảnh: các màn hình chính cho người tìm việc và chủ quán, cùng bộ token thiết kế (màu, chữ, bo góc).
@@ -11,6 +12,7 @@
 - **Việc tiếp theo:** hoàn thiện prototype và dựng lược đồ CSDL trên Supabase trước buổi chốt.
 
 ## Buổi 2 – Chốt wireframe và lược đồ CSDL (09/11/2026)
+- **Hình thức:** họp online qua Messenger.
 - **Tham dự:** cả nhóm (4 thành viên).
 - **Nội dung:**
   - Duyệt lại wireframe/prototype ([wireframes.md](wireframes.md)).
