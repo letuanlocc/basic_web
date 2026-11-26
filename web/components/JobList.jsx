@@ -99,13 +99,12 @@ export default function JobList({ variant }) {
     </section>
   );
   const aiChips = (
-    <div className="chips" role="group" aria-label="Bộ lọc từ AI" hidden={!chips.length && !ai.times.length}>
+    <div className="chips" role="group" aria-label="Bộ lọc từ AI" hidden={!chips.length}>
       {chips.map(([label, text, key, i]) => (
         <button key={key + i} type="button" className="chip" aria-pressed="true" aria-label={'Bỏ lọc ' + label + ' ' + text} onClick={() => removeChip(key, i)}>
           {label}: {text} ✕
         </button>
       ))}
-      {ai.times.length ? <span className="tiny muted">Thời gian nhận ra: {ai.times.join(', ')} (chưa lọc được)</span> : null}
     </div>
   );
   const results = (
