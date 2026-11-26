@@ -1,22 +1,24 @@
 'use client';
 // Danh sách việc + tìm bằng AI (NER) + chip bộ lọc. Dùng cho trang chủ (khách) và /jobs (người tìm việc).
+// initial: trang đầu (bộ lọc mặc định) đã đọc sẵn trên máy chủ; null/không truyền thì tự tải ở trình duyệt.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { pub } from '@/lib/auth';
+import { JOB_PAGE as LIMIT } from '@/lib/format';
 import JobCard from './JobCard';
 import { useSearch, useSearchHandlers } from './Search';
 import { Empty, Notice } from './ui';
 
-const LIMIT = 12;
 const FILTERS = [['all', 'Tất cả'], ['online', 'Online'], ['offline', 'Offline'], ['salary', 'Lương cao nhất']];
 const NO_AI = { q: '', skills: [], jobs: [], loc: '', times: [] };
 
-export default function JobList({ variant }) {
+export default function JobList({ variant, initial = null }) {
   const search = useSearch();
   const [filter, setFilter] = useState('all');
   const [ai, setAi] = useState(NO_AI); // q = cụm gõ tay/từ khóa còn lại; jobs, skills, loc, times = từ NER
-  const [rows, setRows] = useState([]);
-  const [more, setMore] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [rows, setRows] = useState(initial || []);
+  const [more, setMore] = useState(!!initial && initial.length === LIMIT);
+  const [loading, setLoading] = useState(!initial);
+  const fromServer = useRef(initial); // dùng một lần cho lần hiển thị đầu
   const [err, setErr] = useState(null);
   const reqId = useRef(0);
   const typing = useRef(null);
@@ -35,6 +37,7 @@ export default function JobList({ variant }) {
 
   // Tải lại từ đầu mỗi khi đổi bộ lọc
   useEffect(() => {
+    if (fromServer.current) { fromServer.current = null; return; } // đã có dữ liệu từ máy chủ
     const id = ++reqId.current;
     setLoading(true);
     pub(url(0)).then((d) => {
