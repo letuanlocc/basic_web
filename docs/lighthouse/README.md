@@ -12,14 +12,19 @@
 | Chi tiết việc `/job-detail.html?id=14` | Mobile | 94 | 100 | 100 | 100 | 2,4 s | 2,4 s | 50 ms | 0 |
 | Giới thiệu `/overview.html` | Desktop | 98 | 100 | 100 | 100 | 0,9 s | 1,0 s | 0 ms | 0,001 |
 | Giới thiệu `/overview.html` | Mobile | 89 | 100 | 100 | 100 | 2,6 s | 3,2 s | 110 ms | 0 |
+| [Tìm ứng viên `/candidates.html`](candidates-desktop-2026-11-26.html) | Desktop | 100 | 98 | 96 | 100 | 0,4 s | 0,5 s | 30 ms | 0,014 |
+| [Lịch làm `/schedule.html`](schedule-desktop-2026-11-26.html) | Desktop | 100 | 100 | 96 | 100 | 0,3 s | 0,4 s | 30 ms | 0,019 |
 
 ## Nhận xét
 - Điểm Performance trên mobile thấp hơn desktop vì Lighthouse mô phỏng CPU chậm 4× và mạng 4G chậm. Trang chủ mobile thấp nhất (79) do TBT 430 ms.
 - CLS desktop của trang chủ và danh sách việc còn ~0,085 (vẫn trong ngưỡng "tốt" < 0,1) do danh sách việc nạp từ API rồi mới dựng.
 - Hướng cải thiện tiếp: giảm JS chạy lúc tải trang chủ trên mobile (TBT), chừa chiều cao cho danh sách việc.
 
-## Chưa đo (cần đăng nhập)
-Tìm ứng viên (`candidates.html`) và lịch làm (`schedule.html`) cần tài khoản nên Lighthouse CLI không đo được. Cách đo: đăng nhập trên Chrome, mở trang, DevTools → Lighthouse, **bỏ chọn "Clear storage"**, chạy rồi lưu báo cáo/ảnh vào thư mục này và bổ sung hai dòng vào bảng trên.
+## Hai trang cần đăng nhập
+
+Đo ngày 26/11/2026 trên cùng bản triển khai bằng Lighthouse 12.8.2 và Chrome 158 ở chế độ desktop. Dùng tài khoản demo chủ quán để đo Tìm ứng viên và tài khoản demo người tìm việc để đo Lịch làm. Lighthouse giữ phiên với `disableStorageReset: true`, tương đương bỏ chọn **Clear storage** trong DevTools.
+
+Đã kiểm tra đúng URL, danh sách ứng viên và lưới ca tải thành công. Hai báo cáo HTML lược bỏ ảnh chụp và đoạn HTML của các phần tử để tránh lưu thông tin hiển thị trong phiên đăng nhập. Bảng dùng giá trị đã làm tròn theo cách Lighthouse hiển thị.
 
 ## Bản Next.js (bản chính)
 Đo ngày 26/11/2026 trên https://basic-web-verson2.vercel.app, cùng cách đo như trên. Báo cáo đầy đủ: các file `next-*-2026-11-26.html` cùng thư mục.
