@@ -1,10 +1,25 @@
 import Link from 'next/link';
 import Page from '@/components/Page';
 import { IconShop, IconUser } from '@/components/Icons';
+import JobCard from '@/components/JobCard';
 
 export const metadata = {
   title: 'Giới thiệu chức năng · CaRảnh',
   description: 'Giới thiệu các chức năng của CaRảnh dành cho người tìm việc và chủ quán.',
+};
+
+// Thẻ minh họa cho phần giới thiệu, không phải tin tuyển thật.
+const sampleJob = {
+  title: 'Phục vụ ca tối',
+  shop_name: 'Quán cà phê minh họa',
+  mode: 'offline',
+  salary_unit: 'hour',
+  salary_amount: 25000,
+  work_days: [0, 2, 4],
+  open_hour: 17.5,
+  close_hour: 22,
+  address: 'Hải Châu, Đà Nẵng',
+  summary: 'Đón khách, ghi món và dọn bàn. Không cần kinh nghiệm, được hướng dẫn ngày đầu.',
 };
 
 const steps = [
@@ -28,7 +43,7 @@ export default function OverviewPage() {
           </div>
           <div className="tw-flex tw-flex-col tw-gap-2.5 tw-justify-self-center tw-w-full tw-max-w-[420px]">
             <span className="tiny tw-font-bold tw-tracking-[.08em] tw-text-ink-3">THẺ VIỆC LÀM MẪU</span>
-            <article className="panel tw-p-6 tw-border-line-2"><div className="empty" role="status"><strong className="tw-text-[16px]">Chưa có dữ liệu</strong></div></article>
+            <JobCard p={sampleJob} preview />
           </div>
         </section>
 
