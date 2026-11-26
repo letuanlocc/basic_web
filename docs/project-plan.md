@@ -7,12 +7,12 @@ Nền tảng việc làm part-time: chủ quán đăng tin tuyển và xếp ca;
 
 ## Vai trò và trách nhiệm
 
-| Thành viên | GitHub | Vai trò | Trách nhiệm chính |
-|---|---|---|---|
-| Lê Tuấn Lộc | letuanlocc | Nhóm trưởng · Backend và triển khai | Kiến trúc Express + Supabase, giao diện chung và Tailwind, chuyển sang Next.js, triển khai Vercel, tối ưu Lighthouse, Sentry và GA4, README và ERD, quản lý issue và duyệt PR |
-| Nguyễn Thanh Tấn Tài | NguyenThanhTanTai, nguyenthanhtan16306-sudo | Lịch làm và tin tuyển | Đăng ký ca, giới hạn giờ theo ngày/tuần, chủ quán chỉnh lịch nhân viên, sửa tin tuyển (giờ có phút, tải ảnh từ máy); góp ý UI/UX cho nhóm Remi; video demo |
-| Nguyễn Tuấn Tài (Hades) | hadess-95 | Tích hợp và dữ liệu | Tích hợp Google Calendar, tìm ứng viên cho chủ quán, hiển thị lương theo đơn vị, dữ liệu mẫu trên Supabase, test; góp ý UI/UX cho nhóm NutriVN; đo Lighthouse các trang cần đăng nhập |
-| Hoàng Bùi Anh Tài | AnhTai0307 | Tài khoản và kiểm thử giao diện | Đăng nhập, đăng ký, hồ sơ, kiểm tra trùng email/SĐT, báo lỗi tại từng ô của form đăng ký, kiểm thử form và sửa giao diện |
+| Thành viên | GitHub | Phụ trách (theo commit) |
+|---|---|---|
+| Lê Tuấn Lộc | letuanlocc | Nhóm trưởng; kiến trúc backend Express, giao diện và Tailwind, tối ưu Lighthouse, Sentry/GA4, Next.js, tài liệu |
+| Nguyễn Thanh Tấn Tài | NguyenThanhTanTai, nguyenthanhtan16306-sudo | Lịch làm theo ca, chủ quán chỉnh lịch, giới hạn giờ, sửa tin tuyển |
+| Nguyễn Tuấn Tài (Hades) | hadess-95 | Tích hợp Google Calendar, tìm ứng viên, đơn vị lương, test, sinh dữ liệu trong supabase | 
+| Hoàng Bùi Anh Tài | AnhTai0307 | Đăng nhập, đăng ký, hồ sơ, kiểm tra trùng email/SĐT, kiểm tra lỗi đăng kí/ đăng nhập, fix giao diện |
 
 ## Cột mốc (milestone)
 Ngày được tính theo hạn nộp bài; chỉnh nếu giảng viên công bố ngày khác.
