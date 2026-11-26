@@ -1,7 +1,7 @@
 # CaRảnh – nền tảng việc làm part-time
 
 VIDEO DEMO:
-- **Video demo:** [Xem video demo tại đây](https://drive.google.com/file/d/1SjMigE55pbjbYLzDuvww7NASRXISx-vt/view?usp=sharing)
+- **Video demo:** [Xem video demo tại đây]https://drive.google.com/file/d/1ZceXvuFwko0nbYToEqrXqQV1XSpz3w4W/view?usp=sharing)
 
 CaRảnh kết nối **chủ quán** (đăng tin tuyển, xếp ca) với **người tìm việc** (ứng tuyển, đăng ký ca làm, đồng bộ lịch sang Google Calendar).
 
