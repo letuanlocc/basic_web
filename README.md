@@ -8,7 +8,6 @@ CaRảnh kết nối **chủ quán** (đăng tin tuyển, xếp ca) với **ngư
 - **Triển khai (bản chính, Next.js):** https://basic-web-verson2.vercel.app
 - **API Express và bản HTML cũ:** https://basic-web-rho.vercel.app (bản Next chuyển tiếp mọi `/api/*` sang đây, nên project này phải luôn chạy)
 - **Mã nguồn:** https://github.com/letuanlocc/basic_web
-- **Video demo:** **[CẦN BỔ SUNG: link YouTube/MP4, tối đa 10 phút, tối thiểu 720p]**
 
 ## Mục lục
 1. [Cách chạy ứng dụng](#1-cách-chạy-ứng-dụng)
