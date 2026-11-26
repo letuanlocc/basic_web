@@ -1,8 +1,7 @@
 'use client';
 // Danh sách việc + tìm bằng AI (NER) + chip bộ lọc. Dùng cho trang chủ (khách) và /jobs (người tìm việc).
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Auth, pub } from '@/lib/auth';
-import { useDialog } from './Dialog';
+import { pub } from '@/lib/auth';
 import JobCard from './JobCard';
 import { useSearch, useSearchHandlers } from './Search';
 import { Empty, Notice } from './ui';
@@ -12,7 +11,6 @@ const FILTERS = [['all', 'Tất cả'], ['online', 'Online'], ['offline', 'Offli
 const NO_AI = { q: '', skills: [], jobs: [], loc: '', times: [] };
 
 export default function JobList({ variant }) {
-  const dlg = useDialog();
   const search = useSearch();
   const [filter, setFilter] = useState('all');
   const [ai, setAi] = useState(NO_AI); // q = cụm gõ tay/từ khóa còn lại; jobs, skills, loc, times = từ NER
@@ -20,7 +18,6 @@ export default function JobList({ variant }) {
   const [more, setMore] = useState(false);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(null);
-  const [loggedIn, setLoggedIn] = useState(false);
   const reqId = useRef(0);
   const typing = useRef(null);
 
@@ -34,7 +31,7 @@ export default function JobList({ variant }) {
     ai.jobs.concat(ai.skills).map((t) => '&t=' + encodeURIComponent(t)).join('') +
     (ai.loc ? '&loc=' + encodeURIComponent(ai.loc) : ''), [sort, mode, ai]);
 
-  useEffect(() => { setLoggedIn(!!Auth.get()); search.setValue(''); return () => clearTimeout(typing.current); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { search.setValue(''); return () => clearTimeout(typing.current); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Tải lại từ đầu mỗi khi đổi bộ lọc
   useEffect(() => {
@@ -111,7 +108,7 @@ export default function JobList({ variant }) {
     <>
       <Notice msg={err ? { text: err } : null} />
       <div className="grid-cards">
-        {rows.map((p) => <JobCard key={p.id} p={p} loggedIn={loggedIn} onGate={dlg.gate} />)}
+        {rows.map((p) => <JobCard key={p.id} p={p} />)}
       </div>
       {!loading && !err && rows.length === 0 && <Empty title="Chưa có việc phù hợp" sub="Thử bỏ bớt bộ lọc hoặc đổi từ khóa tìm kiếm." />}
       <div className="row tw-justify-center"><button type="button" className="btn" hidden={!more} disabled={loading} onClick={loadMore}>Xem thêm</button></div>

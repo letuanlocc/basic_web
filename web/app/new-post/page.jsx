@@ -255,7 +255,7 @@ function NewPostForm() {
 
   const draft = read();
   const preview = useMemo(() => (draft.title ? (
-    <JobCard preview loggedIn p={{
+    <JobCard preview p={{
       id: '', title: draft.title, shop_name: (shop && shop.name) || '', mode: draft.mode, salary_amount: draft.salary_amount, salary_unit: draft.salary_unit,
       work_days: draft.work_days, open_hour: draft.open_hour, close_hour: draft.close_hour, address: draft.address, summary: draft.summary,
     }} />
