@@ -179,7 +179,7 @@ export default function SchedulePage() {
         ? <ScheduleGrid cells={cells} sel={busySel} edit busy={elsewhere} mode="busy" onToggle={toggle} />
         : <ScheduleGrid cells={cells} sel={sel} edit busy={busy} onToggle={toggle} />}
       {smsg ? <p className={('msg ' + smsg.kind).trim()} role="status">{smsg.text}</p> : null}
-      <div className="row" style={{ justifyContent: 'flex-end' }}>
+      <div className="row tw-justify-end">
         {isBusy
           ? <button type="button" className="btn btn-primary btn-lg" disabled={saving === 'busy'} onClick={saveBusy}>{saving === 'busy' ? 'Đang lưu…' : 'Lưu ca bận'}</button>
           : <button type="button" className="btn btn-primary btn-lg" disabled={saving === 'shift' || !!(notice && notice.kind === 'err')} onClick={saveShifts}>{saving === 'shift' ? 'Đang lưu…' : 'Lưu lịch làm'}</button>}
@@ -191,9 +191,9 @@ export default function SchedulePage() {
     <Page layout="seeker" active="schedule">
       <main className="stack">
         <nav className="crumbs" aria-label="Breadcrumb"><Link href="/jobs">Trang chủ</Link> → <Link href="/my-jobs">Xem công việc</Link> → <span>Đăng ký lịch làm</span></nav>
-        <h1 style={{ margin: 0, fontSize: 26 }}>Đăng ký lịch làm</h1>
+        <h1 className="tw-m-0 tw-text-[26px]">Đăng ký lịch làm</h1>
         <GoogleCalendar savedRef={savedRef} />
-        <div className="row between">
+        <div className="tw-flex tw-flex-wrap tw-items-center tw-justify-between tw-gap-x-4 tw-gap-y-2.5">
           <div className="tabs pill" role="tablist">
             {[['Tuần này', 0], ['Tuần sau', 1]].map(([t, w]) => <button key={w} type="button" role="tab" aria-selected={week === w} onClick={() => setWeek(w)}>{t}</button>)}
           </div>
