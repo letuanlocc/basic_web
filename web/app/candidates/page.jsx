@@ -21,8 +21,11 @@ function CandidateCard({ c }) {
   const sl = (c.availability || []).map((a) => SLOT[a.slot] || a.slot);
   return (
     <article className="card">
-      <div className="card-head"><Avatar c={c} />
-        <div className="grow"><h3>{candidateName(c)}</h3><p>{meta.join(' · ')}</p></div>
+      <div className="tw-flex tw-items-start tw-gap-3"><Avatar c={c} />
+        <div className="tw-min-w-0 tw-flex-1">
+          <h3 className="tw-m-0 tw-text-[16px] tw-font-semibold tw-leading-[1.35]">{candidateName(c)}</h3>
+          <p className="tw-mx-0 tw-mb-0 tw-mt-0.5 tw-text-[14px] tw-text-ink-3">{meta.join(' · ')}</p>
+        </div>
         <Badge kind={c.has_experience ? 'ok' : ''}>{c.has_experience ? 'Có kinh nghiệm' : 'Chưa có kinh nghiệm'}</Badge></div>
       <dl className="facts"><dt>Ngoại ngữ</dt><dd>{LANG[c.language_level] || '—'}</dd><dt>Thời gian rảnh</dt><dd>{sl.join(', ') || '—'}</dd></dl>
       {c.availability_note ? <p className="desc">{c.availability_note}</p> : null}
@@ -73,10 +76,11 @@ function Candidates() {
 
   return (
     <main className="stack">
+      <h1 className="sr-only">Tìm ứng viên</h1>
       <section className="panel" aria-labelledby="flt">
         <div className="row between"><h2 id="flt">Lọc và sắp xếp ứng viên</h2>
           <button type="button" className="btn btn-sm" onClick={() => { setFilter(NO_FILTER); search.setValue(''); setQ(''); }}>Xóa bộ lọc</button></div>
-        <div className="cols" style={{ gridTemplateColumns: 'repeat(auto-fit,minmax(min(100%,220px),1fr))', alignItems: 'end' }}>
+        <div className="tw-grid tw-grid-cols-[repeat(auto-fit,minmax(min(100%,220px),1fr))] tw-items-end tw-gap-4">
           <fieldset><legend>Hình thức muốn làm</legend>
             <div className="chips">{MODES.map(([v, t]) => <button key={v} type="button" className="chip" aria-pressed={filter.mode === v} onClick={() => set('mode', filter.mode === v ? '' : v)}>{t}</button>)}</div></fieldset>
           <fieldset><legend>Thời gian rảnh (chọn nhiều)</legend>
@@ -94,11 +98,15 @@ function Candidates() {
             <select id="fsort" value={filter.sort} onChange={(e) => set('sort', e.target.value)}><option value="updated">Mới cập nhật hồ sơ</option><option value="experience">Có kinh nghiệm trước</option><option value="age">Tuổi tăng dần</option></select></div>
         </div>
       </section>
-      <div className="title-row"><h1>Những ứng viên tiềm năng</h1><span className="muted small" aria-live="polite">{count}</span></div>
+      <div className="title-row"><h2 className="tw-m-0 tw-text-[24px] tw-font-bold tw-tracking-[-.01em]">Những ứng viên tiềm năng</h2><span className="muted small" aria-live="polite">{count}</span></div>
       <div aria-busy={loading}>
         {loading ? <p className="muted" role="status">Đang tìm ứng viên…</p>
           : error ? <p className="msg err" role="alert">Không tải được danh sách ứng viên: {error}</p>
-            : rows.length ? <div className="grid-cards">{rows.map((c) => <CandidateCard key={c.user_id} c={c} />)}</div>
+            : rows.length ? (
+              <div className="tw-grid tw-grid-cols-[repeat(auto-fill,minmax(min(100%,340px),1fr))] tw-gap-4">
+                {rows.map((c) => <CandidateCard key={c.user_id} c={c} />)}
+              </div>
+            )
               : <Empty title="Không có ứng viên phù hợp" sub="Thử đổi từ khóa hoặc bỏ bớt bộ lọc." />}
       </div>
     </main>

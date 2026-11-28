@@ -18,5 +18,5 @@ Prototype gốc (design system + 9 màn hình mẫu) được xuất ra PDF và 
 Các trang còn lại (đăng tin, lịch làm, chi tiết việc…) dựng theo cùng design system ở mục 1.
 
 ## Việc cần làm tay
-- [ ] Ghi buổi nhóm duyệt/chốt wireframe vào [meeting-notes.md](meeting-notes.md).
+- [x] Ghi buổi nhóm duyệt/chốt wireframe vào [meeting-notes.md](meeting-notes.md) (buổi 09/11/2026).
 - [ ] (Tùy chọn) Thêm wireframe cho các trang còn lại: đăng tin, lịch làm, chi tiết việc.

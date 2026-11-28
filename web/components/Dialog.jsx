@@ -14,15 +14,17 @@ export function DialogProvider({ children }) {
 
   // open({ title, body, actions }): actions là node React; bỏ trống thì có nút "Đã hiểu"
   const open = useCallback((d) => setDlg(d), []);
-  // Đòi đăng nhập (thay data-gate)
-  const gate = useCallback(() => setDlg({
-    title: 'Đăng nhập để xem chi tiết',
-    body: 'Bạn cần có tài khoản để xem chi tiết công việc, ứng tuyển và đăng ký lịch làm.',
+  // Đòi đăng nhập (thay data-gate); needLogin cho phép đổi tiêu đề và lời nhắn
+  const needLogin = useCallback((title, body) => setDlg({
+    title,
+    body,
     actions: (<>
       <Link href="/login" className="btn btn-primary btn-block" style={{ marginTop: 4 }} onClick={close}>Đăng nhập</Link>
       <Link href="/register" className="btn btn-block" onClick={close}>Tạo tài khoản mới</Link>
     </>),
   }), [close]);
+  const gate = useCallback(() => needLogin('Đăng nhập để xem chi tiết',
+    'Bạn cần có tài khoản để xem chi tiết công việc, ứng tuyển và đăng ký lịch làm.'), [needLogin]);
   // Tính năng chưa làm (thay data-todo)
   const todo = useCallback((name) => setDlg({
     title: 'Tính năng chưa có sẵn',
@@ -39,7 +41,7 @@ export function DialogProvider({ children }) {
   }, [dlg, close]);
 
   return (
-    <Ctx.Provider value={{ open, close, gate, todo }}>
+    <Ctx.Provider value={{ open, close, gate, needLogin, todo }}>
       {children}
       <div className="overlay" hidden={!dlg} onClick={(e) => { if (e.target === e.currentTarget) close(); }}>
         {dlg && (

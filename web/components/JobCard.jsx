@@ -1,15 +1,14 @@
 'use client';
 // Thẻ việc. Thứ tự thông tin cố định: ai tuyển → hình thức → lương, thời gian, địa điểm → mô tả ngắn → hành động.
+// Trang chi tiết xem công khai được nên khách cũng mở thẳng link.
 import Link from 'next/link';
 import { formatSalary, whenText } from '@/lib/format';
 import { Badge } from './ui';
 
-export default function JobCard({ p, loggedIn, onGate, preview }) {
+export default function JobCard({ p, preview }) {
   const link = preview
     ? <span className="btn push" aria-hidden="true">Xem chi tiết</span>
-    : loggedIn
-    ? <Link className="btn push" href={'/jobs/' + encodeURIComponent(p.id)}>Xem chi tiết</Link>
-    : <button type="button" className="btn push" onClick={onGate}>Xem chi tiết</button>;
+    : <Link className="btn push" href={'/jobs/' + encodeURIComponent(p.id)}>Xem chi tiết</Link>;
   return (
     <article className="card">
       <div className="card-head">

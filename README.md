@@ -6,8 +6,17 @@ VIDEO DEMO overview web:
 # CaRảnh – nền tảng việc làm part-time
 
 VIDEO DEMO:
+<<<<<<< HEAD
 - **Video demo (Responsive & Full flows):** [Xem video demo tại đây](https://drive.google.com/file/d/1ZceXvuFwko0nbYToEqrXqQV1XSpz3w4W/view?usp=drive_link)
 
+=======
+- **Video demo:** [Xem video demo tại đây](https://drive.google.com/file/d/1ZceXvuFwko0nbYToEqrXqQV1XSpz3w4W/view)
+
+# CaRảnh – nền tảng việc làm part-time
+
+VIDEO DEMO:
+- **Video demo (Responsive & Full flows):** [Xem video demo tại đây](https://drive.google.com/file/d/1hJqlpztSydm7blMuIjVYPvLhjAthCnor/view?usp=sharing)
+>>>>>>> main
 
 CaRảnh kết nối **chủ quán** (đăng tin tuyển, xếp ca) với **người tìm việc** (ứng tuyển, đăng ký ca làm, đồng bộ lịch sang Google Calendar).
 
@@ -93,6 +102,7 @@ node scripts/seed-demo.js --check    # kiểm tra lại (chỉ đọc)
 | `SENTRY_TEST` | Không | Đặt `1` để bật `GET /api/debug-error` (chỉ dùng khi kiểm tra Sentry) |
 | `DEMO_SEED_PASSWORD` | Khi chạy seeder | Mật khẩu chung (từ 12 ký tự) cho 6 tài khoản demo |
 | `API_URL` | Không (chỉ giao diện Next.js) | Địa chỉ API Express để Next.js chuyển tiếp `/api/*`, mặc định `http://localhost:3000` |
+| `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` (project Next.js) | Không (nên có) | Cho máy chủ Next.js đọc tin tuyển công khai trực tiếp từ Supabase ở `/jobs` và `/jobs/[id]`. Dùng publishable key như backend, không dùng secret key. Bỏ trống thì máy chủ Next.js đọc qua `API_URL`. Mẫu: [web/.env.example](web/.env.example) |
 
 Không bao giờ commit `.env` (đã nằm trong `.gitignore`).
 
@@ -133,7 +143,7 @@ web/                 Giao diện Next.js (App Router): app/ (route), components/
 supabase/            Script SQL (migration, hàm RPC)
 ner-service/         Dịch vụ Python NER (tùy chọn)
 tests/               Test tự động
-docs/                Tài liệu: ERD, hướng dẫn dữ liệu mẫu, ảnh chụp màn hình, mẫu self-report
+docs/                Tài liệu: ERD, kế hoạch dự án, biên bản họp, wireframe, test giao diện, Lighthouse, góp ý chéo
 ```
 
 ---
@@ -258,10 +268,10 @@ erDiagram
   - Cấu hình: [tailwind.config.js](tailwind.config.js). Màu, bo góc, font lấy đúng từ bộ token thiết kế; khoảng cách mặc định của Tailwind (bước 4 px) khớp thang 4·8·12·16·24·32·48.
   - Tiền tố `tw-` (ví dụ `tw-flex`, `tw-gap-4`) để không trùng tên với CSS sẵn có; tắt Preflight để không đổi giao diện hiện tại; `important` bật để class tiện ích thắng như style nội tuyến trước đây.
   - Nguồn: [tailwind/input.css](tailwind/input.css). Build ra `public/css/tailwind.css` (đã commit, vài KB sau khi loại class không dùng): `npm run build:css` (hoặc `npm run watch:css` khi đang sửa giao diện). Thêm class tiện ích mới vào HTML thì cần build lại.
-- **Chuyển sang Next.js:** [web/](web/) dựng lại đủ 17 trang của `public/` (React, App Router) và dùng chung API Express. Tailwind ở đây cấu hình riêng trong [web/tailwind.config.js](web/tailwind.config.js) (cùng token, cùng tiền tố `tw-`) và build tự động cùng Next, không cần `npm run build:css`. Đường dẫn không còn đuôi `.html` (ví dụ `/jobs/1`). **Đã deploy** thành project Vercel thứ hai với Root Directory `web` và biến môi trường `API_URL` trỏ tới project Express (`next.config.mjs` đọc biến này lúc build, nên đổi `API_URL` thì phải Redeploy). Hạn chế: chưa render dữ liệu phía server vì token đăng nhập nằm ở localStorage; Google Calendar và đặt lại mật khẩu mới khai báo redirect cho domain Express cũ. Chi tiết: [web/README.md](web/README.md).
+- **Chuyển sang Next.js:** [web/](web/) dựng lại đủ 17 trang của `public/` (React, App Router) và dùng chung API Express. Tailwind ở đây cấu hình riêng trong [web/tailwind.config.js](web/tailwind.config.js) (cùng token, cùng tiền tố `tw-`) và build tự động cùng Next, không cần `npm run build:css`. Đường dẫn không còn đuôi `.html` (ví dụ `/jobs/1`). **Đã deploy** thành project Vercel thứ hai với Root Directory `web` và biến môi trường `API_URL` trỏ tới project Express (`next.config.mjs` đọc biến này lúc build, nên đổi `API_URL` thì phải Redeploy). **Đọc dữ liệu phía máy chủ:** `/jobs` và `/jobs/[id]` là Server Component, đọc tin tuyển từ Supabase ngay trên máy chủ Next.js ([web/lib/positions-server.js](web/lib/positions-server.js)) rồi trả về trang đã có dữ liệu, kèm `<title>` riêng; `/jobs/abc` trả 404. Phần cần biết ai đang xem (ứng tuyển, lưu việc, người liên hệ) là component client ([JobPanel.jsx](web/app/jobs/[id]/JobPanel.jsx)); tìm kiếm, lọc và "Xem thêm" ở `/jobs` vẫn chạy trong trình duyệt. Hạn chế: các trang cần đăng nhập vẫn tải dữ liệu ở trình duyệt vì token đăng nhập nằm ở localStorage; Google Calendar và đặt lại mật khẩu mới khai báo redirect cho domain Express cũ. Chi tiết: [web/README.md](web/README.md).
 - **CSDL:** dùng PostgreSQL (Supabase), không dùng MySQL. Đề bài cho phép MySQL hoặc PostgreSQL.
 - **Google Calendar** ở chế độ Testing: chỉ email nằm trong *Test users* mới kết nối được, và token hết hạn sau 7 ngày. Lên production cần Google xác minh ứng dụng.
 - **Bảo mật:** khóa bí mật chỉ ở server; bảng chứa token Google bật RLS và khóa quyền anon/authenticated; mọi thao tác ghi đi qua token người dùng.
 - Quy ước giao diện và tiến độ tích hợp Google Calendar chi tiết: [CLAUDE.md](CLAUDE.md). Dịch vụ NER: [ner-service/README.md](ner-service/README.md).
-- **Hồ sơ dự án và bằng chứng:** [kế hoạch, vai trò, milestone](docs/project-plan.md) · [biên bản họp](docs/meeting-notes.md) · [wireframe](docs/wireframes.md) · [bảng test giao diện](docs/manual-test.md) · [Lighthouse nhiều trang](docs/lighthouse/README.md) · [góp ý chéo giữa các nhóm](docs/feedback/README.md).
+- **Hồ sơ dự án và bằng chứng:** [kế hoạch, vai trò, milestone](docs/project-plan.md) · [biên bản họp](docs/meeting-notes.md) · [wireframe](docs/wireframes.md) · [bảng test giao diện](docs/manual-test.md) · [Lighthouse nhiều trang](docs/lighthouse/README.md) · [góp ý chéo](docs/feedback/README.md) ([đã gửi](docs/feedback/given.md), [nhận được](docs/feedback/received.md)).
 - **Quy trình:** `main` (ổn định) ← `develop` (tích hợp) ← `feature/...`, mỗi tính năng một nhánh và một Pull Request.

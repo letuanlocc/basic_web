@@ -1,26 +1,25 @@
 'use client';
 // Danh sách việc + tìm bằng AI (NER) + chip bộ lọc. Dùng cho trang chủ (khách) và /jobs (người tìm việc).
+// initial: trang đầu (bộ lọc mặc định) đã đọc sẵn trên máy chủ; null/không truyền thì tự tải ở trình duyệt.
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Auth, pub } from '@/lib/auth';
-import { useDialog } from './Dialog';
+import { pub } from '@/lib/auth';
+import { JOB_PAGE as LIMIT } from '@/lib/format';
 import JobCard from './JobCard';
 import { useSearch, useSearchHandlers } from './Search';
 import { Empty, Notice } from './ui';
 
-const LIMIT = 12;
 const FILTERS = [['all', 'Tất cả'], ['online', 'Online'], ['offline', 'Offline'], ['salary', 'Lương cao nhất']];
 const NO_AI = { q: '', skills: [], jobs: [], loc: '', times: [] };
 
-export default function JobList({ variant }) {
-  const dlg = useDialog();
+export default function JobList({ variant, initial = null }) {
   const search = useSearch();
   const [filter, setFilter] = useState('all');
   const [ai, setAi] = useState(NO_AI); // q = cụm gõ tay/từ khóa còn lại; jobs, skills, loc, times = từ NER
-  const [rows, setRows] = useState([]);
-  const [more, setMore] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [rows, setRows] = useState(initial || []);
+  const [more, setMore] = useState(!!initial && initial.length === LIMIT);
+  const [loading, setLoading] = useState(!initial);
+  const fromServer = useRef(initial); // dùng một lần cho lần hiển thị đầu
   const [err, setErr] = useState(null);
-  const [loggedIn, setLoggedIn] = useState(false);
   const reqId = useRef(0);
   const typing = useRef(null);
 
@@ -34,10 +33,11 @@ export default function JobList({ variant }) {
     ai.jobs.concat(ai.skills).map((t) => '&t=' + encodeURIComponent(t)).join('') +
     (ai.loc ? '&loc=' + encodeURIComponent(ai.loc) : ''), [sort, mode, ai]);
 
-  useEffect(() => { setLoggedIn(!!Auth.get()); search.setValue(''); return () => clearTimeout(typing.current); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { search.setValue(''); return () => clearTimeout(typing.current); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Tải lại từ đầu mỗi khi đổi bộ lọc
   useEffect(() => {
+    if (fromServer.current) { fromServer.current = null; return; } // đã có dữ liệu từ máy chủ
     const id = ++reqId.current;
     setLoading(true);
     pub(url(0)).then((d) => {
@@ -99,20 +99,19 @@ export default function JobList({ variant }) {
     </section>
   );
   const aiChips = (
-    <div className="chips" role="group" aria-label="Bộ lọc từ AI" hidden={!chips.length && !ai.times.length}>
+    <div className="chips" role="group" aria-label="Bộ lọc từ AI" hidden={!chips.length}>
       {chips.map(([label, text, key, i]) => (
         <button key={key + i} type="button" className="chip" aria-pressed="true" aria-label={'Bỏ lọc ' + label + ' ' + text} onClick={() => removeChip(key, i)}>
           {label}: {text} ✕
         </button>
       ))}
-      {ai.times.length ? <span className="tiny muted">Thời gian nhận ra: {ai.times.join(', ')} (chưa lọc được)</span> : null}
     </div>
   );
   const results = (
     <>
       <Notice msg={err ? { text: err } : null} />
       <div className="grid-cards">
-        {rows.map((p) => <JobCard key={p.id} p={p} loggedIn={loggedIn} onGate={dlg.gate} />)}
+        {rows.map((p) => <JobCard key={p.id} p={p} />)}
       </div>
       {!loading && !err && rows.length === 0 && <Empty title="Chưa có việc phù hợp" sub="Thử bỏ bớt bộ lọc hoặc đổi từ khóa tìm kiếm." />}
       <div className="row tw-justify-center"><button type="button" className="btn" hidden={!more} disabled={loading} onClick={loadMore}>Xem thêm</button></div>
