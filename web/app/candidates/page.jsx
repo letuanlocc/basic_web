@@ -76,6 +76,7 @@ function Candidates() {
 
   return (
     <main className="stack">
+      <h1 className="sr-only">Tìm ứng viên</h1>
       <section className="panel" aria-labelledby="flt">
         <div className="row between"><h2 id="flt">Lọc và sắp xếp ứng viên</h2>
           <button type="button" className="btn btn-sm" onClick={() => { setFilter(NO_FILTER); search.setValue(''); setQ(''); }}>Xóa bộ lọc</button></div>
@@ -97,7 +98,7 @@ function Candidates() {
             <select id="fsort" value={filter.sort} onChange={(e) => set('sort', e.target.value)}><option value="updated">Mới cập nhật hồ sơ</option><option value="experience">Có kinh nghiệm trước</option><option value="age">Tuổi tăng dần</option></select></div>
         </div>
       </section>
-      <div className="title-row"><h1>Những ứng viên tiềm năng</h1><span className="muted small" aria-live="polite">{count}</span></div>
+      <div className="title-row"><h2 className="tw-m-0 tw-text-[24px] tw-font-bold tw-tracking-[-.01em]">Những ứng viên tiềm năng</h2><span className="muted small" aria-live="polite">{count}</span></div>
       <div aria-busy={loading}>
         {loading ? <p className="muted" role="status">Đang tìm ứng viên…</p>
           : error ? <p className="msg err" role="alert">Không tải được danh sách ứng viên: {error}</p>
