@@ -50,7 +50,7 @@ export default async function JobDetailPage({ params }) {
               {p.no_experience ? <Badge>Không cần kinh nghiệm</Badge> : null}
               {p.accepts_intern ? <Badge>Nhận thực tập</Badge> : null}
             </div>
-            {p.summary ? <p style={{ margin: 0 }}>{p.summary}</p> : null}
+            {p.summary ? <p className="tw-m-0">{p.summary}</p> : null}
             <dl className="facts"><dt>Địa điểm</dt><dd>{p.address || '—'}</dd><dt>Cách làm việc</dt><dd>{p.work_form || '—'}</dd>
               <dt>Ngày bắt đầu</dt><dd>{dateVN(p.start_date)}</dd></dl></section>
           <section className="sect"><h2>Mô tả công việc</h2>
@@ -77,7 +77,7 @@ export default async function JobDetailPage({ params }) {
       <main className="stack">
         <nav className="crumbs" aria-label="Breadcrumb"><Link href="/jobs">Trang chủ</Link> → <span>Chi tiết công việc</span></nav>
         <div>{body}</div>
-        <Link className="btn" style={{ alignSelf: 'center' }} href="/jobs">Về trang chủ</Link>
+        <Link className="btn tw-self-center" href="/jobs">Về trang chủ</Link>
       </main>
     </Page>
   );

@@ -57,8 +57,8 @@ export default function JobPanel({ initial, children }) {
   else if (ended) {
     action = (<>
       <Badge>Đã nghỉ việc</Badge>
-      <p className="muted small" style={{ margin: '8px 0 0' }}>Chủ quán đã xóa bạn khỏi danh sách nhân viên của vị trí này nên bạn không thể đăng ký lịch làm. Nếu chủ quán mời lại, lời mời sẽ có ở mục &quot;Lời mời&quot; trong Công việc của tôi.</p>
-      <div className="row" style={{ marginTop: 12 }}>
+      <p className="muted small tw-mx-0 tw-mb-0 tw-mt-2">Chủ quán đã xóa bạn khỏi danh sách nhân viên của vị trí này nên bạn không thể đăng ký lịch làm. Nếu chủ quán mời lại, lời mời sẽ có ở mục &quot;Lời mời&quot; trong Công việc của tôi.</p>
+      <div className="row tw-mt-3">
         <button type="button" className="btn" disabled={busy === 'dismiss'} onClick={() => {
           if (!window.confirm('Xóa việc đã nghỉ này khỏi danh sách? Bạn vẫn có thể ứng tuyển lại sau.')) return;
           run('dismiss', async () => { await Auth.call('POST', '/api/applications/' + mine.id + '/dismiss'); await load(true); });
@@ -79,13 +79,13 @@ export default function JobPanel({ initial, children }) {
   }
 
   return (
-    <div className="two-col">
-      <div className="stack-col" style={{ gap: 16 }}>
+    <div className="tw-grid tw-grid-cols-[minmax(0,1fr)_340px] tw-items-start tw-gap-5 [@media(max-width:900px)]:tw-grid-cols-1">
+      <div className="tw-flex tw-flex-col tw-gap-4">
         {children}
-        {contact && <p className="msg info" style={{ margin: 0 }}>Người liên hệ phỏng vấn: <strong>{contact.contact_name}</strong> · {contact.contact_phone}</p>}
+        {contact && <p className="msg info tw-m-0">Người liên hệ phỏng vấn: <strong>{contact.contact_name}</strong> · {contact.contact_phone}</p>}
       </div>
-      <aside className="panel" aria-label="Ứng tuyển">
-        <div className="b" style={{ fontSize: 22, fontWeight: 700 }}>{formatSalary(p)}</div>
+      <aside className="tw-flex tw-flex-col tw-gap-3.5 tw-rounded-lg tw-border tw-border-solid tw-border-line tw-bg-white tw-p-5" aria-label="Ứng tuyển">
+        <div className="tw-text-[22px] tw-font-bold">{formatSalary(p)}</div>
         <dl className="facts"><dt>Hạn ứng tuyển</dt><dd>{dateVN(p.deadline)}</dd><dt>Đã nhận</dt><dd>{p.filled}/{p.headcount} người</dd></dl>
         <Notice msg={msg} />
         {action}
